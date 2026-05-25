@@ -9,7 +9,8 @@
     "dev:backend": "tsx watch server/index.ts",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "server": "tsx server/index.ts"
+    "server": "tsx server/index.ts",
+    "test:anthropic": "tsx scripts/test-anthropic.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
