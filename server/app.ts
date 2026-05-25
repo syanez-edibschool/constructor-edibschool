@@ -6,6 +6,7 @@ import projectRoutes from './routes/projects'
 import generationRoutes from './routes/generation'
 import downloadRoutes from './routes/download'
 import coachRoutes from './routes/coach'
+import claudeRoutes from './routes/claude'
 import { errorHandler } from './middleware/errorHandler'
 
 const app = express()
@@ -20,6 +21,7 @@ app.use('/projects', projectRoutes)
 app.use('/projects', generationRoutes)
 app.use('/projects', downloadRoutes)
 app.use('/coach', coachRoutes)
+app.use('/claude', claudeRoutes)
 
 app.use(errorHandler)
 
