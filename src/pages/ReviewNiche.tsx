@@ -129,7 +129,7 @@ export default function ReviewNiche() {
           <p className="text-center text-xs text-white/30 mt-2">{loadingProgress}%</p>
         </div>
         <div className="flex flex-col gap-2 text-sm text-white/40 text-center">
-          <p>Analizando tu nicho con OpenAI...</p>
+          <p>Analizando tu nicho con Claude...</p>
           <p>Construyendo avatar con Claude...</p>
           <p>Mapeando competencia...</p>
         </div>
