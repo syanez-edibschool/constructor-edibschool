@@ -1,7 +1,6 @@
 import { Router, Response } from 'express'
 import { requireAuth, AuthRequest } from '../middleware/auth'
 import { createUserClient } from '../services/supabaseService'
-import { generateWithOpenAI } from '../services/openaiService'
 import { generateWithClaude } from '../services/anthropicService'
 
 const router = Router()
@@ -44,7 +43,7 @@ router.post('/:id/generate-nicho-avatar-competencia', async (req: AuthRequest, r
     const ctx = JSON.stringify(answers)
 
     const [nichoRaw, avatarRaw, compRaw] = await Promise.all([
-      generateWithOpenAI(`
+      generateWithClaude(`
         Basado en estas respuestas de un emprendedor que quiere crear una agencia de IA:
         ${ctx}
 
@@ -75,7 +74,7 @@ router.post('/:id/generate-nicho-avatar-competencia', async (req: AuthRequest, r
           "narrative": "Historia de 3-4 oraciones en primera persona que describe UN DÍA en su vida, sus frustraciones, y por qué necesita ayuda de IA"
         }
       `),
-      generateWithOpenAI(`
+      generateWithClaude(`
         Basado en estas respuestas del emprendedor:
         ${ctx}
 
@@ -126,7 +125,7 @@ router.put('/:id/update-nicho', async (req: AuthRequest, res: Response) => {
     const db = createUserClient(token)
     const { feedback } = req.body
     const { answers } = await getProjectAnswers(req.params.id, req.userId!, token)
-    const raw = await generateWithOpenAI(`
+    const raw = await generateWithClaude(`
       El usuario quiere modificar el análisis de nicho. Feedback: "${feedback}"
       Respuestas originales: ${JSON.stringify(answers)}
       Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticket, trend, momento, razon.
@@ -162,7 +161,7 @@ router.put('/:id/update-competencia', async (req: AuthRequest, res: Response) =>
     const db = createUserClient(token)
     const { feedback } = req.body
     const { answers } = await getProjectAnswers(req.params.id, req.userId!, token)
-    const raw = await generateWithOpenAI(`
+    const raw = await generateWithClaude(`
       El usuario quiere modificar el análisis de competencia. Feedback: "${feedback}"
       Respuestas originales: ${JSON.stringify(answers)}
       Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.
@@ -897,10 +896,7 @@ Return ONLY JSON:
       return
     }
 
-    const usesClaude = ['emails', 'contrato', 'pitch', 'clone-winner', 'website'].includes(toolId)
-    const raw = usesClaude
-      ? await generateWithClaude(prompt)
-      : await generateWithOpenAI(prompt)
+    const raw = await generateWithClaude(prompt)
 
     const result = parseJSON(raw) as Record<string, unknown>
 
