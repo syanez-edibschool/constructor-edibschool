@@ -73,9 +73,10 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
   useEffect(() => {
     api.get(`/projects/${projectId}/tools/propuesta`)
       .then(({ data }) => {
-        if (data.exists && data.result?.content) {
-          setContent(data.result.content)
-          setServiceId(data.result.serviceId || null)
+        const result = data.result ?? data
+        if (data.exists && result?.content) {
+          setContent(result.content)
+          setServiceId(result.serviceId || null)
           setSavedAt(data.updated_at)
           setStep('done')
         } else {
@@ -95,7 +96,7 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
       const { data } = await api.post(`/projects/${projectId}/tools/propuesta`, {
         toolAnswers: { serviceId, serviceName: service?.label, ...answers },
       })
-      setContent(data.result?.content || '')
+      setContent((data.result ?? data)?.content || '')
       setSavedAt(new Date().toISOString())
       setStep('done')
     } catch {

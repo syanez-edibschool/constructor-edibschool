@@ -472,7 +472,7 @@ export default function Tools() {
     try {
       const { data } = await api.get(`/projects/${id}/tools/${toolId}`)
       if (data.exists) {
-        setStates(p => ({ ...p, [toolId]: { phase: 'done', answers: {}, result: data.result, savedAt: data.updated_at } }))
+        setStates(p => ({ ...p, [toolId]: { phase: 'done', answers: {}, result: data.result ?? data, savedAt: data.updated_at } }))
       } else {
         setStates(p => ({ ...p, [toolId]: { phase: 'questions', answers: {}, result: null } }))
       }
@@ -486,7 +486,7 @@ export default function Tools() {
     setStates(p => ({ ...p, [activeTool]: { phase: 'generating', answers, result: null } }))
     try {
       const { data } = await api.post(`/projects/${id}/tools/${activeTool}`, { toolAnswers: answers })
-      setStates(p => ({ ...p, [activeTool]: { phase: 'done', answers, result: data.result, savedAt: new Date().toISOString() } }))
+      setStates(p => ({ ...p, [activeTool]: { phase: 'done', answers, result: data.result ?? data, savedAt: new Date().toISOString() } }))
     } catch {
       toast.error('Error al generar. Inténtalo de nuevo.')
       setStates(p => ({ ...p, [activeTool]: { phase: 'questions', answers, result: null } }))

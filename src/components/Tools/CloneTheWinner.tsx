@@ -628,7 +628,7 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
         const { data } = await api.post(`/projects/${projectId}/tools/clone-winner`, {
           toolAnswers: { handle: inputs[i].handle, platform: inputs[i].platform, url: inputs[i].url },
         })
-        results.push(data.result as CloneAnalysis)
+        results.push((data.result ?? data) as CloneAnalysis)
         setProgress(p => p.map((x, j) => j === i ? { ...x, status: 'done' } : x))
       } catch {
         setProgress(p => p.map((x, j) => j === i ? { ...x, status: 'error' } : x))
