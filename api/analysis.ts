@@ -134,24 +134,19 @@ Incluye exactamente 3 competidores.`),
           ticket: nicho.ticket,
           trend: nicho.trend,
           momento: nicho.momento,
-          razon: nicho.razon,
+          data_json: JSON.stringify(nicho),
         }, { onConflict: 'project_id' }),
         db.from('project_avatar').upsert({
           project_id: projectId,
           name: avatar.name,
           age: avatar.age,
-          position: avatar.position,
-          experience: avatar.experience,
-          income: avatar.income,
-          goals: avatar.goals,
-          pains: avatar.pains,
-          narrative: avatar.narrative,
+          data_json: JSON.stringify(avatar),
         }, { onConflict: 'project_id' }),
         db.from('project_competencia').upsert({
           project_id: projectId,
-          competitors: competencia.competitors,
           positioning: competencia.positioning,
           opportunity: competencia.opportunity,
+          data_json: JSON.stringify(competencia),
         }, { onConflict: 'project_id' }),
       ])
 
@@ -198,7 +193,7 @@ Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticke
         ticket: nicho.ticket,
         trend: nicho.trend,
         momento: nicho.momento,
-        razon: nicho.razon,
+        data_json: JSON.stringify(nicho),
       }, { onConflict: 'project_id' })
       if (result.error) {
         console.error('[analysis/update-nicho] Save error:', result.error)
@@ -219,12 +214,7 @@ Genera un nuevo avatar JSON con los mismos campos: name, age, position, experien
         project_id: projectId,
         name: avatar.name,
         age: avatar.age,
-        position: avatar.position,
-        experience: avatar.experience,
-        income: avatar.income,
-        goals: avatar.goals,
-        pains: avatar.pains,
-        narrative: avatar.narrative,
+        data_json: JSON.stringify(avatar),
       }, { onConflict: 'project_id' })
       if (result.error) {
         console.error('[analysis/update-avatar] Save error:', result.error)
@@ -243,9 +233,9 @@ Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
       const competencia = parseJSON(raw)
       const result = await db.from('project_competencia').upsert({
         project_id: projectId,
-        competitors: competencia.competitors,
         positioning: competencia.positioning,
         opportunity: competencia.opportunity,
+        data_json: JSON.stringify(competencia),
       }, { onConflict: 'project_id' })
       if (result.error) {
         console.error('[analysis/update-competencia] Save error:', result.error)
