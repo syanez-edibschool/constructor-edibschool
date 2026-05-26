@@ -180,13 +180,13 @@ export default function ReviewNiche() {
                     { label: 'Crecimiento anual', value: nicho.trend },
                     { label: 'Momento ideal', value: nicho.momento },
                   ].map((item) => (
-                    <div key={item.label} className="glass rounded-xl p-4">
+                    <div key={item.label} className="glass-dark rounded-xl p-4">
                       <p className="text-xs text-white/40 mb-1">{item.label}</p>
                       <p className="font-semibold text-white text-sm">{item.value}</p>
                     </div>
                   ))}
                 </div>
-                <div className="glass rounded-xl p-5 mb-6">
+                <div className="glass-dark rounded-xl p-5 mb-6">
                   <p className="text-xs text-white/40 mb-2">Por qué este nicho es ideal ahora</p>
                   <p className="text-white/80 text-sm leading-relaxed">{nicho.razon}</p>
                 </div>
@@ -206,7 +206,7 @@ export default function ReviewNiche() {
             {/* AVATAR TAB */}
             {activeTab === 'avatar' && avatar && (
               <motion.div key="avatar" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <div className="glass rounded-2xl p-6 mb-6">
+                <div className="glass-dark rounded-2xl p-6 mb-6">
                   <div className="flex items-start gap-5 mb-5">
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))' }}>
@@ -259,7 +259,7 @@ export default function ReviewNiche() {
               <motion.div key="competencia" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                 <div className="flex flex-col gap-4 mb-6">
                   {competencia.competitors?.map((c, i) => (
-                    <div key={i} className="glass rounded-xl p-5">
+                    <div key={i} className="glass-dark rounded-xl p-5">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-bold text-white">{c.name}</h4>
                         <span className="text-xs text-cyan font-mono bg-cyan/10 px-3 py-1 rounded-full">{c.price}</span>
@@ -281,7 +281,7 @@ export default function ReviewNiche() {
                     </div>
                   ))}
                 </div>
-                <div className="glass rounded-xl p-5 mb-6">
+                <div className="glass-dark rounded-xl p-5 mb-6">
                   <p className="text-xs text-white/40 mb-2">Posicionamiento recomendado para ti</p>
                   <p className="text-white/80 text-sm leading-relaxed font-medium">{competencia.positioning}</p>
                 </div>
@@ -348,7 +348,7 @@ function ApprovalBlock({
   }
 
   return (
-    <div className="glass rounded-xl p-5">
+    <div className="glass-dark rounded-xl p-5">
       <p className="text-sm font-medium text-white/80 mb-4">¿Está bien esto?</p>
       {!editMode ? (
         <div className="flex gap-3">
