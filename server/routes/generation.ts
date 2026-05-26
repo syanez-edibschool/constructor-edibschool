@@ -786,22 +786,6 @@ Genera 10 casos de uso de IA ultra específicos y accionables para:
 Cada caso debe ser REAL y ESPECÍFICO: nombre ficticio de empresa, problema concreto, solución de IA exacta con herramientas mencionadas, resultado medible en números.
 Devuelve SOLO JSON: { "cases": [{ "title": "título específico del caso", "problem": "problema concreto que tenían", "solution": "cómo exactamente lo resolvió con IA (herramientas específicas)", "result": "resultado medible: % ahorro, € generados, horas recuperadas" }] }`,
 
-      estrategia: `Eres un strategic advisor que ha escaldo 50+ agencias digitales de 0 a 7 cifras.
-${ctx}
-
-Crea un plan estratégico de 90 días ultra concreto con:
-- Objetivo principal: ${toolAnswers.objetivo || 'conseguir primeros clientes'}
-- Situación actual: ${toolAnswers.situacion || 'comenzando'}
-- Mayor obstáculo: ${toolAnswers.reto || 'no especificado'}
-- Recursos disponibles: ${toolAnswers.recursos || 'tiempo limitado'}
-- Budget marketing: ${toolAnswers.budget || '€0'}
-- Canal actual de adquisición: ${toolAnswers.adquisicion || 'referidos'}
-- KPIs de éxito: ${toolAnswers.kpis || 'clientes e ingresos'}
-
-El plan debe ser ACCIONABLE semana a semana, no genérico. Incluye acciones específicas por semana, no solo meses.
-Devuelve SOLO JSON: { "months": [{ "month": 1, "title": "nombre del mes (Ej: Cimientos y Primera Venta)", "goals": ["objetivo específico 1", "objetivo 2", "objetivo 3"], "actions": ["acción concreta semana 1", "semana 2", "semana 3", "semana 4"], "kpis": ["kpi medible 1", "kpi 2", "kpi 3"] }] }
-Genera 3 meses con progresión lógica.`,
-
       'clone-winner': `You are a senior growth strategist and social media intelligence analyst with 15+ years analyzing top creators and online businesses.
 
 Business context:

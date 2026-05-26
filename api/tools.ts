@@ -708,11 +708,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const otherTools = (otherToolsRes.data || []).filter(t => t.tool_id !== toolId)
       const cloneWinner = otherTools.find(t => t.tool_id === 'clone-winner')?.result_json
       const calendario  = otherTools.find(t => t.tool_id === 'calendario')?.result_json
-      const estrategia  = otherTools.find(t => t.tool_id === 'estrategia')?.result_json
 
       // Summary corto de cada tool generado (solo lo más relevante, para no inflar el prompt)
       const otherToolsSummary = otherTools
-        .filter(t => t.tool_id !== 'clone-winner' && t.tool_id !== 'calendario' && t.tool_id !== 'estrategia')
+        .filter(t => t.tool_id !== 'clone-winner' && t.tool_id !== 'calendario')
         .map(t => `- ${t.tool_id}: ${JSON.stringify(t.result_json).slice(0, 300)}…`)
         .join('\n')
 
@@ -736,9 +735,6 @@ ${JSON.stringify(cloneWinner, null, 2).slice(0, 2000)}
 ` : ''}
 ${calendario ? `📅 CALENDARIO YA GENERADO (úsalo para mantener coherencia con los temas/ángulos):
 ${JSON.stringify(calendario, null, 2).slice(0, 1500)}
-` : ''}
-${estrategia ? `📈 ESTRATEGIA 90D YA GENERADA (alinéate con el plan):
-${JSON.stringify(estrategia, null, 2).slice(0, 1500)}
 ` : ''}
 ${otherToolsSummary ? `🛠️ OTRAS HERRAMIENTAS YA GENERADAS:
 ${otherToolsSummary}

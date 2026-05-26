@@ -12,7 +12,6 @@ export interface ProjectContext {
   website:     Record<string, unknown> | null
   contrato:    Record<string, unknown> | null
   tracker:     Record<string, unknown> | null
-  estrategia:  Record<string, unknown> | null
   casos:       Record<string, unknown> | null
   copys:       Record<string, unknown>[]
   carruseles:  Record<string, unknown>[]
@@ -26,7 +25,7 @@ const EMPTY: ProjectContext = {
   nicho: null, avatar: null, competencia: null,
   calendario: null, vsl: null, propuesta: null, precios: null,
   website: null, contrato: null, tracker: null,
-  estrategia: null, casos: null,
+  casos: null,
   copys: [], carruseles: [], reels: [], imagenes: [], emails: [],
   completedTools: [],
 }
@@ -65,7 +64,6 @@ export function useProjectContext(projectId: string | null | undefined) {
         website:     byId('website'),
         contrato:    byId('contrato'),
         tracker:     byId('tracker'),
-        estrategia:  byId('estrategia'),
         casos:       byId('casos'),
         copys:       allById('copy'),
         carruseles:  allById('carruseles'),

@@ -20,7 +20,6 @@ const TOOLS: SidebarTool[] = [
   // Paso 1 — Análisis
   { id: 'clone-winner', Icon: DocumentDuplicateIcon, short: 'Clonar Ganador',  cat: 'analisis'       },
   // Paso 2 — Contenido
-  { id: 'estrategia',   Icon: MapIcon,               short: 'Estrategia 90d',  cat: 'contenido'      },
   { id: 'calendario',   Icon: CalendarDaysIcon,      short: 'Calendario',      cat: 'contenido'      },
   { id: 'copy',         Icon: PencilSquareIcon,      short: 'Copy Ads',        cat: 'contenido'      },
   { id: 'carruseles',   Icon: ViewColumnsIcon,        short: 'Carruseles',      cat: 'contenido'      },
@@ -41,10 +40,10 @@ const TOOLS: SidebarTool[] = [
 // Step numbers for each tool (shown as badge)
 const TOOL_STEPS: Record<string, number> = {
   'clone-winner': 1,
-  'estrategia': 2, 'calendario': 3, 'copy': 4, 'carruseles': 5, 'reels': 6, 'imagenes': 7,
-  'vsl': 8, 'propuesta': 9, 'precios': 10, 'website': 11,
-  'emails': 12, 'contrato': 13,
-  'tracker': 14,
+  'calendario': 2, 'copy': 3, 'carruseles': 4, 'reels': 5, 'imagenes': 6,
+  'vsl': 7, 'propuesta': 8, 'precios': 9, 'website': 10,
+  'emails': 11, 'contrato': 12,
+  'tracker': 13,
 }
 
 const CATS = ['analisis', 'contenido', 'ventas', 'automatizacion', 'tracking']

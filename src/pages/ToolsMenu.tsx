@@ -137,15 +137,6 @@ const TOOLS = [
     color: 'rgba(139,92,246,0.15)',
     border: 'rgba(139,92,246,0.3)',
   },
-  {
-    id: 'estrategia',
-    icon: '📊',
-    title: 'Estrategia Trimestral',
-    desc: 'Plan de 90 días detallado para tu agencia',
-    time: '~3 min',
-    color: 'rgba(0,217,255,0.15)',
-    border: 'rgba(0,217,255,0.3)',
-  },
 ]
 
 export default function ToolsMenu() {

@@ -72,10 +72,6 @@ router.get('/:id/download/zip', async (req: AuthRequest, res: Response) => {
         const d = r as { content: string }
         return d.content || ''
       }},
-      estrategia: { folder: 'estrategia', filename: 'plan-90-dias.txt', extractor: (r: unknown) => {
-        const d = r as { months: Array<{ month: number; title: string; goals: string[]; actions: string[]; kpis: string[] }> }
-        return d.months?.map(m => `MES ${m.month}: ${m.title}\n\nObjetivos:\n${m.goals?.map(g => `  • ${g}`).join('\n')}\n\nAcciones:\n${m.actions?.map(a => `  • ${a}`).join('\n')}\n\nKPIs:\n${m.kpis?.map(k => `  • ${k}`).join('\n')}`).join('\n\n---\n\n') || ''
-      }},
     }
 
     for (const tool of (tools || [])) {
@@ -97,7 +93,6 @@ CONTENIDO DEL PAQUETE:
 - pitch-deck/     → Presentación de ventas
 - emails/         → Secuencias de email marketing
 - contratos/      → Contrato de servicios
-- estrategia/     → Plan 90 días
 
 ¡Listo para lanzar tu agencia de IA!
 `)

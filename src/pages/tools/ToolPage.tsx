@@ -381,40 +381,6 @@ const TOOL_CONFIGS: Record<string, Omit<ToolConfig, 'id'>> = {
       )
     },
   },
-  estrategia: {
-    icon: '📊',
-    title: 'Estrategia Trimestral',
-    desc: 'Plan de 90 días para tu agencia',
-    endpoint: 'estrategia',
-    renderResult: (data: unknown) => {
-      const d = data as { months: Array<{ month: number; title: string; goals: string[]; actions: string[]; kpis: string[] }> }
-      return (
-        <div className="flex flex-col gap-6">
-          {d.months?.map((m, i) => (
-            <div key={i} className="glass rounded-xl p-5">
-              <h3 className="font-bold text-white mb-4">Mes {m.month}: {m.title}</h3>
-              <div className="grid grid-cols-3 gap-4 text-xs">
-                <div>
-                  <p className="text-cyan mb-2">Objetivos</p>
-                  {m.goals?.map((g, j) => <p key={j} className="text-white/60 mb-1">• {g}</p>)}
-                </div>
-                <div>
-                  <p className="text-purple mb-2">Acciones clave</p>
-                  {m.actions?.map((a, j) => <p key={j} className="text-white/60 mb-1">• {a}</p>)}
-                </div>
-                <div>
-                  <p className="text-green-400 mb-2">KPIs</p>
-                  {m.kpis?.map((k, j) => <p key={j} className="text-white/60 mb-1">• {k}</p>)}
-                </div>
-              </div>
-            </div>
-          ))}
-          <button onClick={() => downloadText(JSON.stringify(d, null, 2), 'estrategia-90-dias.json')}
-            className="btn-secondary rounded-xl py-3 text-sm">⬇️ Descargar Plan</button>
-        </div>
-      )
-    },
-  },
 }
 
 export default function ToolPage() {
