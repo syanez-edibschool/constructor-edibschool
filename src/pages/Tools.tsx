@@ -23,6 +23,7 @@ import PromptsImagenes,   { type ImagenPrompt }   from '../components/Tools/Prom
 import CloneTheWinner                               from '../components/Tools/CloneTheWinner'
 import SitioWeb                                    from '../components/Tools/SitioWeb'
 import PropuestaComercial                          from '../components/Tools/PropuestaComercial'
+import Estrategia90D                               from '../components/Tools/Estrategia90D'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
@@ -197,6 +198,11 @@ const TOOLS: ToolDef[] = [
       { id: 'restricciones', label: '¿Qué NO debe hacer/decir el agente?',         type: 'textarea', placeholder: 'Ej: nunca dar precios sin antes calificar, no prometer resultados específicos' },
     ],
   },
+  {
+    id: 'estrategia90d', Icon: MapIcon, title: 'Estrategia 90 Días', short: 'Estrategia 90D', cat: 'estrategia',
+    desc: 'Plan de acción completo de 90 días para lanzar y escalar tu agencia de IA.',
+    qs: [],
+  },
 ]
 
 const CATS = [{ id: 'contenido', label: 'Contenido' }, { id: 'ventas', label: 'Ventas' }, { id: 'operaciones', label: 'Ops' }, { id: 'estrategia', label: 'Herramientas Estratégicas' }]
@@ -363,6 +369,10 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
 
   if (toolId === 'clone-winner') {
     return <CloneTheWinner projectId={projectId} />
+  }
+
+  if (toolId === 'estrategia90d') {
+    return <Estrategia90D projectId={projectId} />
   }
 
   if (toolId === 'propuesta') {
@@ -562,7 +572,7 @@ export default function Tools() {
     if (states[toolId]) return // already loaded
 
     // These tools manage their own data — skip the AI questions/generation flow
-    if (toolId === 'tracker' || toolId === 'website' || toolId === 'clone-winner' || toolId === 'propuesta') {
+    if (toolId === 'tracker' || toolId === 'website' || toolId === 'clone-winner' || toolId === 'propuesta' || toolId === 'estrategia90d') {
       setStates(p => ({ ...p, [toolId]: { phase: 'done', answers: {}, result: {} } }))
       return
     }

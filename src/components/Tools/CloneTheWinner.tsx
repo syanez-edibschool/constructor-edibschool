@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowDownTrayIcon, CheckCircleIcon,
   ChevronDownIcon, TrophyIcon, ArrowLeftIcon,
   UserGroupIcon, MagnifyingGlassIcon, MicrophoneIcon,
+  ArrowRightIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { supabase } from '../../services/supabase'
@@ -171,7 +173,8 @@ function CheckItem({ text }: { text: string }) {
 }
 
 // ─── Full detail view (sections A–F) ──────────────────────────────────────────
-function CloneDetail({ analysis: a, onBack }: { analysis: CloneAnalysis; onBack: () => void }) {
+function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalysis; onBack: () => void; projectId: string }) {
+  const navigate = useNavigate()
   const score = a.score?.overall ?? 0
   const scoreColor = score >= 75 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444'
 
@@ -217,9 +220,17 @@ function CloneDetail({ analysis: a, onBack }: { analysis: CloneAnalysis; onBack:
             <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{a.platform}</p>
           </div>
         </div>
-        <button onClick={downloadAnalysis} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}>
-          <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> Descargar
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={downloadAnalysis} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}>
+            <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> Descargar
+          </button>
+          <button
+            onClick={() => navigate(`/proyecto/${projectId}/tools/estrategia90d`, { state: { cloneGanadorData: a } })}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10, background: 'var(--accent)', color: '#000', border: 'none', cursor: 'pointer', fontWeight: 700 }}
+          >
+            Usar en Estrategia 90D <ArrowRightIcon style={{ width: 14, height: 14 }} />
+          </button>
+        </div>
       </div>
 
       {/* Executive summary cards */}
@@ -1053,6 +1064,7 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
       <CloneDetail
         analysis={analyses[selectedIdx]}
         onBack={() => setStep('comparison')}
+        projectId={projectId}
       />
     )
   }
