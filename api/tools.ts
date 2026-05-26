@@ -46,10 +46,12 @@ const TOOL_MAX_TOKENS: Record<string, number> = {
   'casos':          6000, // 10 casos detallados
   'tracker':        5000, // 6+ meses de números
   'vsl':            4096, // 7 secciones cortas
-  'reels':          4096, // 3 guiones
-  'copy':           4096, // 5 ad copies
-  'precios':        4096, // 3 paquetes
+  'reels':          6000, // 3 guiones ultra detallados (en markdown completo)
+  'story':          6000, // 5 stories ultra detalladas (en markdown completo)
+  'copy':           4096, // legacy compat
+  'precios':        5000, // 3 paquetes + oferta irresistible + notas
   'propuesta':      4096, // texto formato
+  'chat-agent':     8000, // blueprint completo (system prompt + flujo + intents + integración)
 }
 const DEFAULT_MAX_TOKENS = 4096
 
@@ -67,11 +69,13 @@ const TOOL_MODEL: Record<string, string> = {
   'contrato':     SONNET, // texto legal preciso
   // Haiku para tools simples/estructurados — mucho más rápido
   'vsl':          HAIKU,
-  'reels':        HAIKU,
+  'reels':        SONNET,  // ahora producen markdown muy detallado
+  'story':        SONNET,  // 5 stories con guion + visual + sticker, requiere creatividad
   'copy':         HAIKU,
-  'precios':      HAIKU,
+  'precios':      SONNET,  // 3 paquetes + oferta irresistible con razonamiento
   'propuesta':    HAIKU,
   'tracker':      HAIKU,
+  'chat-agent':   SONNET,  // blueprint técnico, system prompt complejo
 }
 const DEFAULT_MODEL = SONNET
 
@@ -112,10 +116,12 @@ Crea un script VSL de ventas de alta conversión con estos parámetros específi
 El script debe ser ESPECÍFICO, NO genérico. Usa el dolor real del avatar, la autoridad real del creador.
 Devuelve SOLO JSON: { "sections": [{ "label": "HOOK (0-5s)", "timing": "0-5s", "content": "texto exacto del script" }, { "label": "PROBLEMA Y AGITACIÓN (5-30s)", "timing": "5-30s", "content": "..." }, { "label": "HISTORIA Y AUTORIDAD (30-90s)", "timing": "30-90s", "content": "..." }, { "label": "SOLUCIÓN (90-150s)", "timing": "90-150s", "content": "..." }, { "label": "PRUEBA SOCIAL (150-180s)", "timing": "150-180s", "content": "..." }, { "label": "OFERTA Y GARANTÍA (180-210s)", "timing": "180-210s", "content": "..." }, { "label": "CTA FINAL (210-165s)", "timing": "210s+", "content": "..." }] }`,
 
-    reels: `Eres un creador de contenido viral con 10M+ de seguidores experto en Reels e IA.
+    reels: `Actúa como un INGENIERO DE PROMPTS senior + viral content director con 10M+ de seguidores experto en Reels e IA. Tu rol es producir prompts/guiones de máxima precisión, estructura y detalle.
 ${ctx}
 
-Crea 3 guiones de Reels VIRALES con estos parámetros:
+⚠️ MUY IMPORTANTE: Si el contexto contiene un CALENDARIO ya generado, DEBES tomar 3 ideas/títulos de ese calendario como base para los 3 guiones de Reels. NO inventes temas si ya hay un calendario. Mantén coherencia narrativa.
+
+PARÁMETROS DEL USUARIO:
 - Tipo de reel: ${toolAnswers.tipo || 'Educativo'}
 - Estilo de hook: ${toolAnswers.hook || 'Dato sorprendente'}
 - Duración: ${toolAnswers.duracion || '30 segundos'}
@@ -123,22 +129,93 @@ Crea 3 guiones de Reels VIRALES con estos parámetros:
 - Mensaje a comunicar: ${toolAnswers.mensaje || 'no especificado'}
 - CTA: ${toolAnswers.cta || 'Seguir la cuenta'}
 
-Cada guion debe incluir: HOOK (primeros 3 segundos), DESARROLLO, CTA. Indica qué texto aparece en pantalla con [TEXTO:].
-Devuelve SOLO JSON: { "scripts": ["GUION 1:\\n[ESCENA: descripción]\\n[TEXTO: texto pantalla]\\nVoz en off: texto hablado\\n\\n[ESCENA 2]...", "GUION 2:...", "GUION 3:..."] }`,
+Crea 3 guiones VIRALES de Reels. Cada guion ULTRA DETALLADO con esta estructura obligatoria:
 
-    copy: `Eres un growth hacker y copywriter especialista en paid ads con 100M+ en ad spend gestionado.
+# GUION N — [TÍTULO ESPECÍFICO TOMADO DEL CALENDARIO]
+
+## CONTEXTO (1-2 líneas)
+- De qué pieza del calendario viene + ángulo
+
+## HOOK (segundo 0-3)
+- [TEXTO EN PANTALLA grande]: 4-7 palabras impactantes
+- [VOZ EN OFF]: frase de gancho
+- [ESCENA]: descripción visual exacta (qué se ve, ángulo, b-roll)
+
+## DESARROLLO (segundo 3 a duración-3)
+- [TEXTO EN PANTALLA]: aparece y desaparece, frase por frase
+- [VOZ EN OFF]: guion hablado completo, palabra por palabra
+- [ESCENA]: cada cambio de plano descrito (transiciones, b-roll, cuts)
+- [SFX/MÚSICA]: tipo y momento exacto
+
+## CTA (últimos 3 segundos)
+- [TEXTO EN PANTALLA]: CTA visual claro
+- [VOZ EN OFF]: instrucción directa
+
+## CAPTION/COPY PARA POSTEAR
+- 3 líneas: hook escrito + valor + CTA
+- 5-7 hashtags estratégicos
+
+## ALTERNATIVA DE HOOK (B-test)
+- Una variación del hook inicial para A/B testing
+
+Devuelve SOLO JSON: { "scripts": ["GUION 1 COMPLETO en formato markdown como el anterior", "GUION 2 COMPLETO...", "GUION 3 COMPLETO..."] }`,
+
+    story: `Actúa como un INGENIERO DE PROMPTS senior + director creativo de Stories de Instagram especialista en venta de demos/llamadas gratuitas. Generas guiones ultra detallados y persuasivos.
 ${ctx}
 
-Crea 5 ad copies de alta conversión con:
-- Tipo de copy: ${toolAnswers.tipo || 'Pain'}
-- Plataforma: ${toolAnswers.plataforma || 'Facebook Ads'}
-- Temperatura audiencia: ${toolAnswers.temperatura || 'Fría'}
-- Objeción #1 a romper: ${toolAnswers.objecion || 'no especificado'}
-- Beneficio más irresistible: ${toolAnswers.beneficio || 'no especificado'}
-- Objetivo de campaña: ${toolAnswers.objetivo || 'Leads'}
+⚠️ MUY IMPORTANTE: Si el contexto contiene un CALENDARIO ya generado, toma los TITULARES de Stories que están en el calendario como base de las 5 historias. Coherencia total con el calendario.
 
-Cada copy: HEADLINE (máx 40 caracteres) + CUERPO (3-4 líneas) + CTA específico. Sé directo, específico, sin clichés.
-Devuelve SOLO JSON: { "copies": ["COPY 1\\n\\nHEADLINE: texto\\n\\nCUERPO:\\ntexto\\n\\nCTA: texto", "COPY 2:...", "COPY 3:...", "COPY 4:...", "COPY 5:..."] }`,
+PARÁMETROS DEL USUARIO:
+- Tono: ${toolAnswers.tono || 'Cercano y directo'}
+- Audiencia: ${toolAnswers.audiencia || 'lead tibio que ya nos sigue'}
+- Objeción clave a derribar: ${toolAnswers.objecion || 'no tengo tiempo / es caro'}
+- Beneficio principal de la demo: ${toolAnswers.beneficio || 'plan personalizado en 30 min'}
+
+OBJETIVO ÚNICO: Vender una DEMO GRATUITA DE 30 MINUTOS. La secuencia de 5 stories debe maximizar el % que agenda la demo.
+
+Estructura OBLIGATORIA — Secuencia de 5 stories conectadas:
+
+# STORY 1 — HOOK + PROBLEMA
+- TEXTO EN PANTALLA: 5-10 palabras que detengan el scroll
+- DESCRIPCIÓN VISUAL: tipo de foto/video (selfie, b-roll, mockup, screen capture, etc.)
+- COPY HABLADO si aplica (1-2 frases)
+- ELEMENTOS GRÁFICOS de Instagram a usar (sticker emoji, pregunta, encuesta, etc.)
+- DURACIÓN sugerida (3s, 5s, 15s)
+
+# STORY 2 — AGITACIÓN / CONSECUENCIA
+- TEXTO EN PANTALLA
+- VISUAL
+- COPY HABLADO
+- STICKER/ELEMENTO interactivo (encuesta "¿te pasa?" Sí/No)
+- DURACIÓN
+
+# STORY 3 — REVELACIÓN / NUEVA POSIBILIDAD
+- TEXTO EN PANTALLA
+- VISUAL (caso, screen, antes/después)
+- COPY HABLADO
+- ELEMENTO (cita, dato impactante, prueba social)
+- DURACIÓN
+
+# STORY 4 — OFERTA: DEMO GRATUITA 30 MIN
+- TEXTO EN PANTALLA con ANCLA: "Plan personalizado de 30 min — gratis"
+- VISUAL: lo que el usuario se llevará de la demo (3-4 bullets)
+- COPY HABLADO: por qué es gratis y por qué solo X plazas
+- OBJECIÓN ANTICIPADA derribada (1 línea)
+- DURACIÓN
+
+# STORY 5 — CTA + URGENCIA + STICKER DE LINK
+- TEXTO EN PANTALLA con CTA literal: "Toca aquí" / "Link arriba"
+- VISUAL: dirige la atención al link/swipe up
+- STICKER de link con texto exacto a configurar
+- COPY HABLADO de cierre con urgencia real
+- DURACIÓN
+
+## EXTRAS OBLIGATORIOS
+- COPY del DM automático si responden el sticker
+- 2 variaciones del HOOK de Story 1 para A/B
+- Sugerencia del mejor HORARIO de publicación
+
+Devuelve SOLO JSON: { "copies": ["STORY 1 COMPLETO en markdown", "STORY 2...", "STORY 3...", "STORY 4...", "STORY 5..."] }`,
 
     imagenes: `Eres un director de arte senior especializado en diseño visual high ticket para Instagram, experto en cinematografía publicitaria, diseño editorial premium, branding de lujo y psicología visual de marketing.
 ${ctx}
@@ -214,18 +291,49 @@ Devuelve SOLO JSON:
   ]
 }`,
 
-    carruseles: `Eres un estratega de Instagram con 500+ carruseles virales creados para agencias y coaches.
+    carruseles: `Actúa como un INGENIERO DE PROMPTS senior + estratega de Instagram con 500+ carruseles virales creados para agencias y coaches. Produces prompts/guiones de máxima precisión y detalle.
 ${ctx}
 
-Crea 8 estructuras de carrusel con:
+⚠️ MUY IMPORTANTE: Si el contexto contiene un CALENDARIO ya generado, DEBES tomar al menos 6 titulares/ideas del calendario como base para los 8 carruseles. Mantén coherencia narrativa total con el calendario.
+
+PARÁMETROS:
 - Objetivo: ${toolAnswers.objetivo || 'Educar sobre problema'}
 - Número de slides: ${toolAnswers.slides || '7 slides'}
 - Tema: ${toolAnswers.tema || 'no especificado'}
 - CTA final: ${toolAnswers.cta || 'Guardar este carrusel'}
 - Estilo de texto: ${toolAnswers.estilo || 'Bullet points cortos'}
 
-Cada carrusel: SLIDE 1 (hook/título), SLIDES 2-6 (contenido progresivo), SLIDE FINAL (CTA). Sé específico con el contenido de cada slide.
-Devuelve SOLO JSON: { "carousels": ["CARRUSEL 1: [Título]\\n\\nSlide 1: texto hook\\nSlide 2: texto\\n...\\nSlide final: CTA específico", "CARRUSEL 2:...", "...8 carruseles"] }`,
+Crea 8 carruseles ULTRA DETALLADOS. Cada carrusel debe tener esta estructura obligatoria:
+
+# CARRUSEL N — [TÍTULO específico del calendario o nicho]
+## CONTEXTO
+- De qué pieza del calendario viene + objetivo psicológico
+
+## SLIDE 1 — HOOK VISUAL
+- TEXTO PRINCIPAL: 4-8 palabras impactantes
+- SUBTEXTO: contexto breve
+- DESCRIPCIÓN VISUAL: qué imagen/diseño usar (composición, color dominante, elementos gráficos)
+- TIPOGRAFÍA: estilo recomendado
+
+## SLIDE 2 a (N-1) — DESARROLLO PROGRESIVO
+Para CADA slide:
+- TÍTULO del slide
+- TEXTO COMPLETO (incluye copy palabra por palabra)
+- DESCRIPCIÓN VISUAL específica (qué dibujar/diseñar)
+- TRANSICIÓN al siguiente slide (gancho narrativo)
+
+## SLIDE FINAL — CTA
+- TEXTO CTA exacto
+- ELEMENTO VISUAL que refuerza el CTA
+- INSTRUCCIÓN clara de acción
+
+## CAPTION PARA INSTAGRAM
+- Primera línea (gancho que aparece sin "ver más")
+- Cuerpo de 4-6 líneas con valor
+- CTA final
+- 5-8 hashtags estratégicos
+
+Devuelve SOLO JSON: { "carousels": ["CARRUSEL 1 COMPLETO en markdown como arriba", "CARRUSEL 2...", "...8 carruseles"] }`,
 
     website: (() => {
       const siteType = toolAnswers.siteType || 'landing-leads'
@@ -439,21 +547,62 @@ Crea una propuesta comercial profesional y persuasiva con:
 La propuesta debe ser PERSUASIVA: enfocada en valor/ROI, no en características técnicas. Incluye: Resumen ejecutivo, El problema, La solución, Entregables, Timeline, Inversión, Garantía, Próximos pasos.
 Devuelve SOLO JSON: { "content": "PROPUESTA COMERCIAL\\n\\n[texto completo bien estructurado con todas las secciones]" }`,
 
-    precios: `Eres un pricing strategist especialista en agencias de servicios digitales y SaaS.
+    precios: `Actúa como un PRICING STRATEGIST senior especializado en agencias de IA, con experiencia cerrando primeros clientes y escalando MRR. Aplicas el framework: SETUP inicial + FIJO MENSUAL ASEQUIBLE + opción "PROPUESTA IRRESISTIBLE" para primeras ventas.
 ${ctx}
 
-Crea 3 paquetes de precios estratégicos con:
+PARÁMETROS:
 - Servicio central: ${toolAnswers.servicio || 'automatización con IA'}
 - Horas por cliente: ${toolAnswers.horas || '5-8h/semana'}
 - Experiencia: ${toolAnswers.experiencia || '2-3 años'}
 - Mercado: ${toolAnswers.mercado || 'España/Europa'}
-- Modelo preferido: ${toolAnswers.modelo || 'Retainer mensual'}
+- Modelo preferido: ${toolAnswers.modelo || 'Setup + mensualidad fija'}
 - Diferencial: ${toolAnswers.diferencial || 'especialización en nicho'}
-- Precio mínimo: ${toolAnswers.minimo || '€1,000/mes'}
+- Precio mínimo aceptable/mes: ${toolAnswers.minimo || '€300/mes'}
 
-Los 3 paquetes (Starter, Growth, Enterprise) deben tener pricing estratégico (ancla, middle, premium). Justifica cada precio con valor entregado.
-Devuelve SOLO JSON: { "packages": [{ "name": "Starter", "price": "€X,XXX/mes", "description": "descripción del paquete", "features": ["feature específica 1", "feature 2", "feature 3", "feature 4"], "ideal": "Ideal para..." }] }
-Los 3 paquetes: Starter, Growth, Enterprise.`,
+OBJETIVO: Construir una estructura de precios donde el COBRO INICIAL (setup) genera flujo de caja inmediato y el FIJO MENSUAL es lo más asequible posible para que el cliente diga sí sin pensar (objeción "precio" derribada). Adicionalmente, crea UNA "PROPUESTA IRRESISTIBLE" — un precio agresivamente bajo SOLO para las primeras ventas que sea casi imposible decir que no, para conseguir casos de éxito.
+
+DEBES generar EXACTAMENTE 3 paquetes (Starter, Growth, Enterprise) + 1 "OFERTA IRRESISTIBLE":
+
+CADA paquete debe tener:
+- "setup": cargo inicial único (instalación, onboarding, configuración) — genera caja al firmar
+- "monthly": cuota mensual fija INTENCIONALMENTE ASEQUIBLE (relativa al mercado del cliente)
+- Razonamiento del por qué este precio funciona psicológicamente
+
+La OFERTA IRRESISTIBLE: 50-60% más barata que Starter, con condiciones claras ("solo para los primeros 5 clientes", "se devuelve si no hay resultado en X días", "doble garantía", etc.) — pensada como herramienta de cierre con leads tibios/fríos.
+
+Devuelve SOLO JSON:
+{
+  "packages": [
+    {
+      "name": "Starter",
+      "setup": "€XXX único",
+      "monthly": "€XXX/mes",
+      "price": "€XXX setup + €XXX/mes",
+      "description": "Descripción breve y persuasiva",
+      "features": ["feature 1 específico", "feature 2", "feature 3", "feature 4"],
+      "ideal": "Ideal para...",
+      "psychology": "Por qué este pricing convierte (1-2 frases)"
+    },
+    { "name": "Growth", "setup": "...", "monthly": "...", "price": "...", "description": "...", "features": [...], "ideal": "...", "psychology": "..." },
+    { "name": "Enterprise", "setup": "...", "monthly": "...", "price": "...", "description": "...", "features": [...], "ideal": "...", "psychology": "..." }
+  ],
+  "irresistible_offer": {
+    "name": "Oferta Irresistible (primeras 5 ventas)",
+    "setup": "€XX único",
+    "monthly": "€XX/mes (3 primeros meses) → luego Starter",
+    "price": "€XX + €XX/mes (3 meses)",
+    "description": "Por qué esta oferta es imposible decir que no",
+    "conditions": ["condición 1 (límite plazas)", "condición 2 (garantía)", "condición 3 (plazo)"],
+    "features": ["lo mismo que Starter", "+bonus 1", "+bonus 2"],
+    "why_it_works": "Explicación psicológica del por qué cerrar leads tibios/fríos con esta oferta",
+    "pitch_script": "Frase exacta para usar al cerrar: 'Mira, normalmente esto cuesta X, pero como sos de los primeros...'"
+  },
+  "strategy_notes": [
+    "Nota 1 sobre cuándo usar cada paquete",
+    "Nota 2 sobre upselling de Starter → Growth",
+    "Nota 3 sobre cuándo NO usar la Oferta Irresistible"
+  ]
+}`,
 
     emails: `Eres el mejor email marketer de habla hispana, especialista en automatizaciones de alta conversión.
 ${ctx}
@@ -468,6 +617,71 @@ Crea una secuencia de emails completa con:
 
 Cada email: subject line (A/B: 2 opciones) + body completo (personalizable con variables). Progresión psicológica clara entre emails.
 Devuelve SOLO JSON: { "sequences": [{ "name": "nombre de la secuencia", "emails": [{ "subject": "asunto del email (A: opción A | B: opción B)", "body": "body completo del email con [NOMBRE], [EMPRESA] como variables" }] }] }`,
+
+    'chat-agent': `Actúa como un INGENIERO DE PROMPTS senior + arquitecto de Agentes Conversacionales con experiencia desplegando bots en WhatsApp, Instagram, web y multi-canal. Generas blueprints técnicos completos y system prompts production-ready.
+${ctx}
+
+PARÁMETROS DEL USUARIO:
+- Objetivo principal del agente: ${toolAnswers.objetivo || 'Calificar leads'}
+- Plataforma de despliegue: ${toolAnswers.plataforma || 'WhatsApp Business'}
+- Tono: ${toolAnswers.tono || 'Cercano y amigable'}
+- Flujo conversacional clave: ${toolAnswers.flujo || 'saludo → necesidad → calificar → ofrecer demo'}
+- Restricciones / qué NO hacer: ${toolAnswers.restricciones || 'no dar precios sin calificar primero'}
+
+Crea un BLUEPRINT COMPLETO del agente IA con esta estructura exacta:
+
+# 1. SYSTEM PROMPT MAESTRO (para Claude / GPT / Gemini)
+El system prompt completo, listo para copy-paste, que define:
+- Identidad y rol del agente
+- Personalidad y tono específico
+- Objetivos primarios y secundarios
+- Reglas estrictas (lo que SIEMPRE / NUNCA debe hacer)
+- Variables del usuario que debe recolectar
+- Protocolo de escalación a humano
+Mínimo 400 palabras.
+
+# 2. FLUJO CONVERSACIONAL (state machine)
+Diagrama textual con cada estado:
+- ESTADO 0: Saludo inicial (incluye mensaje exacto)
+- ESTADO 1: Identificar intención (qué preguntar)
+- ESTADO 2-N: cada paso del flujo del usuario
+- ESTADO FINAL: Cierre + handoff
+Cada estado incluye: input esperado, mensaje del agente, condiciones de transición.
+
+# 3. BIBLIOTECA DE RESPUESTAS (intents principales)
+Mínimo 10 intents con respuesta exacta:
+- Saludo
+- Pregunta por precio (sin haber calificado)
+- Pregunta por precio (después de calificar)
+- Comparación con competencia
+- Objeción "es caro"
+- Objeción "no tengo tiempo"
+- Pedir testimonios/casos
+- Pedir hablar con humano
+- Cierre exitoso (agendamiento)
+- Fuera de horario / agente offline
+
+# 4. PROMPTS DE SISTEMA SECUNDARIOS
+- Prompt de CLASIFICACIÓN (de lead frío/tibio/caliente)
+- Prompt de RESUMEN de conversación (para CRM)
+- Prompt de PRÓXIMA MEJOR ACCIÓN (qué proponer next)
+
+# 5. INTEGRACIÓN TÉCNICA
+- Variables a pasar (nombre, email, teléfono, etc.)
+- Webhooks recomendados (CRM, calendario, email)
+- Eventos a trackear para analytics
+- Recomendación de stack (Make.com / n8n / código custom)
+
+# 6. KPIs Y MÉTRICAS DE ÉXITO
+- Tasa de conversación → demo agendada (target: X%)
+- Tiempo promedio hasta agendar (target: X min)
+- % escalado a humano
+- CSAT estimado
+
+# 7. CHECKLIST DE PRUEBAS PRE-LANZAMIENTO
+10 escenarios de prueba con resultados esperados.
+
+Devuelve SOLO JSON: { "content": "BLUEPRINT COMPLETO en formato markdown con TODAS las 7 secciones de arriba, ultra detallado y listo para implementar" }`,
 
     contrato: `Eres un abogado especialista en contratos de servicios digitales y tecnología.
 ${ctx}
@@ -530,7 +744,7 @@ Genera 10 casos de uso de IA ultra específicos y accionables para:
 Cada caso debe ser REAL y ESPECÍFICO: nombre ficticio de empresa, problema concreto, solución de IA exacta con herramientas mencionadas, resultado medible en números.
 Devuelve SOLO JSON: { "cases": [{ "title": "título específico del caso", "problem": "problema concreto que tenían", "solution": "cómo exactamente lo resolvió con IA (herramientas específicas)", "result": "resultado medible: % ahorro, € generados, horas recuperadas" }] }`,
 
-    'clone-winner': `Eres un growth strategist senior con 15+ años analizando top creators y negocios digitales. Generas análisis competitivo profundo para clonar lo mejor de cada competidor.
+    'clone-winner': `Actúa como un INGENIERO DE PROMPTS senior + growth strategist + investigador de mercado con 15+ años analizando top creators y negocios digitales. Tu objetivo es realizar el ANÁLISIS COMPETITIVO MÁS COMPLETO, DETALLADO Y ACCIONABLE posible, listo para que el usuario implemente en su negocio.
 ${ctx}
 
 COMPETIDOR A ANALIZAR EN ESTA LLAMADA:
@@ -538,7 +752,13 @@ COMPETIDOR A ANALIZAR EN ESTA LLAMADA:
 - Plataforma: ${toolAnswers.platform || 'Instagram'}
 - Website/Landing: ${toolAnswers.url || 'no proporcionado'}
 
-IMPORTANTE: Este análisis será comparado con otros competidores del usuario. Devuelve datos REALISTAS y específicos (números reales del nicho, no genéricos). El frontend mostrará una tabla comparativa entre todos los competidores analizados — sé consistente en estructura.
+⚠️ INSTRUCCIONES CRÍTICAS:
+1. NO seas genérico. Devuelve datos REALISTAS y específicos (números reales del nicho).
+2. Para CADA hallazgo, incluye razonamiento ("por qué") + acción concreta para el usuario ("qué hacer con esto").
+3. Diferenciación: Por cada táctica del competidor, explica cómo el usuario puede REPLICARLA Y SUPERARLA (no solo copiar).
+4. Profundiza en COPY (hooks, CTAs, mensaje central), en VISUAL (paleta, tipografía, fotografía), en SCHEDULE (frecuencia, hora, día), en OFERTA (estructura de precio, garantías, bonos), en CONTENIDO (mix de formatos, temas, ángulos).
+5. Si la URL fue proporcionada, simula análisis profundo de la landing/web (estructura, copy, CTAs, social proof, formularios).
+6. El frontend mostrará tabla comparativa entre varios competidores — sé consistente en estructura.
 
 Devuelve SOLO JSON:
 {

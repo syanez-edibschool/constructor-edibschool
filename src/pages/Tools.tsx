@@ -9,6 +9,7 @@ import {
   DocumentCheckIcon, ChartBarIcon, MapIcon,
   DocumentDuplicateIcon,
   CheckIcon, ArrowPathIcon, SparklesIcon,
+  CpuChipIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../services/api'
 import { useTheme } from '../context/ThemeContext'
@@ -71,15 +72,14 @@ const TOOLS: ToolDef[] = [
     ],
   },
   {
-    id: 'copy', Icon: PencilSquareIcon, title: 'Prompts Copy Ads', short: 'Copy', cat: 'contenido',
-    desc: '5 ad copies persuasivos para Facebook, Instagram o LinkedIn.',
+    id: 'story', Icon: PencilSquareIcon, title: 'Prompts Story (Demo Gratis)', short: 'Story', cat: 'contenido',
+    desc: '5 stories de Instagram para vender una demo gratuita de 30 minutos.',
     qs: [
-      { id: 'tipo',        label: '¿Tipo de copy?',                    type: 'select', options: ['Pain (problema)','Curiosity (intriga)','Urgency (urgencia)','Social Proof','Aspiracional'] },
-      { id: 'plataforma',  label: '¿Para qué plataforma?',             type: 'select', options: ['Facebook Ads','Instagram Ads','LinkedIn Ads','TikTok Ads','Google Ads'] },
-      { id: 'temperatura', label: '¿Audiencia fría o caliente?',       type: 'select', options: ['Completamente fría','Algo consciente del problema','Ya busca activamente solución'] },
-      { id: 'objecion',    label: '¿Objeción #1 a romper?',            type: 'text',   placeholder: 'Ej: "no tengo presupuesto"' },
-      { id: 'beneficio',   label: '¿Beneficio más irresistible?',      type: 'text',   placeholder: 'Ej: 10h/semana ahorradas, 3x más leads en 30 días' },
-      { id: 'objetivo',    label: '¿Objetivo de la campaña?',          type: 'select', options: ['Leads (formulario)','Ventas directas','Mensajes WhatsApp/DM','Registros webinar'] },
+      { id: 'tono',       label: '¿Qué tono usar?',                                                type: 'select', options: ['Cercano y directo','Profesional pero cálido','Energético/Motivacional','Storytelling personal'] },
+      { id: 'audiencia',  label: '¿Quién va a ver estas stories?',                                 type: 'select', options: ['Lead frío (no me conoce)','Lead tibio (me sigue)','Cliente potencial caliente'] },
+      { id: 'objecion',   label: '¿Cuál es la objeción principal a derribar?',                     type: 'text',   placeholder: 'Ej: "no tengo tiempo", "es caro", "ya probé otras agencias"' },
+      { id: 'beneficio',  label: '¿Beneficio principal que se llevan de la demo de 30 min?',      type: 'text',   placeholder: 'Ej: plan personalizado de automatización + auditoría rápida' },
+      { id: 'urgencia',   label: '¿Por qué hay urgencia / por qué pocas plazas?',                  type: 'text',   placeholder: 'Ej: solo 5 plazas esta semana, próxima cohorte en 30 días' },
     ],
   },
   {
@@ -186,6 +186,17 @@ const TOOLS: ToolDef[] = [
       { id: 'url',      label: '¿URL de su web o landing? (opcional)',        type: 'text',   placeholder: 'Ej: mariafitnessover40.com' },
     ],
   },
+  {
+    id: 'chat-agent', Icon: CpuChipIcon, title: 'Agente IA Chat', short: 'Agente IA', cat: 'operaciones',
+    desc: 'Configura un agente conversacional de IA personalizado para tu nicho.',
+    qs: [
+      { id: 'objetivo',      label: '¿Cuál es el objetivo principal del agente?',  type: 'select',   options: ['Calificar leads', 'Atención al cliente 24/7', 'Vender productos/servicios', 'Onboarding de clientes', 'FAQ inteligente'] },
+      { id: 'plataforma',    label: '¿Dónde estará desplegado el agente?',         type: 'select',   options: ['WhatsApp Business', 'Instagram DM', 'Web (widget)', 'Telegram', 'Multi-canal'] },
+      { id: 'tono',          label: '¿Cómo debe hablar el agente?',                type: 'select',   options: ['Profesional y formal', 'Cercano y amigable', 'Directo y vendedor', 'Empático y educativo'] },
+      { id: 'flujo',         label: '¿Qué pasos clave debe seguir la conversación?', type: 'textarea', placeholder: 'Ej: saludo → preguntar necesidad → calificar presupuesto → ofrecer demo → cerrar agenda' },
+      { id: 'restricciones', label: '¿Qué NO debe hacer/decir el agente?',         type: 'textarea', placeholder: 'Ej: nunca dar precios sin antes calificar, no prometer resultados específicos' },
+    ],
+  },
 ]
 
 const CATS = [{ id: 'contenido', label: 'Contenido' }, { id: 'ventas', label: 'Ventas' }, { id: 'operaciones', label: 'Ops' }, { id: 'estrategia', label: 'Herramientas Estratégicas' }]
@@ -237,16 +248,68 @@ function TrackerOutput({ data }: { data: { summary: Record<string, number>; mont
   </div>
 }
 
-function PricingOutput({ packages }: { packages: Array<{ name: string; price: string; description: string; features: string[]; ideal: string }> }) {
-  return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-    {packages?.map((pkg, i) => <div key={i} style={{ background: 'var(--surface)', border: `1px solid ${i === 1 ? 'var(--border-h)' : 'var(--border)'}`, borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {i === 1 && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 20, padding: '3px 10px', width: 'fit-content' }}>MÁS POPULAR</span>}
-      <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{pkg.name}</p>
-      <p style={{ fontSize: 24, fontWeight: 800, background: 'linear-gradient(135deg,var(--accent),var(--purple))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{pkg.price}</p>
-      <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{pkg.description}</p>
-      <div style={{ flex: 1 }}>{pkg.features?.map((f, j) => <p key={j} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 6, marginBottom: 4 }}><CheckIcon style={{ width: 14, flexShrink: 0, color: 'var(--accent)', marginTop: 1 }} />{f}</p>)}</div>
-      <p style={{ fontSize: 11, color: 'var(--text-3)', borderTop: '1px solid var(--border)', paddingTop: 10 }}>{pkg.ideal}</p>
-    </div>)}
+interface PricingPackage { name: string; price: string; setup?: string; monthly?: string; description: string; features: string[]; ideal: string; psychology?: string }
+interface IrresistibleOffer { name: string; setup?: string; monthly?: string; price?: string; description: string; conditions?: string[]; features?: string[]; why_it_works?: string; pitch_script?: string }
+function PricingOutput({ packages, irresistible_offer, strategy_notes }: { packages: PricingPackage[]; irresistible_offer?: IrresistibleOffer; strategy_notes?: string[] }) {
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+      {packages?.map((pkg, i) => <div key={i} style={{ background: 'var(--surface)', border: `1px solid ${i === 1 ? 'var(--border-h)' : 'var(--border)'}`, borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {i === 1 && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 20, padding: '3px 10px', width: 'fit-content' }}>MÁS POPULAR</span>}
+        <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{pkg.name}</p>
+        {(pkg.setup || pkg.monthly) ? (
+          <div>
+            {pkg.setup && <p style={{ fontSize: 13, color: 'var(--text-2)' }}><span style={{ color: 'var(--text-3)' }}>Setup único:</span> <strong>{pkg.setup}</strong></p>}
+            {pkg.monthly && <p style={{ fontSize: 22, fontWeight: 800, marginTop: 4, background: 'linear-gradient(135deg,var(--accent),var(--purple))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{pkg.monthly}</p>}
+          </div>
+        ) : (
+          <p style={{ fontSize: 24, fontWeight: 800, background: 'linear-gradient(135deg,var(--accent),var(--purple))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{pkg.price}</p>
+        )}
+        <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{pkg.description}</p>
+        <div style={{ flex: 1 }}>{pkg.features?.map((f, j) => <p key={j} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 6, marginBottom: 4 }}><CheckIcon style={{ width: 14, flexShrink: 0, color: 'var(--accent)', marginTop: 1 }} />{f}</p>)}</div>
+        {pkg.psychology && <p style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--accent)', borderTop: '1px dashed var(--border)', paddingTop: 8 }}>💡 {pkg.psychology}</p>}
+        <p style={{ fontSize: 11, color: 'var(--text-3)', borderTop: '1px solid var(--border)', paddingTop: 10 }}>{pkg.ideal}</p>
+      </div>)}
+    </div>
+
+    {irresistible_offer && (
+      <div style={{ background: 'linear-gradient(135deg, rgba(236,72,153,0.08), rgba(245,158,11,0.08))', border: '2px solid #F59E0B', borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 20 }}>🎁</span>
+          <p style={{ fontWeight: 800, fontSize: 18, color: '#F59E0B' }}>{irresistible_offer.name}</p>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{irresistible_offer.description}</p>
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+          {irresistible_offer.setup && <div><p style={{ fontSize: 11, color: 'var(--text-3)' }}>Setup</p><p style={{ fontSize: 18, fontWeight: 800, color: '#F59E0B' }}>{irresistible_offer.setup}</p></div>}
+          {irresistible_offer.monthly && <div><p style={{ fontSize: 11, color: 'var(--text-3)' }}>Mensual</p><p style={{ fontSize: 18, fontWeight: 800, color: '#F59E0B' }}>{irresistible_offer.monthly}</p></div>}
+        </div>
+        {irresistible_offer.conditions && irresistible_offer.conditions.length > 0 && (
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>Condiciones</p>
+            {irresistible_offer.conditions.map((c, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>• {c}</p>)}
+          </div>
+        )}
+        {irresistible_offer.features && irresistible_offer.features.length > 0 && (
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>Incluye</p>
+            {irresistible_offer.features.map((f, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 6, marginBottom: 3 }}><CheckIcon style={{ width: 14, color: '#F59E0B', flexShrink: 0, marginTop: 1 }} />{f}</p>)}
+          </div>
+        )}
+        {irresistible_offer.why_it_works && <p style={{ fontSize: 12, fontStyle: 'italic', color: 'var(--text-2)', background: 'var(--surface)', padding: 10, borderRadius: 8 }}>🧠 {irresistible_offer.why_it_works}</p>}
+        {irresistible_offer.pitch_script && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>Pitch para usar al cerrar:</p>
+            <p style={{ fontSize: 13, color: 'var(--text)', fontStyle: 'italic' }}>"{irresistible_offer.pitch_script}"</p>
+          </div>
+        )}
+      </div>
+    )}
+
+    {strategy_notes && strategy_notes.length > 0 && (
+      <div style={{ background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 10, padding: 16 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 8 }}>Notas estratégicas</p>
+        {strategy_notes.map((n, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>• {n}</p>)}
+      </div>
+    )}
   </div>
 }
 
@@ -307,13 +370,14 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
   }
 
   switch (toolId) {
-    case 'precios':    return <PricingOutput packages={r.packages as never} />
+    case 'precios':    return <PricingOutput packages={r.packages as never} irresistible_offer={r.irresistible_offer as never} strategy_notes={r.strategy_notes as never} />
     case 'casos':      return <CasesOutput cases={r.cases as never} />
     case 'pitch':      return <SlidesOutput slides={r.slides as never} />
     case 'emails':     return <EmailsOutput sequences={r.sequences as never} />
     case 'website':    return <MegaPromptBlock prompt={r.megaprompt as string || JSON.stringify(r, null, 2)} />
     case 'propuesta':  return <PropuestaComercial projectId={projectId} />
     case 'contrato':   return <DocBlock content={r.content as string} filename="contrato.txt" />
+    case 'chat-agent': return <DocBlock content={r.content as string} filename="agente-ia-blueprint.md" />
     case 'vsl': {
       const sections = r.sections as Array<{ label: string; timing: string; content: string }>
       return <div>{sections?.map((s, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><div><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{s.label}</span><span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>{s.timing}</span></div><CopyBtn text={s.content} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.7, fontFamily: 'monospace' }}>{s.content}</pre></Section>)}<ActionBar onCopy={() => copy(sections?.map(s => `[${s.label}]\n${s.content}`).join('\n\n') || '')} onDownload={() => download(sections?.map(s => `[${s.label} - ${s.timing}]\n${s.content}`).join('\n\n') || '', 'vsl-script.txt')} /></div>
@@ -321,7 +385,7 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
     default: {
       const listKey = Object.keys(r).find(k => Array.isArray(r[k]))
       const items: string[] = listKey ? (r[listKey] as string[]) : []
-      const label = { reels: 'Reel', copy: 'Copy', carruseles: 'Carrusel', ofertas: 'Oferta' }[toolId] || 'Item'
+      const label = { reels: 'Reel', copy: 'Copy', story: 'Story', carruseles: 'Carrusel', ofertas: 'Oferta' }[toolId] || 'Item'
       return <TextBlocks items={items} label={label} />
     }
   }

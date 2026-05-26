@@ -40,6 +40,14 @@ router.get('/:id/download/zip', async (req: AuthRequest, res: Response) => {
         const d = r as { copies: string[] }
         return d.copies?.join('\n\n---\n\n') || ''
       }},
+      story: { folder: 'prompts', filename: 'stories-demo.md', extractor: (r: unknown) => {
+        const d = r as { copies: string[] }
+        return d.copies?.join('\n\n---\n\n') || ''
+      }},
+      'chat-agent': { folder: 'agente-ia', filename: 'agente-blueprint.md', extractor: (r: unknown) => {
+        const d = r as { content: string }
+        return d.content || ''
+      }},
       imagenes: { folder: 'prompts', filename: 'prompts-imagenes.txt', extractor: (r: unknown) => {
         const d = r as { prompts: string[] }
         return d.prompts?.join('\n\n') || ''
@@ -57,8 +65,14 @@ router.get('/:id/download/zip', async (req: AuthRequest, res: Response) => {
         return d.content || ''
       }},
       precios: { folder: 'propuesta', filename: 'paquetes-precios.txt', extractor: (r: unknown) => {
-        const d = r as { packages: Array<{ name: string; price: string; description: string; features: string[] }> }
-        return d.packages?.map(p => `${p.name} — ${p.price}\n${p.description}\n${p.features?.join('\n')}`).join('\n\n') || ''
+        const d = r as { packages: Array<{ name: string; price?: string; setup?: string; monthly?: string; description: string; features: string[] }>; irresistible_offer?: { name: string; setup?: string; monthly?: string; description?: string; conditions?: string[]; features?: string[]; pitch_script?: string }; strategy_notes?: string[] }
+        const pkgs = d.packages?.map(p => {
+          const priceLine = (p.setup || p.monthly) ? `Setup: ${p.setup || '-'}  Mensual: ${p.monthly || '-'}` : (p.price || '')
+          return `${p.name} — ${priceLine}\n${p.description}\n${p.features?.join('\n')}`
+        }).join('\n\n') || ''
+        const offer = d.irresistible_offer ? `\n\n=== OFERTA IRRESISTIBLE ===\n${d.irresistible_offer.name}\nSetup: ${d.irresistible_offer.setup || '-'}  Mensual: ${d.irresistible_offer.monthly || '-'}\n${d.irresistible_offer.description || ''}\nCondiciones:\n${d.irresistible_offer.conditions?.join('\n') || ''}\nPitch: "${d.irresistible_offer.pitch_script || ''}"` : ''
+        const notes = d.strategy_notes?.length ? `\n\n=== NOTAS ESTRATÉGICAS ===\n${d.strategy_notes.join('\n')}` : ''
+        return pkgs + offer + notes
       }},
       pitch: { folder: 'pitch-deck', filename: 'pitch-deck.txt', extractor: (r: unknown) => {
         const d = r as { slides: Array<{ number: number; title: string; content: string; notes: string }> }

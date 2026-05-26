@@ -9,6 +9,7 @@ import {
   ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon,
   CheckCircleIcon, LockClosedIcon,
   PlusCircleIcon, BuildingOffice2Icon,
+  CpuChipIcon,
 } from '@heroicons/react/24/outline'
 
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
@@ -21,7 +22,7 @@ const TOOLS: SidebarTool[] = [
   { id: 'clone-winner', Icon: DocumentDuplicateIcon, short: 'Clonar Ganador',  cat: 'analisis'       },
   // Paso 2 — Contenido
   { id: 'calendario',   Icon: CalendarDaysIcon,      short: 'Calendario',      cat: 'contenido'      },
-  { id: 'copy',         Icon: PencilSquareIcon,      short: 'Copy Ads',        cat: 'contenido'      },
+  { id: 'story',        Icon: PencilSquareIcon,      short: 'Story',           cat: 'contenido'      },
   { id: 'carruseles',   Icon: ViewColumnsIcon,        short: 'Carruseles',      cat: 'contenido'      },
   { id: 'reels',        Icon: DevicePhoneMobileIcon, short: 'Reels',           cat: 'contenido'      },
   { id: 'imagenes',     Icon: PhotoIcon,             short: 'Imágenes IA',     cat: 'contenido'      },
@@ -35,15 +36,17 @@ const TOOLS: SidebarTool[] = [
   { id: 'contrato',     Icon: DocumentCheckIcon,     short: 'Contrato',        cat: 'automatizacion' },
   // Paso 5 — Tracking
   { id: 'tracker',      Icon: ChartBarIcon,          short: 'Tracker',         cat: 'tracking'       },
+  { id: 'chat-agent',   Icon: CpuChipIcon,           short: 'Agente IA Chat',  cat: 'automatizacion' },
 ]
 
 // Step numbers for each tool (shown as badge)
 const TOOL_STEPS: Record<string, number> = {
   'clone-winner': 1,
-  'calendario': 2, 'copy': 3, 'carruseles': 4, 'reels': 5, 'imagenes': 6,
+  'calendario': 2, 'story': 3, 'carruseles': 4, 'reels': 5, 'imagenes': 6,
   'vsl': 7, 'propuesta': 8, 'precios': 9, 'website': 10,
   'emails': 11, 'contrato': 12,
   'tracker': 13,
+  'chat-agent': 14,
 }
 
 const CATS = ['analisis', 'contenido', 'ventas', 'automatizacion', 'tracking']

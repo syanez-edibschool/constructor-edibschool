@@ -277,6 +277,17 @@
     box-shadow: 0 0 0 3px var(--accent-d);
   }
   .input-form:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* Fix native <option> on dark mode: contrasted text */
+  .input-form option,
+  select.input-form option {
+    background-color: #1a1a2e;
+    color: #ffffff;
+    padding: 8px;
+  }
+  select.input-form {
+    color: var(--input-text);
+    background-color: var(--input-bg);
+  }
 
   /* Error state */
   .input-error {
