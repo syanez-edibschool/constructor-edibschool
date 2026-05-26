@@ -38,13 +38,13 @@ function parseJSON<T>(raw: string): T {
 const TOOL_MAX_TOKENS: Record<string, number> = {
   'clone-winner': 16000,  // schema enorme: executive_summary + content_mix + schedule + aesthetics + copy + landing + score + plan
   'calendario':    12000, // 4 semanas × 7-8 días de contenido detallado
+  'estrategia':    12000, // 90 días × 13 semanas = muchos contenidos
   'imagenes':      10000, // 6 prompts largos con todos los specs
   'carruseles':    10000, // 8 carruseles × 7 slides
   'emails':         8000, // múltiples emails con A/B subjects y bodies completos
   'website':        8000, // varía por siteType pero secciones largas
   'contrato':       6000, // texto legal completo
   'casos':          6000, // 10 casos detallados
-  'estrategia':     5000, // 3 meses × 4 semanas
   'tracker':        5000, // 6+ meses de números
   'vsl':            4096, // 7 secciones cortas
   'reels':          4096, // 3 guiones
