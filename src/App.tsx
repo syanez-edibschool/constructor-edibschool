@@ -9,6 +9,7 @@ import Questions from './pages/Questions'
 import ReviewNiche from './pages/ReviewNiche'
 import Tools from './pages/Tools'
 import Download from './pages/Download'
+import VoiceAgent from './components/VoiceAgent/VoiceAgent'
 import CoachWidget from './components/AICoach/CoachWidget'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -60,6 +61,8 @@ export default function App() {
         <Route path="/proyecto/:id/review-niche" element={<ProtectedRoute><ReviewNiche /></ProtectedRoute>} />
         <Route path="/proyecto/:id/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
         <Route path="/proyecto/:id/tools/:toolId" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
+        <Route path="/proyecto/:id/voice" element={<ProtectedRoute><VoiceAgent /></ProtectedRoute>} />
+        <Route path="/voice" element={<ProtectedRoute><VoiceAgent /></ProtectedRoute>} />
         <Route path="/proyecto/:id/download" element={<ProtectedRoute><Download /></ProtectedRoute>} />
       </Routes>
       <CoachWidget />
