@@ -15,6 +15,7 @@ import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar          from '../components/Dashboard/Sidebar'
 import DashboardHeader  from '../components/Dashboard/Header'
+import LoadingTrivia                                from '../components/ui/LoadingTrivia'
 import CalendarVisual,    { type CalendarWeek }   from '../components/Tools/CalendarVisual'
 import TrackerFinanciero                            from '../components/Tools/TrackerFinanciero'
 import PromptsImagenes,   { type ImagenPrompt }   from '../components/Tools/PromptsImagenes'
@@ -624,17 +625,8 @@ export default function Tools() {
             {/* ── Generating ── */}
             {activeTool && state?.phase === 'generating' && (
               <motion.div key="gen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-                <div style={{ position: 'relative', width: 56, height: 56 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid var(--border)', borderTopColor: 'var(--accent)', animation: 'spin 0.8s linear infinite' }} />
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {tool && <tool.Icon style={{ width: 24, height: 24, color: 'var(--accent)' }} />}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Generando {tool?.title}...</p>
-                  <p style={{ fontSize: 13, color: 'var(--text-3)' }}>El modelo está creando tu contenido personalizado</p>
-                </div>
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'var(--sp-xl) 0' }}>
+                <LoadingTrivia />
               </motion.div>
             )}
 

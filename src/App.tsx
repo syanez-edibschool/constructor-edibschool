@@ -7,8 +7,7 @@ import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import Questions from './pages/Questions'
 import ReviewNiche from './pages/ReviewNiche'
-import ToolsMenu from './pages/ToolsMenu'
-import ToolPage from './pages/tools/ToolPage'
+import Tools from './pages/Tools'
 import Download from './pages/Download'
 import CoachWidget from './components/AICoach/CoachWidget'
 
@@ -59,8 +58,8 @@ export default function App() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/proyecto/:id/questions" element={<ProtectedRoute><Questions /></ProtectedRoute>} />
         <Route path="/proyecto/:id/review-niche" element={<ProtectedRoute><ReviewNiche /></ProtectedRoute>} />
-        <Route path="/proyecto/:id/tools" element={<ProtectedRoute><ToolsMenu /></ProtectedRoute>} />
-        <Route path="/proyecto/:id/tools/:toolId" element={<ProtectedRoute><ToolPage /></ProtectedRoute>} />
+        <Route path="/proyecto/:id/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
+        <Route path="/proyecto/:id/tools/:toolId" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
         <Route path="/proyecto/:id/download" element={<ProtectedRoute><Download /></ProtectedRoute>} />
       </Routes>
       <CoachWidget />
