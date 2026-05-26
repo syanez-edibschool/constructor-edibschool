@@ -3,7 +3,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/projects/:projectId/tools/:toolId", "destination": "/api/tools" },
+    { "source": "/api/projects/:projectId/generate-nicho-avatar-competencia", "destination": "/api/analysis?operation=generate" },
+    { "source": "/api/projects/:projectId/update-nicho",        "destination": "/api/analysis?operation=update-nicho" },
+    { "source": "/api/projects/:projectId/update-avatar",       "destination": "/api/analysis?operation=update-avatar" },
+    { "source": "/api/projects/:projectId/update-competencia",  "destination": "/api/analysis?operation=update-competencia" },
+    { "source": "/api/projects/:projectId/tools/:toolId",       "destination": "/api/tools" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
