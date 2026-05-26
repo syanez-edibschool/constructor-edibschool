@@ -161,8 +161,11 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
             <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 3 }}>Nicho</p>
             {nicho ? (
               <>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#00D9FF', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nicho.micronicho || nicho.sector || '—'}</p>
-                {nicho.tam && <p style={{ fontSize: 9, color: '#8B5CF6', fontWeight: 600 }}>TAM: {nicho.tam}</p>}
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#00D9FF', marginBottom: 2, lineHeight: 1.3, wordBreak: 'break-word' }}>
+                  {nicho.micronicho ? nicho.micronicho.substring(0, 80) + (nicho.micronicho.length > 80 ? '...' : '') : nicho.sector || '—'}
+                </p>
+                {nicho.tam && <p style={{ fontSize: 8, color: '#8B5CF6', fontWeight: 600 }}>TAM: {nicho.tam}</p>}
+                {nicho.ticket && <p style={{ fontSize: 8, color: '#10B981', fontWeight: 600 }}>Ticket: {nicho.ticket}</p>}
               </>
             ) : (
               <p style={{ fontSize: 10, color: 'var(--text-3)', fontStyle: 'italic' }}>Sin definir</p>
@@ -172,8 +175,9 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
             <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 3 }}>Avatar</p>
             {avatar ? (
               <>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#00D9FF', marginBottom: 1 }}>{avatar.name || '—'}</p>
-                {avatar.age && <p style={{ fontSize: 9, color: 'var(--text-3)' }}>{avatar.age}</p>}
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#00D9FF', marginBottom: 1 }}>{avatar.name || '—'}</p>
+                {avatar.age && <p style={{ fontSize: 8, color: 'var(--text-3)', marginBottom: 1 }}>{avatar.age}</p>}
+                {avatar.position && <p style={{ fontSize: 8, color: '#EC4899', fontWeight: 600 }}>{avatar.position.substring(0, 50)}...</p>}
               </>
             ) : (
               <p style={{ fontSize: 10, color: 'var(--text-3)', fontStyle: 'italic' }}>Sin definir</p>
