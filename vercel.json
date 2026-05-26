@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/projects/:projectId/tools/website", "destination": "/api/website" },
+    { "source": "/api/projects/:projectId/tools/:toolId", "destination": "/api/tools" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

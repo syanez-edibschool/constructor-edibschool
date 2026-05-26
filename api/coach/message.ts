@@ -2,6 +2,12 @@ import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
+function getDb(token: string) {
+  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ''
+  const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''
+  return createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -11,44 +17,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
-    const { message, projectId, context, history } = req.body
+    const { message, projectId, history } = req.body
     if (!message) return res.status(400).json({ error: 'Message requerido' })
 
-    // Fetch project context from Supabase if projectId is provided
-    let projectContext = context || ''
-    if (projectId) {
-      const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
-      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY
-      if (supabaseUrl && supabaseKey) {
-        const supabase = createClient(supabaseUrl, supabaseKey)
-        const { data: project } = await supabase
-          .from('projects')
-          .select('name, niche, avatar, description')
-          .eq('id', projectId)
-          .single()
-        if (project) {
-          projectContext = `Contexto del proyecto:
-- Nombre: ${project.name || 'No definido'}
-- Nicho: ${project.niche || 'No definido'}
-- Avatar/Cliente ideal: ${project.avatar || 'No definido'}
-- Descripción: ${project.description || 'No definida'}
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
 
-${context || ''}`
-        }
+    // Fetch project context from Supabase using user's JWT (respects RLS)
+    let projectContext = ''
+    if (projectId && token) {
+      const db = getDb(token)
+      const [projectRes, nichoRes, avatarRes] = await Promise.all([
+        db.from('projects').select('name, description').eq('id', projectId).single(),
+        db.from('project_nicho').select('data_json').eq('project_id', projectId).single(),
+        db.from('project_avatar').select('data_json').eq('project_id', projectId).single(),
+      ])
+
+      const project = projectRes.data
+      const nicho = nichoRes.data?.data_json as Record<string, string> | null
+      const avatar = avatarRes.data?.data_json as Record<string, string> | null
+
+      if (project || nicho || avatar) {
+        projectContext = `Contexto del proyecto del usuario:
+${project?.name ? `- Proyecto: ${project.name}` : ''}
+${project?.description ? `- Descripción: ${project.description}` : ''}
+${nicho?.sector ? `- Sector/Nicho: ${nicho.sector}` : ''}
+${nicho?.micronicho ? `- Micronicho: ${nicho.micronicho}` : ''}
+${nicho?.ticket ? `- Ticket promedio: ${nicho.ticket}` : ''}
+${avatar?.name ? `- Cliente ideal: ${avatar.name}, ${avatar.position || ''}` : ''}
+${avatar?.pains ? `- Principales dolores del cliente: ${Array.isArray(avatar.pains) ? avatar.pains.join(', ') : avatar.pains}` : ''}
+${avatar?.goals ? `- Objetivos del cliente: ${Array.isArray(avatar.goals) ? avatar.goals.join(', ') : avatar.goals}` : ''}`
       }
     }
 
-    const systemPrompt = `Eres un coach experto en marketing digital, ventas y construcción de agencias.
-Ayudas a emprendedores a crear y escalar sus agencias de marketing digital.
-Respondes en español, de forma clara, directa y accionable.
-Máximo 3-4 párrafos por respuesta. Sin rodeos.
-${projectContext ? `\n${projectContext}` : ''}`
-
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const systemPrompt = `Eres un coach experto en marketing digital, ventas y construcción de agencias de IA.
+Ayudas a emprendedores a crear y escalar sus agencias. Eres directo, concreto y accionable.
+Respondes en español. Máximo 3-4 párrafos. Sin rodeos ni relleno.
+${projectContext ? `\n${projectContext}\n\nUsa este contexto para personalizar tus respuestas al proyecto específico del usuario.` : ''}`
 
     // Build conversation history for multi-turn context
     const messages: { role: 'user' | 'assistant'; content: string }[] = []
-    if (history && Array.isArray(history)) {
+    if (Array.isArray(history)) {
       for (const h of history) {
         if (h.role === 'user' || h.role === 'assistant') {
           messages.push({ role: h.role, content: h.content })
@@ -57,6 +66,7 @@ ${projectContext ? `\n${projectContext}` : ''}`
     }
     messages.push({ role: 'user', content: message })
 
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
