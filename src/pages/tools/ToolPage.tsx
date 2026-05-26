@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import Button3D from '../../components/ui/Button3D'
-import LoadingSpinner3D from '../../components/ui/LoadingSpinner3D'
+import LoadingTrivia from '../../components/ui/LoadingTrivia'
 import { api } from '../../services/api'
 
 interface ToolConfig {
@@ -466,7 +466,7 @@ export default function ToolPage() {
             <h1 className="text-3xl font-bold mb-3">{config.title}</h1>
             <p className="text-white/50 mb-8 max-w-md mx-auto">{config.desc}</p>
             {loading ? (
-              <LoadingSpinner3D label={`Generando ${config.title}...`} />
+              <LoadingTrivia />
             ) : (
               <Button3D size="lg" onClick={generate}>
                 GENERAR AHORA →
