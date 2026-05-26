@@ -20,7 +20,7 @@ import TrackerFinanciero                            from '../components/Tools/Tr
 import PromptsImagenes,   { type ImagenPrompt }   from '../components/Tools/PromptsImagenes'
 import CloneTheWinner                               from '../components/Tools/CloneTheWinner'
 import SitioWeb                                    from '../components/Tools/SitioWeb'
-import Estrategia90Dias, { type StrategyMonth }   from '../components/Tools/Estrategia90Dias'
+import Estrategia90Dias                             from '../components/Tools/Estrategia90Dias'
 import PropuestaComercial                          from '../components/Tools/PropuestaComercial'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -304,9 +304,6 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
     return (
       <Estrategia90Dias
         projectId={projectId}
-        months={(r.months || []) as StrategyMonth[]}
-        updatedAt={savedAt}
-        onRegenerate={onRegenerate}
       />
     )
   }
