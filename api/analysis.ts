@@ -125,16 +125,38 @@ Incluye exactamente 3 competidores.`),
       const avatar = parseJSON(avatarRaw)
       const competencia = parseJSON(compRaw)
 
-      await Promise.allSettled([
-        db.from('project_nicho').upsert({ project_id: projectId, ...nicho, data_json: nicho }, { onConflict: 'project_id' }),
-        db.from('project_avatar').upsert({ project_id: projectId, ...avatar, data_json: avatar }, { onConflict: 'project_id' }),
+      const results = await Promise.allSettled([
+        db.from('project_nicho').upsert({ project_id: projectId, data_json: nicho }, { onConflict: 'project_id' }),
+        db.from('project_avatar').upsert({ project_id: projectId, data_json: avatar }, { onConflict: 'project_id' }),
         db.from('project_competencia').upsert({
           project_id: projectId,
-          competitors_json: (competencia as any).competitors,
-          positioning: (competencia as any).positioning,
           data_json: competencia,
         }, { onConflict: 'project_id' }),
       ])
+
+      // Verificar si hubo errores en las inserciones
+      const errors = results.map((r, i) => {
+        if (r.status === 'rejected') {
+          const tables = ['project_nicho', 'project_avatar', 'project_competencia']
+          return `Error al guardar ${tables[i]}: ${r.reason?.message || r.reason}`
+        }
+        if (r.status === 'fulfilled' && r.value.error) {
+          const tables = ['project_nicho', 'project_avatar', 'project_competencia']
+          return `Error Supabase en ${tables[i]}: ${JSON.stringify(r.value.error)}`
+        }
+        return null
+      }).filter(Boolean)
+
+      if (errors.length > 0) {
+        console.error('[analysis/generate] Save errors:', errors)
+        return res.status(500).json({
+          error: 'Error al guardar análisis',
+          details: errors,
+          nicho,
+          avatar,
+          competencia,
+        })
+      }
 
       return res.status(200).json({ nicho, avatar, competencia })
     }
@@ -147,7 +169,11 @@ El usuario quiere modificar el análisis de nicho. Feedback: "${feedback}"
 Respuestas originales: ${ctx}
 Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticket, trend, momento, razon.`)
       const nicho = parseJSON(raw)
-      await db.from('project_nicho').upsert({ project_id: projectId, ...nicho, data_json: nicho }, { onConflict: 'project_id' })
+      const result = await db.from('project_nicho').upsert({ project_id: projectId, data_json: nicho }, { onConflict: 'project_id' })
+      if (result.error) {
+        console.error('[analysis/update-nicho] Save error:', result.error)
+        return res.status(500).json({ error: 'Error al guardar nicho', details: result.error })
+      }
       return res.status(200).json({ nicho })
     }
 
@@ -159,7 +185,11 @@ El usuario quiere modificar el avatar. Feedback: "${feedback}"
 Respuestas originales: ${ctx}
 Genera un nuevo avatar JSON con los mismos campos: name, age, position, experience, income, goals, pains, narrative.`)
       const avatar = parseJSON(raw)
-      await db.from('project_avatar').upsert({ project_id: projectId, ...avatar, data_json: avatar }, { onConflict: 'project_id' })
+      const result = await db.from('project_avatar').upsert({ project_id: projectId, data_json: avatar }, { onConflict: 'project_id' })
+      if (result.error) {
+        console.error('[analysis/update-avatar] Save error:', result.error)
+        return res.status(500).json({ error: 'Error al guardar avatar', details: result.error })
+      }
       return res.status(200).json({ avatar })
     }
 
@@ -171,12 +201,14 @@ El usuario quiere modificar el análisis de competencia. Feedback: "${feedback}"
 Respuestas originales: ${ctx}
 Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
       const competencia = parseJSON(raw)
-      await db.from('project_competencia').upsert({
+      const result = await db.from('project_competencia').upsert({
         project_id: projectId,
-        competitors_json: (competencia as any).competitors,
-        positioning: (competencia as any).positioning,
         data_json: competencia,
       }, { onConflict: 'project_id' })
+      if (result.error) {
+        console.error('[analysis/update-competencia] Save error:', result.error)
+        return res.status(500).json({ error: 'Error al guardar competencia', details: result.error })
+      }
       return res.status(200).json({ competencia })
     }
 

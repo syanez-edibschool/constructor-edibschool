@@ -70,12 +70,25 @@ export default function ReviewNiche() {
     }, 500)
     try {
       const { data } = await api.post(`/projects/${id}/generate-nicho-avatar-competencia`)
+      if (data.error) {
+        const errorMsg = data.details ? `${data.error}: ${data.details.join('; ')}` : data.error
+        console.error('[generate] API error:', errorMsg)
+        toast.error(errorMsg)
+        return
+      }
       setNicho(data.nicho)
       setAvatar(data.avatar)
       setCompetencia(data.competencia)
       setLoadingProgress(100)
-    } catch {
-      toast.error('Error al generar análisis. Inténtalo de nuevo.')
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || err.message || 'Error al generar análisis'
+      const details = err.response?.data?.details
+      console.error('[generate] Exception:', { error: errorMsg, details })
+      if (details) {
+        toast.error(`${errorMsg}: ${Array.isArray(details) ? details.join('; ') : details}`)
+      } else {
+        toast.error(errorMsg)
+      }
     } finally {
       clearInterval(interval)
       setLoading(false)
