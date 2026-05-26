@@ -37,8 +37,10 @@ function timeAgo(d: string) {
 
 export default function ProjectCard({ project, index, col, isDark, onContinue, onDelete }: ProjectCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, gx: 50, gy: 50 })
   const [hovered, setHovered] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [sparks, setSparks] = useState<Spark[]>([])
   const [nicho, setNicho] = useState<NichoData | null>(null)
   const [avatar, setAvatar] = useState<AvatarData | null>(null)
@@ -58,6 +60,16 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
     load()
     return () => { cancelled = true }
   }, [project.id])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    if (menuOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
 
   const onMove = useCallback((e: React.MouseEvent) => {
     const r = cardRef.current!.getBoundingClientRect()
@@ -107,11 +119,27 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
         ))}
 
         {/* Menu */}
-        <div className="absolute top-3 right-3 group/m">
-          <button onClick={e => e.stopPropagation()} className="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-all" style={{ background: 'var(--card-bg)', color: 'var(--text-3)' }}>•••</button>
-          <div className="absolute right-0 top-9 w-32 rounded-xl overflow-hidden opacity-0 group-hover/m:opacity-100 pointer-events-none group-hover/m:pointer-events-auto transition-all z-10" style={{ background: 'var(--surface-s)', border: '1px solid var(--border)', backdropFilter: 'blur(20px)' }}>
-            <button onClick={e => { e.stopPropagation(); onDelete() }} className="w-full text-left px-3 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors">Eliminar</button>
-          </div>
+        <div ref={menuRef} className="absolute top-3 right-3">
+          <button
+            onClick={e => { e.stopPropagation(); setMenuOpen(!menuOpen) }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-all"
+            style={{ background: 'var(--card-bg)', color: 'var(--text-3)' }}
+          >
+            •••
+          </button>
+          {menuOpen && (
+            <div
+              className="absolute right-0 top-9 w-32 rounded-xl overflow-hidden z-10 animate-in fade-in duration-150"
+              style={{ background: 'var(--surface-s)', border: '1px solid var(--border)', backdropFilter: 'blur(20px)' }}
+            >
+              <button
+                onClick={e => { e.stopPropagation(); onDelete(); setMenuOpen(false) }}
+                className="w-full text-left px-3 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+              >
+                Eliminar
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Icon + Name */}
