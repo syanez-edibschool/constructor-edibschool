@@ -38,7 +38,6 @@ function parseJSON<T>(raw: string): T {
 const TOOL_MAX_TOKENS: Record<string, number> = {
   'clone-winner': 16000,  // schema enorme: executive_summary + content_mix + schedule + aesthetics + copy + landing + score + plan
   'calendario':    12000, // 4 semanas × 7-8 días de contenido detallado
-  'estrategia':    16000, // estrategia 90 días optimizada para velocidad (Haiku)
   'imagenes':      10000, // 6 prompts largos con todos los specs
   'carruseles':    10000, // 8 carruseles × 7 slides
   'emails':         8000, // múltiples emails con A/B subjects y bodies completos
@@ -62,7 +61,6 @@ const TOOL_MODEL: Record<string, string> = {
   'calendario':   SONNET, // 28 piezas únicas, necesita creatividad
   'imagenes':     SONNET, // prompts MJ con sintaxis técnica
   'carruseles':   SONNET, // 8 narrativas distintas
-  'estrategia':   HAIKU,  // rápido: 3-5x más veloz que Sonnet
   'emails':       SONNET, // copy persuasivo, A/B subjects
   'website':      SONNET, // copy de conversión largo
   'casos':        SONNET, // 10 casos reales con números
@@ -531,76 +529,6 @@ Genera 10 casos de uso de IA ultra específicos y accionables para:
 
 Cada caso debe ser REAL y ESPECÍFICO: nombre ficticio de empresa, problema concreto, solución de IA exacta con herramientas mencionadas, resultado medible en números.
 Devuelve SOLO JSON: { "cases": [{ "title": "título específico del caso", "problem": "problema concreto que tenían", "solution": "cómo exactamente lo resolvió con IA (herramientas específicas)", "result": "resultado medible: % ahorro, € generados, horas recuperadas" }] }`,
-
-    estrategia: `Eres un strategic advisor que ha escalado 50+ agencias digitales de 0 a 7 cifras. Tu obsesión es lanzar la agencia LO MÁS RÁPIDO POSIBLE — la primera semana debe estar súper trabajada con acciones DIARIAS específicas.
-${ctx}
-
-PARÁMETROS:
-- Objetivo principal: ${toolAnswers.objetivo || 'conseguir primeros clientes'}
-- Situación actual: ${toolAnswers.situacion || 'comenzando'}
-- Mayor obstáculo: ${toolAnswers.reto || 'no especificado'}
-- Recursos disponibles: ${toolAnswers.recursos || 'tiempo limitado'}
-- Budget marketing: ${toolAnswers.budget || '€0'}
-- Canal actual de adquisición: ${toolAnswers.adquisicion || 'referidos'}
-- KPIs de éxito: ${toolAnswers.kpis || 'clientes e ingresos'}
-
-ESTRUCTURA OBLIGATORIA — calendario en 3 niveles (mes → semana → día):
-
-MES 1: SETUP + PRIMERA VENTA (densidad MÁXIMA, acciones diarias)
-- Semana 1: TODAS las acciones día por día (lunes a domingo). Setup operativo total: posicionamiento, oferta, sistemas, primer outreach. ESTA SEMANA DEFINE TODO.
-- Semana 2: Acciones día por día. Iniciar prospección masiva + primeras llamadas.
-- Semana 3: Acciones día por día (puedes agrupar fin de semana). Cerrar primera venta + iterar oferta.
-- Semana 4: Acciones día por día. Onboarding del primer cliente + caso de estudio inicial.
-
-MES 2: CONTENIDO + MÁQUINA DE LEADS (densidad MEDIA, acciones por semana con highlights diarios)
-- Semana 5: Producir 1 mes de contenido en una sesión + lanzar canal principal.
-- Semana 6: Sistema de ads o outreach escalado.
-- Semana 7: Optimización de conversión (página + agenda + cierre).
-- Semana 8: Segundo cliente + testimonio + automatizaciones básicas.
-
-MES 3: ESCALADO + SISTEMAS (densidad NORMAL, plan semanal)
-- Semana 9: Subir precios + redefinir oferta core.
-- Semana 10: Contratación primera ayuda o automatizar tareas operativas.
-- Semana 11: Lanzamiento de canal secundario o producto auxiliar.
-- Semana 12: Cierre de 90 días + planning próximos 90.
-
-Cada acción debe ser ULTRA CONCRETA: "lunes 8h: escribir 30 DMs personalizados a perfiles X" — NO "trabajar en outreach".
-
-Devuelve SOLO JSON con esta estructura EXACTA:
-{
-  "months": [
-    {
-      "month": 1,
-      "title": "Setup + Primera Venta",
-      "summary": "Resumen de 1-2 frases del mes",
-      "goals": ["objetivo específico 1", "objetivo 2", "objetivo 3"],
-      "kpis": ["kpi 1", "kpi 2", "kpi 3"],
-      "weeks": [
-        {
-          "week": 1,
-          "title": "Cimientos y Primer Outreach",
-          "focus": "objetivo de la semana en 1 frase",
-          "days": [
-            { "day": "Lunes", "hours": "4-6h", "tasks": ["tarea concreta 1", "tarea concreta 2", "tarea concreta 3"] },
-            { "day": "Martes", "hours": "4-6h", "tasks": ["...", "..."] },
-            { "day": "Miércoles", "hours": "4-6h", "tasks": ["...", "..."] },
-            { "day": "Jueves", "hours": "4-6h", "tasks": ["...", "..."] },
-            { "day": "Viernes", "hours": "4-6h", "tasks": ["...", "..."] },
-            { "day": "Sábado", "hours": "2-3h", "tasks": ["...", "..."] },
-            { "day": "Domingo", "hours": "1-2h", "tasks": ["revisión semana", "preparar lunes"] }
-          ]
-        }
-      ]
-    }
-  ]
-}
-
-REGLAS:
-- Mes 1: las 4 semanas con TODOS los 7 días detallados (acciones día por día)
-- Mes 2: las 4 semanas SIN array "days" — en su lugar usa "tasks" array al nivel de semana (5-7 tareas concretas para la semana completa) y "key_days" array con 2-3 días críticos
-- Mes 3: las 4 semanas con SOLO "focus" + "tasks" array (3-5 tareas semanales)
-
-Genera EXACTAMENTE 3 meses, 12 semanas totales, progresión lógica desde "yo solo + 0 clientes" hasta "negocio funcionando con sistemas".`,
 
     'clone-winner': `Eres un growth strategist senior con 15+ años analizando top creators y negocios digitales. Generas análisis competitivo profundo para clonar lo mejor de cada competidor.
 ${ctx}
