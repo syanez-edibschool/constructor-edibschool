@@ -411,27 +411,29 @@ function QuestionForm({ tool, onSubmit, loading, projectId }: { tool: ToolDef; o
                   <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 'var(--sp-sm)', fontSize: 'var(--fs-xs)', fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</span>
                   {q.label}
                 </label>
-                <button
-                  type="button"
-                  onClick={() => !busy && suggest(q)}
-                  disabled={busy}
-                  title="Generar respuesta con IA usando el contexto del proyecto"
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 4,
-                    padding: '4px 10px', borderRadius: 999,
-                    background: busy ? 'var(--surface-2)' : 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))',
-                    border: '1px solid var(--border-h)',
-                    color: 'var(--accent)', fontSize: 11, fontWeight: 600,
-                    cursor: busy ? 'wait' : 'pointer', flexShrink: 0,
-                    transition: 'all 0.2s',
-                  }}>
-                  {busy ? (
-                    <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
-                  ) : (
-                    <SparklesIcon style={{ width: 12, height: 12 }} />
-                  )}
-                  {busy ? 'Generando…' : 'Generar con IA'}
-                </button>
+                {q.type !== 'select' && (
+                  <button
+                    type="button"
+                    onClick={() => !busy && suggest(q)}
+                    disabled={busy}
+                    title="Generar respuesta con IA usando el contexto del proyecto"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      padding: '4px 10px', borderRadius: 999,
+                      background: busy ? 'var(--surface-2)' : 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))',
+                      border: '1px solid var(--border-h)',
+                      color: 'var(--accent)', fontSize: 11, fontWeight: 600,
+                      cursor: busy ? 'wait' : 'pointer', flexShrink: 0,
+                      transition: 'all 0.2s',
+                    }}>
+                    {busy ? (
+                      <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+                    ) : (
+                      <SparklesIcon style={{ width: 12, height: 12 }} />
+                    )}
+                    {busy ? 'Generando…' : 'Generar con IA'}
+                  </button>
+                )}
               </div>
               {q.type === 'select' ? (
                 <select id={`q-${q.id}`} value={answers[q.id]} onChange={e => set(q.id, e.target.value)} className="input-form" style={{ padding: '10px var(--sp-md)', cursor: 'pointer' }}>
