@@ -23,10 +23,36 @@ function parseJSON<T>(raw: string): T {
 
   try {
     return JSON.parse(cleaned)
-  } catch (err: any) {
-    throw new Error(`JSON parse falló. Primeros 300 chars de la respuesta de Claude: ${raw.slice(0, 300)}`)
+  } catch {
+    // Detect truncation — el último carácter no es } o ]
+    const lastChar = cleaned.trim().slice(-1)
+    const looksTruncated = lastChar !== '}' && lastChar !== ']'
+    const hint = looksTruncated
+      ? 'Respuesta TRUNCADA — sube max_tokens para esta herramienta'
+      : 'JSON malformado'
+    throw new Error(`${hint}. Últimos 200 chars: ${cleaned.slice(-200)}`)
   }
 }
+
+// Per-tool max_tokens — los tools con JSON gigante necesitan más
+const TOOL_MAX_TOKENS: Record<string, number> = {
+  'clone-winner': 16000,  // schema enorme: executive_summary + content_mix + schedule + aesthetics + copy + landing + score + plan
+  'calendario':    12000, // 4 semanas × 7-8 días de contenido detallado
+  'imagenes':      10000, // 6 prompts largos con todos los specs
+  'carruseles':    10000, // 8 carruseles × 7 slides
+  'emails':         8000, // múltiples emails con A/B subjects y bodies completos
+  'website':        8000, // varía por siteType pero secciones largas
+  'contrato':       6000, // texto legal completo
+  'casos':          6000, // 10 casos detallados
+  'estrategia':     5000, // 3 meses × 4 semanas
+  'tracker':        5000, // 6+ meses de números
+  'vsl':            4096, // 7 secciones cortas
+  'reels':          4096, // 3 guiones
+  'copy':           4096, // 5 ad copies
+  'precios':        4096, // 3 paquetes
+  'propuesta':      4096, // texto formato
+}
+const DEFAULT_MAX_TOKENS = 4096
 
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
 function buildPrompt(
@@ -663,15 +689,22 @@ PERFIL DEL NEGOCIO (del cuestionario inicial):
       // ── Step 6: call Anthropic ───────────────────────────────────────────────
       step = 'anthropic-call'
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+      const maxTokens = TOOL_MAX_TOKENS[toolId] ?? DEFAULT_MAX_TOKENS
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: maxTokens,
+        system: 'Devuelves SOLO JSON válido y completo. NO incluyes texto antes ni después. NO uses bloques de código markdown. Asegúrate de cerrar todas las llaves, corchetes y comillas. Si el JSON sería demasiado largo, prioriza completarlo correctamente sobre añadir más detalle.',
         messages: [{ role: 'user', content: prompt }],
       })
 
       const raw = response.content[0].type === 'text' ? response.content[0].text : ''
       if (!raw) {
         throw new Error('Anthropic devolvió respuesta vacía')
+      }
+
+      // Detectar truncación temprano para dar un error claro
+      if (response.stop_reason === 'max_tokens') {
+        throw new Error(`Claude truncó la respuesta al llegar al límite de ${maxTokens} tokens. Sube TOOL_MAX_TOKENS["${toolId}"].`)
       }
 
       // ── Step 7: parse JSON ───────────────────────────────────────────────────
