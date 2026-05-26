@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import { api } from '../../services/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -120,13 +121,11 @@ export default function Estrategia90Dias({ projectId }: Props) {
       try {
         setLoading(true)
         setError(null)
-        const response = await fetch(`/api/estrategia90d?projectId=${projectId}`)
-        if (!response.ok) throw new Error('Error al cargar estrategia')
+        const { data: response } = await api.get('/estrategia90d', { params: { projectId } })
 
-        const result = await response.json()
-        const parsed: StrategyData = result.result
-          ? JSON.parse(result.result)
-          : JSON.parse(result.content || '{"weeks":[]}')
+        const parsed: StrategyData = response.result
+          ? JSON.parse(response.result)
+          : JSON.parse(response.content || '{"weeks":[]}')
 
         setData(parsed)
       } catch (err) {
