@@ -9,7 +9,6 @@ import {
   ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon,
   CheckCircleIcon, LockClosedIcon,
   PlusCircleIcon, BuildingOffice2Icon,
-  CpuChipIcon, SpeakerWaveIcon,
 } from '@heroicons/react/24/outline'
 
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
@@ -18,42 +17,40 @@ export type ToolState = 'done' | 'active' | 'locked' | 'idle'
 interface SidebarTool { id: string; Icon: IconComp; short: string; cat: string }
 
 const TOOLS: SidebarTool[] = [
-  // Paso 1 — Análisis
-  { id: 'clone-winner', Icon: DocumentDuplicateIcon, short: 'Clonar Ganador',  cat: 'analisis'       },
-  // Paso 2 — Contenido
-  { id: 'calendario',   Icon: CalendarDaysIcon,      short: 'Calendario',      cat: 'contenido'      },
-  { id: 'story',        Icon: PencilSquareIcon,      short: 'Story',           cat: 'contenido'      },
-  { id: 'carruseles',   Icon: ViewColumnsIcon,        short: 'Carruseles',      cat: 'contenido'      },
-  { id: 'reels',        Icon: DevicePhoneMobileIcon, short: 'Reels',           cat: 'contenido'      },
-  { id: 'imagenes',     Icon: PhotoIcon,             short: 'Imágenes IA',     cat: 'contenido'      },
-  // Paso 3 — Ventas
-  { id: 'vsl',          Icon: FilmIcon,              short: 'VSL',             cat: 'ventas'         },
-  { id: 'propuesta',    Icon: DocumentTextIcon,      short: 'Propuesta',       cat: 'ventas'         },
-  { id: 'precios',      Icon: BanknotesIcon,         short: 'Precios',         cat: 'ventas'         },
-  { id: 'website',      Icon: GlobeAltIcon,          short: 'Sitio Web',       cat: 'ventas'         },
-  // Paso 4 — Automatización
-  { id: 'emails',       Icon: EnvelopeIcon,          short: 'Emails',          cat: 'automatizacion' },
-  { id: 'contrato',     Icon: DocumentCheckIcon,     short: 'Contrato',        cat: 'automatizacion' },
-  { id: 'chat-agent',   Icon: CpuChipIcon,           short: 'Agente IA Chat',  cat: 'automatizacion' },
-  // Paso 5 — Tracking
-  { id: 'tracker',      Icon: ChartBarIcon,          short: 'Tracker',         cat: 'tracking'       },
-  // Utilidades
-  { id: 'voice-agent',  Icon: SpeakerWaveIcon,       short: 'Agente de Voz',   cat: 'utilidades'     },
+  // Análisis
+  { id: 'clone-winner',    Icon: DocumentDuplicateIcon, short: 'Clonar Ganador',  cat: 'analisis'       },
+  // Contenido
+  { id: 'estrategia90d',   Icon: MapIcon,               short: 'Estrategia 90D',  cat: 'contenido'      },
+  { id: 'calendario',      Icon: CalendarDaysIcon,       short: 'Calendario',      cat: 'contenido'      },
+  { id: 'story',           Icon: PencilSquareIcon,       short: 'Story',           cat: 'contenido'      },
+  { id: 'carruseles',      Icon: ViewColumnsIcon,        short: 'Carruseles',      cat: 'contenido'      },
+  { id: 'reels',           Icon: DevicePhoneMobileIcon,  short: 'Reels',           cat: 'contenido'      },
+  { id: 'imagenes',        Icon: PhotoIcon,              short: 'Imágenes IA',     cat: 'contenido'      },
+  // Ventas
+  { id: 'vsl',             Icon: FilmIcon,               short: 'VSL',             cat: 'ventas'         },
+  { id: 'propuesta',       Icon: DocumentTextIcon,       short: 'Propuesta',       cat: 'ventas'         },
+  { id: 'precios',         Icon: BanknotesIcon,          short: 'Precios',         cat: 'ventas'         },
+  { id: 'website',         Icon: GlobeAltIcon,           short: 'Sitio Web',       cat: 'ventas'         },
+  // Automatización
+  { id: 'emails',          Icon: EnvelopeIcon,           short: 'Emails',          cat: 'automatizacion' },
+  { id: 'contrato',        Icon: DocumentCheckIcon,      short: 'Contrato',        cat: 'automatizacion' },
+  // Tracking
+  { id: 'tracker',         Icon: ChartBarIcon,           short: 'Tracker',         cat: 'tracking'       },
 ]
 
 // Step numbers for each tool (shown as badge)
 const TOOL_STEPS: Record<string, number> = {
   'clone-winner': 1,
-  'calendario': 2, 'story': 3, 'carruseles': 4, 'reels': 5, 'imagenes': 6,
-  'vsl': 7, 'propuesta': 8, 'precios': 9, 'website': 10,
-  'emails': 11, 'contrato': 12,
-  'tracker': 13,
-  'chat-agent': 14,
+  'estrategia90d': 2,
+  'calendario': 3, 'story': 4, 'carruseles': 5, 'reels': 6, 'imagenes': 7,
+  'vsl': 8, 'propuesta': 9, 'precios': 10, 'website': 11,
+  'emails': 12, 'contrato': 13,
+  'tracker': 14,
 }
 
-const CATS = ['analisis', 'contenido', 'ventas', 'automatizacion', 'tracking', 'utilidades']
-const CAT_LABELS: Record<string, string>  = { analisis: 'Análisis', contenido: 'Contenido', ventas: 'Ventas', automatizacion: 'Automatización', tracking: 'Tracking', utilidades: 'Utilidades' }
-const CAT_COLORS: Record<string, string>  = { analisis: '#EC4899', contenido: '#00D9FF', ventas: '#F59E0B', automatizacion: '#8B5CF6', tracking: '#10B981', utilidades: '#06B6D4' }
+const CATS = ['analisis', 'contenido', 'ventas', 'automatizacion', 'tracking']
+const CAT_LABELS: Record<string, string>  = { analisis: 'Análisis', contenido: 'Contenido', ventas: 'Ventas', automatizacion: 'Automatización', tracking: 'Tracking' }
+const CAT_COLORS: Record<string, string>  = { analisis: '#EC4899', contenido: '#00D9FF', ventas: '#F59E0B', automatizacion: '#8B5CF6', tracking: '#10B981' }
 
 export interface SidebarProps {
   mode: 'dashboard' | 'project'
@@ -189,7 +186,6 @@ export default function Sidebar({
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 6px', display: 'flex', flexDirection: 'column' }}>
           <SectionLabel label="Acciones rápidas" collapsed={collapsed} />
           <NavItem Icon={PlusCircleIcon} label="Crear proyecto" collapsed={collapsed} onClick={onNewProject} accent="var(--accent)" />
-          <NavItem Icon={SpeakerWaveIcon} label="Agente de Voz" collapsed={collapsed} onClick={() => navigate('/voice')} accent="#06B6D4" />
 
           {projects.length > 0 && (
             <>
