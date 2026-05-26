@@ -23,10 +23,11 @@ function parseJSON<T>(raw: string): T {
   }
 }
 
-async function generate(anthropic: Anthropic, prompt: string) {
+async function generate(anthropic: Anthropic, prompt: string, opts?: { model?: string; maxTokens?: number }) {
   const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
+    model: opts?.model ?? 'claude-haiku-4-5-20251001', // Haiku por defecto: 3-5x más rápido
+    max_tokens: opts?.maxTokens ?? 2048,
+    system: 'Devuelves SOLO JSON válido y completo. NO incluyas texto antes ni después. NO uses bloques de código markdown.',
     messages: [{ role: 'user', content: prompt }],
   })
   return res.content[0].type === 'text' ? res.content[0].text : ''

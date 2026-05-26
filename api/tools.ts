@@ -54,6 +54,29 @@ const TOOL_MAX_TOKENS: Record<string, number> = {
 }
 const DEFAULT_MAX_TOKENS = 4096
 
+// Modelo por tool — Haiku ~3-5x más rápido y barato, Sonnet para los complejos
+const SONNET = 'claude-sonnet-4-6'
+const HAIKU  = 'claude-haiku-4-5-20251001'
+const TOOL_MODEL: Record<string, string> = {
+  'clone-winner': SONNET, // razonamiento + análisis profundo
+  'calendario':   SONNET, // 28 piezas únicas, necesita creatividad
+  'imagenes':     SONNET, // prompts MJ con sintaxis técnica
+  'carruseles':   SONNET, // 8 narrativas distintas
+  'estrategia':   SONNET, // plan estratégico complejo
+  'emails':       SONNET, // copy persuasivo, A/B subjects
+  'website':      SONNET, // copy de conversión largo
+  'casos':        SONNET, // 10 casos reales con números
+  'contrato':     SONNET, // texto legal preciso
+  // Haiku para tools simples/estructurados — mucho más rápido
+  'vsl':          HAIKU,
+  'reels':        HAIKU,
+  'copy':         HAIKU,
+  'precios':      HAIKU,
+  'propuesta':    HAIKU,
+  'tracker':      HAIKU,
+}
+const DEFAULT_MODEL = SONNET
+
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
 function buildPrompt(
   toolId: string,
@@ -690,8 +713,9 @@ PERFIL DEL NEGOCIO (del cuestionario inicial):
       step = 'anthropic-call'
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       const maxTokens = TOOL_MAX_TOKENS[toolId] ?? DEFAULT_MAX_TOKENS
+      const model     = TOOL_MODEL[toolId] ?? DEFAULT_MODEL
       const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-6',
+        model,
         max_tokens: maxTokens,
         system: 'Devuelves SOLO JSON válido y completo. NO incluyes texto antes ni después. NO uses bloques de código markdown. Asegúrate de cerrar todas las llaves, corchetes y comillas. Si el JSON sería demasiado largo, prioriza completarlo correctamente sobre añadir más detalle.',
         messages: [{ role: 'user', content: prompt }],
