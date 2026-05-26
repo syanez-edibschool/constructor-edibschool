@@ -212,7 +212,7 @@ export default function CoachWidget() {
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: cleanCoachReply(res.data.reply),
+        content: cleanCoachReply(res.data.reply ?? res.data.message ?? ''),
         timestamp: res.data.timestamp || new Date().toISOString(),
       }
       const final = [...newMsgs, assistantMsg]

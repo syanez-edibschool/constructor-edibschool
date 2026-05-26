@@ -94,7 +94,9 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
       const { data } = await api.post(`/projects/${projectId}/tools/website`, {
         toolAnswers: { siteType: selectedType, colors, additional },
       })
-      setResult(data.result as SiteResult)
+      // Vercel function returns { success, content }; Express returns { result: { siteType, content } }
+      const siteResult: SiteResult = data.result ?? { siteType: selectedType!, content: data.content ?? '' }
+      setResult(siteResult)
       setSavedAt(new Date().toISOString())
       setStep('done')
     } catch {
