@@ -2,11 +2,53 @@ import Anthropic from '@anthropic-ai/sdk'
 import { ElevenLabsClient } from 'elevenlabs'
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import FormData from 'form-data'
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
 
 function getDb(token: string) {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ''
   const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''
   return createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
+}
+
+async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+  const openaiApiKey = process.env.OPENAI_API_KEY
+  if (!openaiApiKey) {
+    throw new Error('OPENAI_API_KEY no configurada')
+  }
+
+  const tmpDir = os.tmpdir()
+  const audioPath = path.join(tmpDir, `audio_${Date.now()}.webm`)
+  fs.writeFileSync(audioPath, audioBuffer)
+
+  try {
+    const formData = new FormData()
+    formData.append('file', fs.createReadStream(audioPath))
+    formData.append('model', 'whisper-1')
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${openaiApiKey}`,
+        ...formData.getHeaders(),
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`OpenAI API error: ${error}`)
+    }
+
+    const data: any = await response.json()
+    return data.text
+  } finally {
+    if (fs.existsSync(audioPath)) {
+      fs.unlinkSync(audioPath)
+    }
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -18,8 +60,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
-    const { message, projectId, history } = req.body
-    if (!message) return res.status(400).json({ error: 'Message requerido' })
+    const { audio, projectId } = req.body
+
+    if (!audio) return res.status(400).json({ error: 'Audio requerido' })
+
+    const audioBuffer = Buffer.from(audio, 'base64')
+
+    const transcript = await transcribeAudio(audioBuffer)
+    if (!transcript.trim()) {
+      return res.status(400).json({ error: 'No se pudo transcribir el audio' })
+    }
 
     const authHeader = req.headers.authorization
     const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
@@ -80,30 +130,19 @@ Ayudas a emprendedores a crear y escalar sus agencias. Eres directo, concreto y 
 
 FORMATO DE RESPUESTA (muy importante):
 - Responde en español
-- Máximo 4 bloques cortos separados por saltos de línea
-- Usa listas con guiones (-) para puntos clave
-- Sin asteriscos, sin markdown, sin negritas con **
-- Frases cortas y directas, no párrafos largos
-- Si das pasos, numéralos: 1. 2. 3.
+- Máximo 3-4 frases cortas y directas
+- Frases conversacionales, como en una conversación por voz
+- Sin asteriscos, sin markdown, sin negritas
+- Sé conciso, el usuario te está escuchando por voz
 
 ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
-
-    const messages: { role: 'user' | 'assistant'; content: string }[] = []
-    if (Array.isArray(history)) {
-      for (const h of history) {
-        if (h.role === 'user' || h.role === 'assistant') {
-          messages.push({ role: h.role, content: h.content })
-        }
-      }
-    }
-    messages.push({ role: 'user', content: message })
 
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 800,
+      max_tokens: 500,
       system: systemPrompt,
-      messages,
+      messages: [{ role: 'user', content: transcript }],
     })
 
     const textReply = response.content[0].type === 'text' ? response.content[0].text : ''
@@ -112,22 +151,24 @@ ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
     if (!elevenLabsApiKey) {
       return res.status(500).json({
         error: 'ElevenLabs API key not configured',
+        transcript,
         text: textReply,
       })
     }
 
     const client = new ElevenLabsClient({ apiKey: elevenLabsApiKey })
 
-    const audioBuffer = await client.generate({
+    const audioBuffer2 = await client.generate({
       voice: 'Diego',
       text: textReply,
       model_id: 'eleven_multilingual_v2',
       output_format: 'mp3_44100_64',
     })
 
-    const audioBase64 = Buffer.from(audioBuffer).toString('base64')
+    const audioBase64 = Buffer.from(audioBuffer2).toString('base64')
 
     return res.status(200).json({
+      transcript,
       text: textReply,
       audio: `data:audio/mpeg;base64,${audioBase64}`,
     })

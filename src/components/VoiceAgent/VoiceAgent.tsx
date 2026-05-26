@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { SparklesIcon, PaperAirplaneIcon, StopIcon } from '@heroicons/react/24/outline'
+import { SparklesIcon, StopIcon, MicrophoneIcon } from '@heroicons/react/24/outline'
 import { useParams } from 'react-router-dom'
 import { api } from '../../services/api'
 
 interface Message {
   id: string
   role: 'user' | 'assistant'
-  text: string
+  transcript?: string
   audio?: string
   timestamp: string
 }
@@ -15,9 +15,11 @@ interface Message {
 export default function VoiceAgent() {
   const { id: projectId } = useParams<{ id?: string }>()
   const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [sending, setSending] = useState(false)
+  const [recording, setRecording] = useState(false)
+  const [processing, setProcessing] = useState(false)
   const [playingId, setPlayingId] = useState<string | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
   const audioRef = useRef<HTMLAudioElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -25,48 +27,84 @@ export default function VoiceAgent() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const sendMessage = async () => {
-    if (!input.trim() || sending) return
-
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      text: input,
-      timestamp: new Date().toISOString(),
-    }
-    setMessages(prev => [...prev, userMsg])
-    setInput('')
-    setSending(true)
-
+  const startRecording = async () => {
     try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (e) => {
+        audioChunksRef.current.push(e.data)
+      }
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        await sendAudio(audioBlob)
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      mediaRecorder.start()
+      mediaRecorderRef.current = mediaRecorder
+      setRecording(true)
+    } catch (error) {
+      console.error('Error accessing microphone:', error)
+      alert('No se pudo acceder al micrófono')
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop()
+      setRecording(false)
+    }
+  }
+
+  const sendAudio = async (audioBlob: Blob) => {
+    setProcessing(true)
+    try {
+      const audioBuffer = await audioBlob.arrayBuffer()
+      const audioBase64 = Buffer.from(audioBuffer).toString('base64')
+
       const res = await api.post('/coach/voice', {
-        message: input,
+        audio: audioBase64,
         projectId,
-        history: messages.slice(-6).map(m => ({ role: m.role, content: m.text })),
       })
+
+      const userMsg: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        transcript: res.data.transcript,
+        timestamp: new Date().toISOString(),
+      }
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: res.data.text || '',
         audio: res.data.audio,
+        transcript: res.data.text,
         timestamp: new Date().toISOString(),
       }
-      setMessages(prev => [...prev, assistantMsg])
+
+      setMessages(prev => [...prev, userMsg, assistantMsg])
 
       if (res.data.audio) {
         setPlayingId(assistantMsg.id)
+        if (audioRef.current) {
+          audioRef.current.src = res.data.audio
+          audioRef.current.play()
+        }
       }
     } catch (error) {
+      console.error('Error:', error)
       const errMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: 'Error al procesar tu mensaje. Intenta de nuevo.',
+        transcript: 'Error al procesar tu audio. Intenta de nuevo.',
         timestamp: new Date().toISOString(),
       }
       setMessages(prev => [...prev, errMsg])
     } finally {
-      setSending(false)
+      setProcessing(false)
     }
   }
 
@@ -75,13 +113,6 @@ export default function VoiceAgent() {
       audioRef.current.src = audioUrl
       audioRef.current.play()
       setPlayingId(msgId)
-    }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
     }
   }
 
@@ -99,12 +130,12 @@ export default function VoiceAgent() {
             background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <SparklesIcon style={{ width: 20, height: 20, color: '#fff' }} />
+            <MicrophoneIcon style={{ width: 20, height: 20, color: '#fff' }} />
           </div>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Agente de Voz</h2>
         </div>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)' }}>
-          Conversación con IA por voz y texto
+          Conversación por voz en tiempo real
         </p>
       </div>
 
@@ -127,8 +158,8 @@ export default function VoiceAgent() {
             textAlign: 'center',
           }}>
             <div>
-              <SparklesIcon style={{ width: 40, height: 40, margin: '0 auto 12px', opacity: 0.5 }} />
-              <p>Inicia una conversación</p>
+              <MicrophoneIcon style={{ width: 40, height: 40, margin: '0 auto 12px', opacity: 0.5 }} />
+              <p>Presiona el botón para empezar a hablar</p>
             </div>
           </div>
         ) : (
@@ -144,28 +175,30 @@ export default function VoiceAgent() {
               }}
             >
               <div style={{
-                maxWidth: '70%',
+                maxWidth: '75%',
                 padding: '12px 16px',
                 borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                 background: msg.role === 'user' ? 'var(--accent)' : 'var(--card-bg)',
                 border: msg.role === 'user' ? 'none' : '1px solid var(--border)',
               }}>
-                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-                  {msg.text}
-                </p>
+                {msg.transcript && (
+                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5 }}>
+                    {msg.transcript}
+                  </p>
+                )}
 
                 {msg.audio && msg.role === 'assistant' && (
                   <button
                     onClick={() => playAudio(msg.audio!, msg.id)}
                     style={{
-                      marginTop: 10,
-                      padding: '6px 12px',
+                      marginTop: msg.transcript ? 10 : 0,
+                      padding: '8px 14px',
                       borderRadius: 8,
                       background: 'rgba(0,217,255,0.2)',
                       border: '1px solid rgba(0,217,255,0.3)',
                       color: playingId === msg.id ? 'var(--accent)' : 'var(--text-2)',
                       cursor: 'pointer',
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: 500,
                       transition: 'all .2s',
                     }}
@@ -185,7 +218,7 @@ export default function VoiceAgent() {
                 <div style={{
                   fontSize: 11,
                   color: msg.role === 'user' ? 'rgba(255,255,255,0.5)' : 'var(--text-3)',
-                  marginTop: msg.audio ? 8 : 6,
+                  marginTop: 6,
                 }}>
                   {new Date(msg.timestamp).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                 </div>
@@ -196,68 +229,78 @@ export default function VoiceAgent() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Mic Button */}
       <div style={{
-        padding: '16px 24px',
+        padding: '20px 24px',
         borderTop: '1px solid var(--border)',
         background: 'var(--surface)',
         display: 'flex',
+        justifyContent: 'center',
         gap: 12,
-        alignItems: 'flex-end',
       }}>
-        <textarea
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Escribe tu pregunta... (Enter para enviar)"
-          rows={1}
-          style={{
-            flex: 1,
-            resize: 'none',
-            padding: '10px 12px',
-            borderRadius: 12,
-            border: '1px solid var(--border)',
-            background: 'var(--bg)',
-            color: 'var(--text)',
-            fontSize: 14,
-            fontFamily: 'inherit',
-            outline: 'none',
-            maxHeight: 100,
-            transition: 'border-color .15s',
-          }}
-          onFocus={e => { (e.target as HTMLElement).style.borderColor = 'var(--accent)' }}
-          onBlur={e => { (e.target as HTMLElement).style.borderColor = 'var(--border)' }}
-        />
         <motion.button
-          onClick={sendMessage}
-          disabled={!input.trim() || sending}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          onClick={recording ? stopRecording : startRecording}
+          disabled={processing}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           style={{
-            width: 40,
-            height: 40,
+            width: 60,
+            height: 60,
             borderRadius: '50%',
-            background: input.trim() && !sending ? 'var(--accent)' : 'var(--border)',
+            background: recording ? '#EF4444' : 'var(--accent)',
             border: 'none',
             color: '#fff',
-            cursor: input.trim() && !sending ? 'pointer' : 'default',
+            cursor: processing ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            opacity: processing ? 0.6 : 1,
           }}
         >
-          {sending ? (
+          {processing ? (
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             >
-              <StopIcon style={{ width: 18, height: 18 }} />
+              <StopIcon style={{ width: 24, height: 24 }} />
             </motion.div>
           ) : (
-            <PaperAirplaneIcon style={{ width: 18, height: 18 }} />
+            <MicrophoneIcon style={{ width: 24, height: 24 }} />
           )}
         </motion.button>
+        {recording && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            color: 'var(--text-2)',
+            fontSize: 13,
+          }}>
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: '#EF4444',
+              }}
+            />
+            Grabando...
+          </div>
+        )}
+        {processing && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            color: 'var(--text-2)',
+            fontSize: 13,
+          }}>
+            Procesando...
+          </div>
+        )}
       </div>
 
       <audio ref={audioRef} onEnded={() => setPlayingId(null)} />
