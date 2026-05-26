@@ -23,8 +23,8 @@ interface ProjectCardProps {
   onDelete: () => void
 }
 
-interface NichoData { sector?: string; micronicho?: string; tam?: string }
-interface AvatarData { name?: string; age?: string; narrative?: string }
+interface NichoData { sector?: string; micronicho?: string; tam?: string; ticket?: string; trend?: string; momento?: string; razon?: string }
+interface AvatarData { name?: string; age?: string; narrative?: string; position?: string; experience?: string; income?: string; goals?: string[]; pains?: string[] }
 
 type Spark = { id: number; x: number; y: number; vx: number; vy: number; color: string }
 
