@@ -9,8 +9,18 @@ function getDb(token: string) {
 }
 
 function parseJSON<T>(raw: string): T {
-  const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-  return JSON.parse(cleaned)
+  let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+  if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+    const objMatch = cleaned.match(/\{[\s\S]*\}/)
+    const arrMatch = cleaned.match(/\[[\s\S]*\]/)
+    if (objMatch) cleaned = objMatch[0]
+    else if (arrMatch) cleaned = arrMatch[0]
+  }
+  try {
+    return JSON.parse(cleaned)
+  } catch {
+    throw new Error(`JSON parse falló. Primeros 300 chars: ${raw.slice(0, 300)}`)
+  }
 }
 
 async function generate(anthropic: Anthropic, prompt: string) {
@@ -172,6 +182,11 @@ Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
     return res.status(400).json({ error: `Operación desconocida: ${operation}` })
   } catch (error: any) {
     console.error(`[analysis/${operation}]`, error)
-    return res.status(500).json({ error: error.message || 'Error en análisis' })
+    return res.status(500).json({
+      error: error.message || 'Error en análisis',
+      operation,
+      projectId,
+      hint: 'Visita /api/health desde el navegador para verificar configuración de Vercel',
+    })
   }
 }

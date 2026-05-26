@@ -10,8 +10,22 @@ function getDb(token: string) {
 }
 
 function parseJSON<T>(raw: string): T {
-  const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-  return JSON.parse(cleaned)
+  // Strip code fences
+  let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+
+  // If Claude prefixed/suffixed text, try to extract the JSON block
+  if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+    const objMatch = cleaned.match(/\{[\s\S]*\}/)
+    const arrMatch = cleaned.match(/\[[\s\S]*\]/)
+    if (objMatch) cleaned = objMatch[0]
+    else if (arrMatch) cleaned = arrMatch[0]
+  }
+
+  try {
+    return JSON.parse(cleaned)
+  } catch (err: any) {
+    throw new Error(`JSON parse falló. Primeros 300 chars de la respuesta de Claude: ${raw.slice(0, 300)}`)
+  }
 }
 
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
@@ -554,27 +568,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const projectId = req.query.projectId as string
   const toolId    = req.query.toolId as string
 
-  if (!projectId || !toolId) {
-    return res.status(400).json({ error: 'projectId y toolId son requeridos' })
-  }
-
-  const authHeader = req.headers.authorization
-  if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No autorizado' })
-  }
-  const token = authHeader.split(' ')[1]
-  const db = getDb(token)
+  let step = 'init'
 
   try {
+    // ── Step 1: validate env vars ─────────────────────────────────────────────
+    step = 'check-env'
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error('ANTHROPIC_API_KEY no está configurada en Vercel')
+    }
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY no configuradas en Vercel')
+    }
+
+    // ── Step 2: validate request params ───────────────────────────────────────
+    step = 'check-params'
+    if (!projectId || !toolId) {
+      return res.status(400).json({ error: 'projectId y toolId son requeridos', step, query: req.query })
+    }
+
+    // ── Step 3: validate auth ─────────────────────────────────────────────────
+    step = 'check-auth'
+    const authHeader = req.headers.authorization
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No hay header Authorization Bearer', step })
+    }
+    const token = authHeader.split(' ')[1]
+    const db = getDb(token)
+
     // ── GET: check if tool output already exists ──────────────────────────────
     if (req.method === 'GET') {
-      const { data } = await db
+      step = 'supabase-get'
+      const { data, error } = await db
         .from('project_tools')
         .select('result_json, updated_at')
         .eq('project_id', projectId)
         .eq('tool_id', toolId)
         .maybeSingle()
 
+      if (error) throw new Error(`Supabase GET error: ${error.message}`)
       if (data) {
         return res.status(200).json({ exists: true, result: data.result_json, updated_at: data.updated_at })
       }
@@ -583,15 +616,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── POST: generate ────────────────────────────────────────────────────────
     if (req.method === 'POST') {
+      step = 'parse-body'
       const toolAnswers: Record<string, string> = req.body?.toolAnswers || {}
 
-      // Fetch project context (nicho, avatar, competencia)
+      // ── Step 4: fetch project context ────────────────────────────────────────
+      step = 'supabase-fetch-context'
       const [nichoRow, avatarRow, compRow, questionsRow] = await Promise.all([
-        db.from('project_nicho').select('data_json').eq('project_id', projectId).single(),
-        db.from('project_avatar').select('data_json').eq('project_id', projectId).single(),
-        db.from('project_competencia').select('data_json').eq('project_id', projectId).single(),
-        db.from('project_questions').select('answers_json').eq('project_id', projectId).single(),
+        db.from('project_nicho').select('data_json').eq('project_id', projectId).maybeSingle(),
+        db.from('project_avatar').select('data_json').eq('project_id', projectId).maybeSingle(),
+        db.from('project_competencia').select('data_json').eq('project_id', projectId).maybeSingle(),
+        db.from('project_questions').select('answers_json').eq('project_id', projectId).maybeSingle(),
       ])
+
+      // Log if any context query had an error (RLS, missing table, etc.)
+      const ctxErrors = [
+        nichoRow.error && `nicho: ${nichoRow.error.message}`,
+        avatarRow.error && `avatar: ${avatarRow.error.message}`,
+        compRow.error && `competencia: ${compRow.error.message}`,
+        questionsRow.error && `questions: ${questionsRow.error.message}`,
+      ].filter(Boolean)
+      if (ctxErrors.length > 0) {
+        console.warn(`[tools/${toolId}] Context warnings:`, ctxErrors)
+      }
 
       const answers = questionsRow.data?.answers_json || {}
 
@@ -607,11 +653,15 @@ PERFIL DEL NEGOCIO (del cuestionario inicial):
 
       const ctx = projectCtx + toolCtx
 
+      // ── Step 5: build prompt ─────────────────────────────────────────────────
+      step = 'build-prompt'
       const prompt = buildPrompt(toolId, ctx, toolAnswers)
       if (!prompt) {
-        return res.status(404).json({ error: 'Herramienta no encontrada' })
+        return res.status(404).json({ error: `Herramienta no encontrada: ${toolId}`, step })
       }
 
+      // ── Step 6: call Anthropic ───────────────────────────────────────────────
+      step = 'anthropic-call'
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-6',
@@ -620,27 +670,42 @@ PERFIL DEL NEGOCIO (del cuestionario inicial):
       })
 
       const raw = response.content[0].type === 'text' ? response.content[0].text : ''
+      if (!raw) {
+        throw new Error('Anthropic devolvió respuesta vacía')
+      }
+
+      // ── Step 7: parse JSON ───────────────────────────────────────────────────
+      step = 'parse-json'
       const result = parseJSON<Record<string, unknown>>(raw)
 
-      // Preserve siteType if website tool
       if (toolId === 'website' && toolAnswers.siteType) {
         result.siteType = toolAnswers.siteType
       }
 
-      // Save to Supabase
-      await db.from('project_tools').upsert({
+      // ── Step 8: save to Supabase ─────────────────────────────────────────────
+      step = 'supabase-save'
+      const { error: saveErr } = await db.from('project_tools').upsert({
         project_id: projectId,
         tool_id: toolId,
         result_json: result,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'project_id,tool_id' })
 
+      if (saveErr) {
+        console.warn(`[tools/${toolId}] Save warning: ${saveErr.message}`)
+      }
+
       return res.status(200).json({ result })
     }
 
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed', step })
   } catch (error: any) {
-    console.error(`[tools/${toolId}]`, error)
-    return res.status(500).json({ error: error.message || 'Error al generar herramienta' })
+    console.error(`[tools/${toolId}] [step=${step}]`, error)
+    return res.status(500).json({
+      error: error.message || 'Error al generar herramienta',
+      step,
+      toolId,
+      projectId,
+    })
   }
 }
