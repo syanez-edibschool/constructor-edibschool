@@ -20,7 +20,6 @@ import TrackerFinanciero                            from '../components/Tools/Tr
 import PromptsImagenes,   { type ImagenPrompt }   from '../components/Tools/PromptsImagenes'
 import CloneTheWinner                               from '../components/Tools/CloneTheWinner'
 import SitioWeb                                    from '../components/Tools/SitioWeb'
-import Estrategia90Dias                             from '../components/Tools/Estrategia90Dias'
 import PropuestaComercial                          from '../components/Tools/PropuestaComercial'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -186,22 +185,9 @@ const TOOLS: ToolDef[] = [
       { id: 'url',      label: '¿URL de su web o landing? (opcional)',        type: 'text',   placeholder: 'Ej: mariafitnessover40.com' },
     ],
   },
-  {
-    id: 'estrategia', Icon: MapIcon, title: 'Estrategia 90 Días', short: 'Estrategia 90d', cat: 'estrategia',
-    desc: 'Plan semanal de 90 días con hitos, KPIs y acciones concretas.',
-    qs: [
-      { id: 'objetivo',    label: '¿Tu objetivo #1 en los próximos 90 días?',  type: 'text',   placeholder: 'Ej: llegar a €10k MRR, conseguir 5 clientes nuevos' },
-      { id: 'situacion',   label: '¿Dónde estás ahora mismo?',                 type: 'textarea', placeholder: 'Ej: 1 cliente a €1,500/mes, 200 seguidores, 6 meses en el negocio' },
-      { id: 'reto',        label: '¿Cuál es tu mayor obstáculo actual?',       type: 'text',   placeholder: 'Ej: no sé cómo conseguir leads de forma constante' },
-      { id: 'recursos',    label: '¿Con qué recursos cuentas?',                type: 'textarea', placeholder: 'Ej: 20h/semana, €500/mes para marketing, 1 freelancer part-time' },
-      { id: 'budget',      label: '¿Presupuesto mensual para marketing/ads?',  type: 'text',   placeholder: 'Ej: €300/mes' },
-      { id: 'adquisicion', label: '¿Cómo adquieres clientes actualmente?',    type: 'select', options: ['Solo referidos/boca a boca','Redes sociales orgánicas','Ads pagados','Outreach directo (cold)','Combinación de canales'] },
-      { id: 'kpis',        label: '¿Qué 3 KPIs medirán tu éxito?',            type: 'textarea', placeholder: 'Ej: MRR, reuniones/semana, tasa de conversión de propuestas' },
-    ],
-  },
 ]
 
-const CATS = [{ id: 'contenido', label: 'Contenido' }, { id: 'ventas', label: 'Ventas' }, { id: 'operaciones', label: 'Ops' }, { id: 'estrategia', label: 'Estrategia' }]
+const CATS = [{ id: 'contenido', label: 'Contenido' }, { id: 'ventas', label: 'Ventas' }, { id: 'operaciones', label: 'Ops' }, { id: 'estrategia', label: 'Herramientas Estratégicas' }]
 
 function copy(text: string) { navigator.clipboard.writeText(text); toast.success('Copiado al portapapeles') }
 function download(content: string, filename: string) {
@@ -298,14 +284,6 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
 
   if (toolId === 'website') {
     return <SitioWeb projectId={projectId} />
-  }
-
-  if (toolId === 'estrategia') {
-    return (
-      <Estrategia90Dias
-        projectId={projectId}
-      />
-    )
   }
 
   if (toolId === 'imagenes') {
@@ -664,7 +642,7 @@ export default function Tools() {
             {activeTool && state?.phase === 'done' && (
               <motion.div key={`done-${activeTool}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {/* Header — only for AI-generated tools (not standalone interactive ones) */}
-                {!['calendario', 'tracker', 'website', 'estrategia', 'clone-winner', 'propuesta'].includes(activeTool) && (
+                {!['calendario', 'tracker', 'website', 'clone-winner', 'propuesta'].includes(activeTool) && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-d)', border: '1px solid var(--border-h)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
