@@ -126,11 +126,32 @@ Incluye exactamente 3 competidores.`),
       const competencia = parseJSON(compRaw)
 
       const results = await Promise.allSettled([
-        db.from('project_nicho').upsert({ project_id: projectId, data_json: nicho }, { onConflict: 'project_id' }),
-        db.from('project_avatar').upsert({ project_id: projectId, data_json: avatar }, { onConflict: 'project_id' }),
+        db.from('project_nicho').upsert({
+          project_id: projectId,
+          sector: nicho.sector,
+          micronicho: nicho.micronicho,
+          tam: nicho.tam,
+          ticket: nicho.ticket,
+          trend: nicho.trend,
+          momento: nicho.momento,
+          razon: nicho.razon,
+        }, { onConflict: 'project_id' }),
+        db.from('project_avatar').upsert({
+          project_id: projectId,
+          name: avatar.name,
+          age: avatar.age,
+          position: avatar.position,
+          experience: avatar.experience,
+          income: avatar.income,
+          goals: avatar.goals,
+          pains: avatar.pains,
+          narrative: avatar.narrative,
+        }, { onConflict: 'project_id' }),
         db.from('project_competencia').upsert({
           project_id: projectId,
-          data_json: competencia,
+          competitors: competencia.competitors,
+          positioning: competencia.positioning,
+          opportunity: competencia.opportunity,
         }, { onConflict: 'project_id' }),
       ])
 
@@ -169,7 +190,16 @@ El usuario quiere modificar el análisis de nicho. Feedback: "${feedback}"
 Respuestas originales: ${ctx}
 Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticket, trend, momento, razon.`)
       const nicho = parseJSON(raw)
-      const result = await db.from('project_nicho').upsert({ project_id: projectId, data_json: nicho }, { onConflict: 'project_id' })
+      const result = await db.from('project_nicho').upsert({
+        project_id: projectId,
+        sector: nicho.sector,
+        micronicho: nicho.micronicho,
+        tam: nicho.tam,
+        ticket: nicho.ticket,
+        trend: nicho.trend,
+        momento: nicho.momento,
+        razon: nicho.razon,
+      }, { onConflict: 'project_id' })
       if (result.error) {
         console.error('[analysis/update-nicho] Save error:', result.error)
         return res.status(500).json({ error: 'Error al guardar nicho', details: result.error })
@@ -185,7 +215,17 @@ El usuario quiere modificar el avatar. Feedback: "${feedback}"
 Respuestas originales: ${ctx}
 Genera un nuevo avatar JSON con los mismos campos: name, age, position, experience, income, goals, pains, narrative.`)
       const avatar = parseJSON(raw)
-      const result = await db.from('project_avatar').upsert({ project_id: projectId, data_json: avatar }, { onConflict: 'project_id' })
+      const result = await db.from('project_avatar').upsert({
+        project_id: projectId,
+        name: avatar.name,
+        age: avatar.age,
+        position: avatar.position,
+        experience: avatar.experience,
+        income: avatar.income,
+        goals: avatar.goals,
+        pains: avatar.pains,
+        narrative: avatar.narrative,
+      }, { onConflict: 'project_id' })
       if (result.error) {
         console.error('[analysis/update-avatar] Save error:', result.error)
         return res.status(500).json({ error: 'Error al guardar avatar', details: result.error })
@@ -203,7 +243,9 @@ Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
       const competencia = parseJSON(raw)
       const result = await db.from('project_competencia').upsert({
         project_id: projectId,
-        data_json: competencia,
+        competitors: competencia.competitors,
+        positioning: competencia.positioning,
+        opportunity: competencia.opportunity,
       }, { onConflict: 'project_id' })
       if (result.error) {
         console.error('[analysis/update-competencia] Save error:', result.error)
