@@ -70,8 +70,9 @@ function MessageBubble({ msg }: { msg: Message }) {
         background: isUser ? 'var(--accent)' : 'var(--card-bg)',
         border: isUser ? 'none' : '1px solid var(--border)',
         fontSize: 13,
-        lineHeight: 1.55,
+        lineHeight: 1.6,
         color: isUser ? '#fff' : 'var(--text)',
+        whiteSpace: 'pre-line',
       }}>
         {msg.content}
         <div style={{ fontSize: 9, color: isUser ? 'rgba(255,255,255,.55)' : 'var(--text-3)', marginTop: 4, textAlign: 'right' }}>

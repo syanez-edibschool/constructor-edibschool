@@ -23,39 +23,72 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const authHeader = req.headers.authorization
     const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
 
-    // Fetch project context from Supabase using user's JWT (respects RLS)
     let projectContext = ''
-    if (projectId && token) {
+
+    if (token) {
       const db = getDb(token)
-      const [projectRes, nichoRes, avatarRes] = await Promise.all([
-        db.from('projects').select('name, description').eq('id', projectId).single(),
-        db.from('project_nicho').select('data_json').eq('project_id', projectId).single(),
-        db.from('project_avatar').select('data_json').eq('project_id', projectId).single(),
-      ])
 
-      const project = projectRes.data
-      const nicho = nichoRes.data?.data_json as Record<string, string> | null
-      const avatar = avatarRes.data?.data_json as Record<string, string> | null
+      if (projectId) {
+        // Contexto específico del proyecto abierto
+        const [projectRes, nichoRes, avatarRes] = await Promise.all([
+          db.from('projects').select('name, description').eq('id', projectId).single(),
+          db.from('project_nicho').select('data_json').eq('project_id', projectId).single(),
+          db.from('project_avatar').select('data_json').eq('project_id', projectId).single(),
+        ])
 
-      if (project || nicho || avatar) {
-        projectContext = `Contexto del proyecto del usuario:
-${project?.name ? `- Proyecto: ${project.name}` : ''}
-${project?.description ? `- Descripción: ${project.description}` : ''}
-${nicho?.sector ? `- Sector/Nicho: ${nicho.sector}` : ''}
-${nicho?.micronicho ? `- Micronicho: ${nicho.micronicho}` : ''}
-${nicho?.ticket ? `- Ticket promedio: ${nicho.ticket}` : ''}
-${avatar?.name ? `- Cliente ideal: ${avatar.name}, ${avatar.position || ''}` : ''}
-${avatar?.pains ? `- Principales dolores del cliente: ${Array.isArray(avatar.pains) ? avatar.pains.join(', ') : avatar.pains}` : ''}
-${avatar?.goals ? `- Objetivos del cliente: ${Array.isArray(avatar.goals) ? avatar.goals.join(', ') : avatar.goals}` : ''}`
+        const project = projectRes.data
+        const nicho = nichoRes.data?.data_json as Record<string, string> | null
+        const avatar = avatarRes.data?.data_json as Record<string, string> | null
+
+        const lines: string[] = ['El usuario está trabajando en este proyecto:']
+        if (project?.name) lines.push(`- Proyecto: ${project.name}`)
+        if (project?.description) lines.push(`- Descripción: ${project.description}`)
+        if (nicho?.sector) lines.push(`- Sector: ${nicho.sector}`)
+        if (nicho?.micronicho) lines.push(`- Micronicho: ${nicho.micronicho}`)
+        if (nicho?.ticket) lines.push(`- Ticket promedio: ${nicho.ticket}`)
+        if (nicho?.tam) lines.push(`- Tamaño de mercado: ${nicho.tam}`)
+        if (avatar?.name) lines.push(`- Cliente ideal: ${avatar.name}${avatar.position ? `, ${avatar.position}` : ''}`)
+        if (avatar?.pains) {
+          const pains = Array.isArray(avatar.pains) ? avatar.pains.join(', ') : String(avatar.pains)
+          lines.push(`- Dolores del cliente: ${pains}`)
+        }
+        if (avatar?.goals) {
+          const goals = Array.isArray(avatar.goals) ? avatar.goals.join(', ') : String(avatar.goals)
+          lines.push(`- Objetivos del cliente: ${goals}`)
+        }
+        projectContext = lines.join('\n')
+
+      } else {
+        // En el dashboard — contexto global de todos los proyectos del usuario
+        const { data: projects } = await db
+          .from('projects')
+          .select('id, name, description')
+          .limit(10)
+
+        if (projects && projects.length > 0) {
+          const lines: string[] = [`El usuario tiene ${projects.length} proyecto(s) en la plataforma:`]
+          for (const p of projects) {
+            lines.push(`- ${p.name || 'Sin nombre'}${p.description ? `: ${p.description}` : ''}`)
+          }
+          lines.push('El usuario está en el Dashboard general (no dentro de un proyecto específico).')
+          projectContext = lines.join('\n')
+        }
       }
     }
 
     const systemPrompt = `Eres un coach experto en marketing digital, ventas y construcción de agencias de IA.
 Ayudas a emprendedores a crear y escalar sus agencias. Eres directo, concreto y accionable.
-Respondes en español. Máximo 3-4 párrafos. Sin rodeos ni relleno.
-${projectContext ? `\n${projectContext}\n\nUsa este contexto para personalizar tus respuestas al proyecto específico del usuario.` : ''}`
 
-    // Build conversation history for multi-turn context
+FORMATO DE RESPUESTA (muy importante):
+- Responde en español
+- Máximo 4 bloques cortos separados por saltos de línea
+- Usa listas con guiones (-) para puntos clave
+- Sin asteriscos, sin markdown, sin negritas con **
+- Frases cortas y directas, no párrafos largos
+- Si das pasos, numéralos: 1. 2. 3.
+
+${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
+
     const messages: { role: 'user' | 'assistant'; content: string }[] = []
     if (Array.isArray(history)) {
       for (const h of history) {
@@ -69,7 +102,7 @@ ${projectContext ? `\n${projectContext}\n\nUsa este contexto para personalizar t
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 800,
       system: systemPrompt,
       messages,
     })
