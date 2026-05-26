@@ -144,8 +144,6 @@ Incluye exactamente 3 competidores.`),
         }, { onConflict: 'project_id' }),
         db.from('project_competencia').upsert({
           project_id: projectId,
-          positioning: competencia.positioning,
-          opportunity: competencia.opportunity,
           data_json: JSON.stringify(competencia),
         }, { onConflict: 'project_id' }),
       ])
@@ -233,8 +231,6 @@ Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
       const competencia = parseJSON(raw)
       const result = await db.from('project_competencia').upsert({
         project_id: projectId,
-        positioning: competencia.positioning,
-        opportunity: competencia.opportunity,
         data_json: JSON.stringify(competencia),
       }, { onConflict: 'project_id' })
       if (result.error) {
