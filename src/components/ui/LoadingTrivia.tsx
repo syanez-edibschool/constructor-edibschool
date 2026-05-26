@@ -89,7 +89,7 @@ export default function LoadingTrivia() {
             transition={{ duration: 2, repeat: Infinity }}
             className="text-xs text-white/40 text-center"
           >
-            Generando tu estrategia...
+            Generando tu contenido...
           </motion.p>
         </div>
       </motion.div>
