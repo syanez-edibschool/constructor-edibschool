@@ -578,11 +578,166 @@ function CompetitorCard({ analysis, rank, onSelect, isWinner }: {
   )
 }
 
+// ─── Comparative Table ───────────────────────────────────────────────────────
+function ComparativeTable({ analyses, selectedIdx, onSelect }: {
+  analyses: CloneAnalysis[]
+  selectedIdx: number | null
+  onSelect: (idx: number) => void
+}) {
+  const colors = ['#00D9FF', '#8B5CF6', '#F59E0B', '#EC4899', '#10B981']
+
+  // Identificar el "mejor" por cada métrica numérica para resaltarlo
+  const scoreMax = Math.max(...analyses.map(a => a.score?.overall ?? 0))
+  const engagementMax = Math.max(...analyses.map(a => parseFloat(String(a.executive_summary?.engagement_rate || '0').replace('%', '')) || 0))
+  const postsMax = Math.max(...analyses.map(a => a.executive_summary?.posts_per_week || 0))
+
+  const rows: Array<{ label: string; key: string; getValue: (a: CloneAnalysis) => string | number; getRaw?: (a: CloneAnalysis) => number; format?: (v: any) => string }> = [
+    { label: 'Followers estimados', key: 'followers',    getValue: a => a.executive_summary?.estimated_followers || '—' },
+    { label: 'Engagement rate',     key: 'engagement',   getValue: a => a.executive_summary?.engagement_rate || '—',
+      getRaw: a => parseFloat(String(a.executive_summary?.engagement_rate || '0').replace('%', '')) || 0 },
+    { label: 'Posts / semana',      key: 'posts',        getValue: a => a.executive_summary?.posts_per_week ?? '—',
+      getRaw: a => a.executive_summary?.posts_per_week || 0 },
+    { label: 'Revenue mensual est.',key: 'revenue',      getValue: a => a.executive_summary?.estimated_revenue_monthly || '—' },
+    { label: 'Tono de voz',         key: 'tone',         getValue: a => a.copy_analysis?.tone_of_voice || '—' },
+    { label: 'Score viabilidad',    key: 'score',        getValue: a => `${a.score?.overall ?? 0}/100`,
+      getRaw: a => a.score?.overall ?? 0 },
+    { label: 'Adaptabilidad',       key: 'adaptability', getValue: a => `${a.score?.adaptability ?? 0}/100`,
+      getRaw: a => a.score?.adaptability ?? 0 },
+    { label: 'Tiempo replicar',     key: 'timeline',     getValue: a => `${a.score?.timeline_months ?? '—'} meses` },
+  ]
+
+  const winnerIdx = analyses.reduce((best, a, i) => (a.score?.overall ?? 0) > (analyses[best]?.score?.overall ?? 0) ? i : best, 0)
+
+  return (
+    <div style={{
+      borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 20,
+      background: 'var(--surface)',
+    }}>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', background: 'var(--card-bg)' }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>
+          Tabla comparativa
+        </p>
+        <p style={{ fontSize: 11, color: 'var(--text-3)' }}>
+          Los valores destacados en cyan indican el mejor de cada métrica
+        </p>
+      </div>
+
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 200 + analyses.length * 180 }}>
+          <thead>
+            <tr style={{ background: 'var(--card-bg)' }}>
+              <th style={{ padding: '12px 16px', textAlign: 'left', fontWeight: 700, color: 'var(--text-3)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', borderBottom: '1px solid var(--border)', minWidth: 180 }}>
+                Métrica
+              </th>
+              {analyses.map((a, i) => {
+                const color = colors[i % colors.length]
+                const isBestOverall = i === winnerIdx
+                const isSelected = selectedIdx === i
+                return (
+                  <th key={i} style={{
+                    padding: '12px 16px', textAlign: 'left', borderBottom: '1px solid var(--border)',
+                    borderLeft: '1px solid var(--border)', minWidth: 170,
+                    background: isSelected ? `${color}10` : 'transparent',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{a.handle || `#${i + 1}`}</span>
+                      {isBestOverall && (
+                        <span title="Mejor score viabilidad" style={{ fontSize: 9, padding: '2px 6px', borderRadius: 999, background: '#10B98120', color: '#10B981', fontWeight: 700 }}>
+                          TOP
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 10, color: 'var(--text-3)' }}>{a.platform}</p>
+                  </th>
+                )
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => {
+              // Determinar el mejor valor numérico (si tiene getRaw)
+              let bestIdx = -1
+              if (row.getRaw) {
+                const max = row.key === 'score' ? scoreMax : row.key === 'engagement' ? engagementMax : row.key === 'posts' ? postsMax : Math.max(...analyses.map(row.getRaw))
+                bestIdx = analyses.findIndex(a => row.getRaw!(a) === max && max > 0)
+              }
+              return (
+                <tr key={row.key} style={{ background: ri % 2 === 0 ? 'transparent' : 'var(--card-bg)' }}>
+                  <td style={{ padding: '11px 16px', color: 'var(--text-2)', fontWeight: 600, fontSize: 11 }}>
+                    {row.label}
+                  </td>
+                  {analyses.map((a, i) => {
+                    const isBest = bestIdx === i
+                    const isSelected = selectedIdx === i
+                    return (
+                      <td key={i} style={{
+                        padding: '11px 16px', borderLeft: '1px solid var(--border)',
+                        background: isSelected ? `${colors[i % colors.length]}08` : 'transparent',
+                        color: isBest ? 'var(--accent)' : 'var(--text)',
+                        fontWeight: isBest ? 700 : 500,
+                        fontSize: 12,
+                      }}>
+                        {row.getValue(a)}
+                        {isBest && <span style={{ marginLeft: 6, fontSize: 9, opacity: 0.7 }}>★</span>}
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
+
+            {/* Factor clave de éxito (texto multi-línea) */}
+            <tr style={{ background: 'var(--card-bg)' }}>
+              <td style={{ padding: '12px 16px', color: 'var(--text-2)', fontWeight: 600, fontSize: 11, verticalAlign: 'top' }}>
+                Factor de éxito #1
+              </td>
+              {analyses.map((a, i) => (
+                <td key={i} style={{ padding: '12px 16px', borderLeft: '1px solid var(--border)', color: 'var(--text-2)', fontSize: 11, lineHeight: 1.45, verticalAlign: 'top' }}>
+                  {a.executive_summary?.key_success_factors?.[0] || '—'}
+                </td>
+              ))}
+            </tr>
+
+            {/* Botón de acción por columna */}
+            <tr>
+              <td style={{ padding: '14px 16px', borderTop: '1px solid var(--border)' }}></td>
+              {analyses.map((a, i) => {
+                const color = colors[i % colors.length]
+                const isSelected = selectedIdx === i
+                return (
+                  <td key={i} style={{ padding: '14px 16px', borderLeft: '1px solid var(--border)', borderTop: '1px solid var(--border)' }}>
+                    <button
+                      onClick={() => onSelect(i)}
+                      style={{
+                        width: '100%', padding: '8px 0', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                        background: isSelected ? color : 'transparent',
+                        color: isSelected ? '#000' : color,
+                        border: `1px solid ${color}`,
+                        cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                      }}>
+                      {isSelected ? <><TrophyIcon style={{ width: 12, height: 12 }} /> Ganador</> : 'Elegir'}
+                    </button>
+                  </td>
+                )
+              })}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main standalone component ─────────────────────────────────────────────────
 export default function CloneTheWinner({ projectId }: { projectId: string }) {
   const [step, setStep]               = useState<Step>('loading')
-  const [count, setCount]             = useState(1)
-  const [inputs, setInputs]           = useState<CompetitorInput[]>([{ handle: '', platform: 'Instagram', url: '' }])
+  const [count, setCount]             = useState(2)
+  const [inputs, setInputs]           = useState<CompetitorInput[]>([
+    { handle: '', platform: 'Instagram', url: '' },
+    { handle: '', platform: 'Instagram', url: '' },
+  ])
   const [progress, setProgress]       = useState<AnalysisProgress[]>([])
   const [analyses, setAnalyses]       = useState<CloneAnalysis[]>([])
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
@@ -660,8 +815,11 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
 
   const resetFlow = () => {
     setStep('select-count')
-    setCount(1)
-    setInputs([{ handle: '', platform: 'Instagram', url: '' }])
+    setCount(2)
+    setInputs([
+      { handle: '', platform: 'Instagram', url: '' },
+      { handle: '', platform: 'Instagram', url: '' },
+    ])
     setProgress([])
     setAnalyses([])
     setSelectedIdx(null)
@@ -694,10 +852,10 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
         </div>
 
         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', marginBottom: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          ¿Cuántos competidores quieres analizar?
+          ¿Cuántos competidores quieres analizar? (mínimo 2 para comparar)
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 32 }}>
-          {[1, 2, 3, 4, 5].map(n => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 32 }}>
+          {[2, 3, 4, 5].map(n => (
             <motion.button
               key={n}
               whileHover={{ scale: 1.04, y: -2 }}
@@ -861,16 +1019,29 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(analyses.length, 3)}, 1fr)`, gap: 14 }}>
-          {analyses.map((a, i) => (
-            <CompetitorCard
-              key={i}
-              analysis={a}
-              rank={i}
-              isWinner={selectedIdx === i}
-              onSelect={() => selectWinner(i)}
-            />
-          ))}
+        {/* Tabla comparativa visual */}
+        <ComparativeTable
+          analyses={analyses}
+          selectedIdx={selectedIdx}
+          onSelect={selectWinner}
+        />
+
+        {/* Tarjetas detalladas (opcional, vista expandida) */}
+        <div style={{ marginTop: 24 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>
+            Vista detallada
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(analyses.length, 3)}, 1fr)`, gap: 14 }}>
+            {analyses.map((a, i) => (
+              <CompetitorCard
+                key={i}
+                analysis={a}
+                rank={i}
+                isWinner={selectedIdx === i}
+                onSelect={() => selectWinner(i)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     )

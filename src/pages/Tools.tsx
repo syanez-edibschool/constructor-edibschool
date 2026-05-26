@@ -8,7 +8,7 @@ import {
   BanknotesIcon, EnvelopeIcon,
   DocumentCheckIcon, ChartBarIcon, MapIcon,
   DocumentDuplicateIcon,
-  CheckIcon, ArrowPathIcon,
+  CheckIcon, ArrowPathIcon, SparklesIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../services/api'
 import { useTheme } from '../context/ThemeContext'
@@ -20,7 +20,7 @@ import TrackerFinanciero                            from '../components/Tools/Tr
 import PromptsImagenes,   { type ImagenPrompt }   from '../components/Tools/PromptsImagenes'
 import CloneTheWinner                               from '../components/Tools/CloneTheWinner'
 import SitioWeb                                    from '../components/Tools/SitioWeb'
-import Estrategia90Dias                            from '../components/Tools/Estrategia90Dias'
+import Estrategia90Dias, { type StrategyMonth }   from '../components/Tools/Estrategia90Dias'
 import PropuestaComercial                          from '../components/Tools/PropuestaComercial'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -275,11 +275,6 @@ function CasesOutput({ cases }: { cases: Array<{ title: string; problem: string;
   return <div>{cases?.map((c, i) => <Section key={i}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{c.title}</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, fontSize: 12 }}><div><p style={{ color: '#EF4444', fontWeight: 600, marginBottom: 4 }}>Problema</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.problem}</p></div><div><p style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 4 }}>Solución IA</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.solution}</p></div><div><p style={{ color: '#10B981', fontWeight: 600, marginBottom: 4 }}>Resultado</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.result}</p></div></div></Section>)}</div>
 }
 
-function StrategyOutput({ months }: { months: Array<{ month: number; title: string; goals: string[]; actions: string[]; kpis: string[] }> }) {
-  const colors = ['var(--accent)', 'var(--purple)', '#10B981']
-  return <div>{months?.map((m, i) => <Section key={i}><div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}><div style={{ width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, background: `${colors[i]}15`, color: colors[i] }}>{m.month}</div><div><p style={{ fontSize: 11, color: 'var(--text-3)' }}>Mes {m.month}</p><p style={{ fontWeight: 700, color: 'var(--text)' }}>{m.title}</p></div></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, fontSize: 12 }}><div><p style={{ color: colors[0], fontWeight: 600, marginBottom: 6 }}>Objetivos</p>{m.goals?.map((g, j) => <p key={j} style={{ color: 'var(--text-2)', marginBottom: 4 }}>• {g}</p>)}</div><div><p style={{ color: colors[1], fontWeight: 600, marginBottom: 6 }}>Acciones clave</p>{m.actions?.map((a, j) => <p key={j} style={{ color: 'var(--text-2)', marginBottom: 4 }}>• {a}</p>)}</div><div><p style={{ color: colors[2], fontWeight: 600, marginBottom: 6 }}>KPIs</p>{m.kpis?.map((k, j) => <p key={j} style={{ color: 'var(--text-2)', marginBottom: 4 }}>• {k}</p>)}</div></div></Section>)}</div>
-}
-
 function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
   toolId: string; result: unknown; projectId: string; savedAt?: string; onRegenerate: () => void
 }) {
@@ -306,7 +301,14 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
   }
 
   if (toolId === 'estrategia') {
-    return <Estrategia90Dias projectId={projectId} />
+    return (
+      <Estrategia90Dias
+        projectId={projectId}
+        months={(r.months || []) as StrategyMonth[]}
+        updatedAt={savedAt}
+        onRegenerate={onRegenerate}
+      />
+    )
   }
 
   if (toolId === 'imagenes') {
@@ -331,7 +333,6 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
   switch (toolId) {
     case 'precios':    return <PricingOutput packages={r.packages as never} />
     case 'casos':      return <CasesOutput cases={r.cases as never} />
-    case 'estrategia': return <StrategyOutput months={r.months as never} />
     case 'pitch':      return <SlidesOutput slides={r.slides as never} />
     case 'emails':     return <EmailsOutput sequences={r.sequences as never} />
     case 'website':    return <MegaPromptBlock prompt={r.megaprompt as string || JSON.stringify(r, null, 2)} />
@@ -351,12 +352,42 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
 }
 
 // ─── Question form ─────────────────────────────────────────────────────────────
-function QuestionForm({ tool, onSubmit, loading }: { tool: ToolDef; onSubmit: (a: Record<string, string>) => void; loading?: boolean }) {
+function QuestionForm({ tool, onSubmit, loading, projectId }: { tool: ToolDef; onSubmit: (a: Record<string, string>) => void; loading?: boolean; projectId?: string }) {
   const [answers, setAnswers] = useState<Record<string, string>>(() =>
     Object.fromEntries(tool.qs.map(q => [q.id, q.options?.[0] || '']))
   )
+  const [suggesting, setSuggesting] = useState<Record<string, boolean>>({})
   const set      = (id: string, val: string) => setAnswers(p => ({ ...p, [id]: val }))
   const allFilled = tool.qs.every(q => answers[q.id]?.trim())
+
+  const suggest = async (q: Q) => {
+    if (!projectId) {
+      toast.error('Falta el id del proyecto')
+      return
+    }
+    setSuggesting(p => ({ ...p, [q.id]: true }))
+    try {
+      const { data } = await api.post('/suggest-answer', {
+        projectId,
+        toolId: tool.id,
+        questionId: q.id,
+        questionLabel: q.label,
+        questionType: q.type,
+        options: q.options,
+        existingAnswers: answers,
+      })
+      if (data?.suggestion) {
+        set(q.id, data.suggestion)
+        toast.success('Sugerencia generada', { duration: 1500 })
+      } else {
+        toast.error('No se pudo generar')
+      }
+    } catch {
+      toast.error('Error generando sugerencia')
+    } finally {
+      setSuggesting(p => ({ ...p, [q.id]: false }))
+    }
+  }
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
@@ -370,24 +401,50 @@ function QuestionForm({ tool, onSubmit, loading }: { tool: ToolDef; onSubmit: (a
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-sm)' }}>
-        {tool.qs.map((q, i) => (
-          <motion.div key={q.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-            style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 'var(--sp-md)' }}>
-            <label htmlFor={`q-${q.id}`} style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-2)', marginBottom: 'var(--sp-sm)' }}>
-              <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 'var(--sp-sm)', fontSize: 'var(--fs-xs)', fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</span>
-              {q.label}
-            </label>
-            {q.type === 'select' ? (
-              <select id={`q-${q.id}`} value={answers[q.id]} onChange={e => set(q.id, e.target.value)} className="input-form" style={{ padding: '10px var(--sp-md)', cursor: 'pointer' }}>
-                {q.options!.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-            ) : q.type === 'textarea' ? (
-              <textarea id={`q-${q.id}`} value={answers[q.id]} onChange={e => set(q.id, e.target.value)} placeholder={q.placeholder} rows={3} className="input-form" style={{ resize: 'none', padding: '10px var(--sp-md)' }} />
-            ) : (
-              <input id={`q-${q.id}`} value={answers[q.id]} onChange={e => set(q.id, e.target.value)} placeholder={q.placeholder} type="text" className="input-form" style={{ padding: '10px var(--sp-md)' }} />
-            )}
-          </motion.div>
-        ))}
+        {tool.qs.map((q, i) => {
+          const busy = !!suggesting[q.id]
+          return (
+            <motion.div key={q.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 'var(--sp-md)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 'var(--sp-sm)' }}>
+                <label htmlFor={`q-${q.id}`} style={{ flex: 1, fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-2)' }}>
+                  <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 'var(--sp-sm)', fontSize: 'var(--fs-xs)', fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</span>
+                  {q.label}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => !busy && suggest(q)}
+                  disabled={busy}
+                  title="Generar respuesta con IA usando el contexto del proyecto"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    padding: '4px 10px', borderRadius: 999,
+                    background: busy ? 'var(--surface-2)' : 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))',
+                    border: '1px solid var(--border-h)',
+                    color: 'var(--accent)', fontSize: 11, fontWeight: 600,
+                    cursor: busy ? 'wait' : 'pointer', flexShrink: 0,
+                    transition: 'all 0.2s',
+                  }}>
+                  {busy ? (
+                    <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+                  ) : (
+                    <SparklesIcon style={{ width: 12, height: 12 }} />
+                  )}
+                  {busy ? 'Generando…' : 'Generar con IA'}
+                </button>
+              </div>
+              {q.type === 'select' ? (
+                <select id={`q-${q.id}`} value={answers[q.id]} onChange={e => set(q.id, e.target.value)} className="input-form" style={{ padding: '10px var(--sp-md)', cursor: 'pointer' }}>
+                  {q.options!.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              ) : q.type === 'textarea' ? (
+                <textarea id={`q-${q.id}`} value={answers[q.id]} onChange={e => set(q.id, e.target.value)} placeholder={q.placeholder} rows={3} className="input-form" style={{ resize: 'none', padding: '10px var(--sp-md)' }} />
+              ) : (
+                <input id={`q-${q.id}`} value={answers[q.id]} onChange={e => set(q.id, e.target.value)} placeholder={q.placeholder} type="text" className="input-form" style={{ padding: '10px var(--sp-md)' }} />
+              )}
+            </motion.div>
+          )
+        })}
         <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: tool.qs.length * 0.04 }}
           onClick={() => allFilled && !loading && onSubmit(answers)}
           disabled={!allFilled || loading}
@@ -463,7 +520,7 @@ export default function Tools() {
     if (states[toolId]) return // already loaded
 
     // These tools manage their own data — skip the AI questions/generation flow
-    if (toolId === 'tracker' || toolId === 'website' || toolId === 'estrategia' || toolId === 'clone-winner' || toolId === 'propuesta') {
+    if (toolId === 'tracker' || toolId === 'website' || toolId === 'clone-winner' || toolId === 'propuesta') {
       setStates(p => ({ ...p, [toolId]: { phase: 'done', answers: {}, result: {} } }))
       return
     }
@@ -641,7 +698,7 @@ export default function Tools() {
             {/* ── Questions ── */}
             {activeTool && state?.phase === 'questions' && (
               <motion.div key={`q-${activeTool}`} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                {tool && <QuestionForm tool={tool} onSubmit={handleSubmit} />}
+                {tool && <QuestionForm tool={tool} onSubmit={handleSubmit} projectId={id} />}
               </motion.div>
             )}
           </AnimatePresence>

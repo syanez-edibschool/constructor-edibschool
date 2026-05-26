@@ -142,43 +142,76 @@ Crea 5 ad copies de alta conversión con:
 Cada copy: HEADLINE (máx 40 caracteres) + CUERPO (3-4 líneas) + CTA específico. Sé directo, específico, sin clichés.
 Devuelve SOLO JSON: { "copies": ["COPY 1\\n\\nHEADLINE: texto\\n\\nCUERPO:\\ntexto\\n\\nCTA: texto", "COPY 2:...", "COPY 3:...", "COPY 4:...", "COPY 5:..."] }`,
 
-    imagenes: `You are a world-class AI image generation expert specializing in dark luxury aesthetics (Apple, Rolex, Netflix, Lamborghini visual language). Expert in Midjourney v6, DALL-E 3, and Stable Diffusion XL.
+    imagenes: `Eres un director de arte senior especializado en diseño visual high ticket para Instagram, experto en cinematografía publicitaria, diseño editorial premium, branding de lujo y psicología visual de marketing.
 ${ctx}
 
-Brand context:
-- Industry: ${toolAnswers.tema || 'digital agency / AI services'}
-- Visual style preference: ${toolAnswers.estilo || 'Dark luxury, minimalist premium'}
-- Brand colors: ${toolAnswers.colores || 'deep black, electric cyan, white'}
-- Target audience: ${toolAnswers.audiencia || 'high-ticket entrepreneurs and executives'}
-- Image types needed: ${toolAnswers.tipo_imagen || 'Varied (product + scene + result)'}
+CONTEXTO ESPECÍFICO DEL USUARIO:
+- Tema/Industria: ${toolAnswers.tema || 'agencia digital / servicios IA'}
+- Estilo visual preferido: ${toolAnswers.estilo || 'Dark luxury, premium minimalista'}
+- Colores de marca: ${toolAnswers.colores || 'negro profundo, dorado metálico, blanco brillante'}
+- Audiencia objetivo: ${toolAnswers.audiencia || 'emprendedores high-ticket'}
+- Tipos de imagen: ${toolAnswers.tipo_imagen || 'Variado'}
 
-Generate 6 image prompts with DARK LUXURY aesthetic as primary direction:
-- Cinematic quality, dramatic lighting, deep blacks with accent highlights
-- Post-vertical 1080x1440px (3:4 portrait) as PRIMARY format — optimized for Instagram feed posts
-- Premium materials: brushed metal, frosted glass, leather, carbon fiber textures
-- Atmosphere: aspirational, exclusive, high-production-value
-- People: confident, diverse, sharp-dressed professionals in premium environments
+Tu tarea: generar 6 prompts en ESPAÑOL para crear imágenes verticales de Instagram (1080×1440 px, 3:4) ultra premium, modernas y extremadamente impactantes. Cada prompt debe seguir esta plantilla completa.
 
-Cover these types (one each):
-1. HERO — product/service shown in premium dark environment with dramatic lighting
-2. LIFESTYLE — person using the service in luxury/professional setting
-3. RESULTADO — dramatic before/after or transformation visualization
-4. AMBIENTE — premium workspace, office, or aspirational location
-5. DATO — clean typographic/data visualization on dark background
-6. EMOCION — abstract concept conveying success, power, transformation
+PLANTILLA DE ESTRUCTURA QUE CADA PROMPT DEBE SEGUIR:
 
-ALL prompts in ENGLISH. Each prompt must include: subject, environment, lighting, mood, composition, technical specs.
+ESTILO VISUAL GENERAL:
+- Apariencia de campaña publicitaria de lujo / poster cinematográfico / portada premium high ticket
+- Inspiración: Apple ads, campañas Rolex, posters Netflix, branding agencias premium
+- Transmite: autoridad, tensión emocional, urgencia, percepción premium, poder, inteligencia estratégica
 
-Return ONLY JSON:
+PALETA DE COLORES:
+- Negro profundo, gris carbón, dorado premium metálico, blanco brillante
+- Sombras cinematográficas, iluminación cálida dramática, contrastes fuertes
+- EVITAR: colores planos, pastel, cartoon, genérico, saturados baratos
+
+COMPOSICIÓN (dividida en 2 partes):
+- IZQUIERDA: texto grande e impactante, tipografía bold gigantesca, estructura vertical agresiva, palabras clave en dorado
+- DERECHA: escena cinematográfica emocional, avatar humano realista, ambiente premium, iluminación dramática, storytelling visual, símbolos del nicho (marketing, ventas, llamadas, funnels, ROAS, Zoom calls, dinero, decisiones)
+
+AVATAR HUMANO (cuando aplique):
+- Realista, cinematográfico, emocional, elegante, estilo empresario/founder
+- Ropa premium oscura, iluminación tipo película
+- NO caricatura, NO anime, NO IA genérica sonriente
+- Expresiones: frustración / tensión / concentración / poder / determinación
+
+EFECTOS VISUALES:
+- Partículas flotando, vidrios rompiéndose, flechas explotando, dashboards quebrados, gráficos destruidos
+- Humo cinematográfico, glow dorado suave, motion blur sutil, sombras profundas, reflejos premium, iluminación volumétrica, sparks
+
+TEXTO:
+- Sans serif bold ultra moderna, muy pesada, alto contraste, estilo editorial
+- Texto gigante, pocas palabras, alto espacio negativo
+- Palabras importantes en DORADO premium, tamaño mayor
+
+ELEMENTO DE IDENTIDAD (esquina superior izquierda SIEMPRE):
+- Foto de perfil circular pequeña con borde dorado fino elegante (estilo Instagram badge)
+- Nombre de usuario: ${toolAnswers.handle || '@tuagencia.io'} en tipografía minimalista blanca limpia
+
+CALIDAD FINAL:
+- Ultra high detail, 8k, cinematic composition, luxury advertising style, hyper realistic
+- Dramatic lighting, editorial composition, premium business aesthetic, high contrast
+- Instagram viral design, masterpiece composition
+
+Genera los 6 prompts cubriendo estos tipos (uno cada uno):
+1. HOOK — escena con dolor/problema del avatar (frustración + colapso visual)
+2. AUTORIDAD — el creador/founder presentándose con poder (confianza + ambiente premium)
+3. RESULTADO — transformación / antes-después / números de éxito con destrucción de obstáculos
+4. EDUCATIVO — concepto/método explicado con narrativa visual potente
+5. PRUEBA SOCIAL — testimonio o caso con cliente real en ambiente high ticket
+6. CTA / OFERTA — urgencia + oferta clara con elementos dorados destacados
+
+Devuelve SOLO JSON:
 {
   "prompts": [
     {
       "titulo": "Nombre descriptivo en español",
-      "descripcion": "Para qué sirve esta imagen (1-2 frases en español)",
-      "tipo": "Hero|Lifestyle|Resultado|Ambiente|Dato|Emoción",
-      "prompt": "cinematic dark luxury [subject], [environment], dramatic moody lighting, deep shadows with [accent color] highlights, ultra-sharp detail, premium texture, bokeh background, 3:4 portrait composition optimized for vertical feed post, shot on Phase One IQ4, editorial quality, hyperrealistic --ar 3:4 --v 6.1 --style raw --q 2",
-      "negative_prompt": "bright background, flat lighting, amateur, stock photo look, overexposed, cluttered, cheap, watermark, text overlay, low quality, 1:1 square",
-      "formato": "Post vertical 1080×1440px (3:4)"
+      "tipo": "Hook|Autoridad|Resultado|Educativo|Prueba Social|CTA",
+      "descripcion": "Para qué sirve esta imagen (1-2 frases)",
+      "prompt": "PROMPT COMPLETO EN ESPAÑOL siguiendo TODA la plantilla anterior: estilo visual, paleta, composición izquierda/derecha, avatar humano (si aplica), efectos, texto con palabras clave en dorado, badge de identidad esquina superior izquierda con @${toolAnswers.handle || 'tuagencia.io'}, calidad cinematográfica 8k. Mínimo 250 palabras describiendo TODO: el sujeto, el ambiente, la iluminación, los elementos simbólicos del nicho, el texto que aparece, los colores específicos, el mood emocional.",
+      "texto_imagen": "El texto exacto (3-6 palabras) que aparece dentro de la imagen, con la palabra clave a destacar en dorado entre asteriscos: ej: PIERDES *DINERO* CADA DÍA",
+      "formato": "1080×1440px (3:4 vertical Instagram)"
     }
   ]
 }`,
@@ -499,10 +532,10 @@ Genera 10 casos de uso de IA ultra específicos y accionables para:
 Cada caso debe ser REAL y ESPECÍFICO: nombre ficticio de empresa, problema concreto, solución de IA exacta con herramientas mencionadas, resultado medible en números.
 Devuelve SOLO JSON: { "cases": [{ "title": "título específico del caso", "problem": "problema concreto que tenían", "solution": "cómo exactamente lo resolvió con IA (herramientas específicas)", "result": "resultado medible: % ahorro, € generados, horas recuperadas" }] }`,
 
-    estrategia: `Eres un strategic advisor que ha escalado 50+ agencias digitales de 0 a 7 cifras.
+    estrategia: `Eres un strategic advisor que ha escalado 50+ agencias digitales de 0 a 7 cifras. Tu obsesión es lanzar la agencia LO MÁS RÁPIDO POSIBLE — la primera semana debe estar súper trabajada con acciones DIARIAS específicas.
 ${ctx}
 
-Crea un plan estratégico de 90 días ultra concreto con:
+PARÁMETROS:
 - Objetivo principal: ${toolAnswers.objetivo || 'conseguir primeros clientes'}
 - Situación actual: ${toolAnswers.situacion || 'comenzando'}
 - Mayor obstáculo: ${toolAnswers.reto || 'no especificado'}
@@ -511,23 +544,75 @@ Crea un plan estratégico de 90 días ultra concreto con:
 - Canal actual de adquisición: ${toolAnswers.adquisicion || 'referidos'}
 - KPIs de éxito: ${toolAnswers.kpis || 'clientes e ingresos'}
 
-El plan debe ser ACCIONABLE semana a semana, no genérico. Incluye acciones específicas por semana, no solo meses.
-Devuelve SOLO JSON: { "months": [{ "month": 1, "title": "nombre del mes (Ej: Cimientos y Primera Venta)", "goals": ["objetivo específico 1", "objetivo 2", "objetivo 3"], "actions": ["acción concreta semana 1", "semana 2", "semana 3", "semana 4"], "kpis": ["kpi medible 1", "kpi 2", "kpi 3"] }] }
-Genera 3 meses con progresión lógica.`,
+ESTRUCTURA OBLIGATORIA — calendario en 3 niveles (mes → semana → día):
 
-    'clone-winner': `You are a senior growth strategist and social media intelligence analyst with 15+ years analyzing top creators and online businesses.
+MES 1: SETUP + PRIMERA VENTA (densidad MÁXIMA, acciones diarias)
+- Semana 1: TODAS las acciones día por día (lunes a domingo). Setup operativo total: posicionamiento, oferta, sistemas, primer outreach. ESTA SEMANA DEFINE TODO.
+- Semana 2: Acciones día por día. Iniciar prospección masiva + primeras llamadas.
+- Semana 3: Acciones día por día (puedes agrupar fin de semana). Cerrar primera venta + iterar oferta.
+- Semana 4: Acciones día por día. Onboarding del primer cliente + caso de estudio inicial.
 
-Business context:
+MES 2: CONTENIDO + MÁQUINA DE LEADS (densidad MEDIA, acciones por semana con highlights diarios)
+- Semana 5: Producir 1 mes de contenido en una sesión + lanzar canal principal.
+- Semana 6: Sistema de ads o outreach escalado.
+- Semana 7: Optimización de conversión (página + agenda + cierre).
+- Semana 8: Segundo cliente + testimonio + automatizaciones básicas.
+
+MES 3: ESCALADO + SISTEMAS (densidad NORMAL, plan semanal)
+- Semana 9: Subir precios + redefinir oferta core.
+- Semana 10: Contratación primera ayuda o automatizar tareas operativas.
+- Semana 11: Lanzamiento de canal secundario o producto auxiliar.
+- Semana 12: Cierre de 90 días + planning próximos 90.
+
+Cada acción debe ser ULTRA CONCRETA: "lunes 8h: escribir 30 DMs personalizados a perfiles X" — NO "trabajar en outreach".
+
+Devuelve SOLO JSON con esta estructura EXACTA:
+{
+  "months": [
+    {
+      "month": 1,
+      "title": "Setup + Primera Venta",
+      "summary": "Resumen de 1-2 frases del mes",
+      "goals": ["objetivo específico 1", "objetivo 2", "objetivo 3"],
+      "kpis": ["kpi 1", "kpi 2", "kpi 3"],
+      "weeks": [
+        {
+          "week": 1,
+          "title": "Cimientos y Primer Outreach",
+          "focus": "objetivo de la semana en 1 frase",
+          "days": [
+            { "day": "Lunes", "hours": "4-6h", "tasks": ["tarea concreta 1", "tarea concreta 2", "tarea concreta 3"] },
+            { "day": "Martes", "hours": "4-6h", "tasks": ["...", "..."] },
+            { "day": "Miércoles", "hours": "4-6h", "tasks": ["...", "..."] },
+            { "day": "Jueves", "hours": "4-6h", "tasks": ["...", "..."] },
+            { "day": "Viernes", "hours": "4-6h", "tasks": ["...", "..."] },
+            { "day": "Sábado", "hours": "2-3h", "tasks": ["...", "..."] },
+            { "day": "Domingo", "hours": "1-2h", "tasks": ["revisión semana", "preparar lunes"] }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+REGLAS:
+- Mes 1: las 4 semanas con TODOS los 7 días detallados (acciones día por día)
+- Mes 2: las 4 semanas SIN array "days" — en su lugar usa "tasks" array al nivel de semana (5-7 tareas concretas para la semana completa) y "key_days" array con 2-3 días críticos
+- Mes 3: las 4 semanas con SOLO "focus" + "tasks" array (3-5 tareas semanales)
+
+Genera EXACTAMENTE 3 meses, 12 semanas totales, progresión lógica desde "yo solo + 0 clientes" hasta "negocio funcionando con sistemas".`,
+
+    'clone-winner': `Eres un growth strategist senior con 15+ años analizando top creators y negocios digitales. Generas análisis competitivo profundo para clonar lo mejor de cada competidor.
 ${ctx}
 
-COMPETITOR TO ANALYZE:
-- Handle/Name: ${toolAnswers.handle || '@competitor'}
-- Platform: ${toolAnswers.platform || 'Instagram'}
-- Website/Landing: ${toolAnswers.url || 'not provided'}
+COMPETIDOR A ANALIZAR EN ESTA LLAMADA:
+- Handle/Nombre: ${toolAnswers.handle || '@competitor'}
+- Plataforma: ${toolAnswers.platform || 'Instagram'}
+- Website/Landing: ${toolAnswers.url || 'no proporcionado'}
 
-Based on this competitor profile AND the user's business context, generate a DEEP competitive intelligence analysis. Infer realistic data based on the handle/niche described. Be SPECIFIC with numbers.
+IMPORTANTE: Este análisis será comparado con otros competidores del usuario. Devuelve datos REALISTAS y específicos (números reales del nicho, no genéricos). El frontend mostrará una tabla comparativa entre todos los competidores analizados — sé consistente en estructura.
 
-Return ONLY JSON:
+Devuelve SOLO JSON:
 {
   "handle": "${toolAnswers.handle || '@competitor'}",
   "platform": "${toolAnswers.platform || 'Instagram'}",
@@ -668,21 +753,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       step = 'parse-body'
       const toolAnswers: Record<string, string> = req.body?.toolAnswers || {}
 
-      // ── Step 4: fetch project context ────────────────────────────────────────
+      // ── Step 4: fetch project context + TODOS los tools ya generados ────────
       step = 'supabase-fetch-context'
-      const [nichoRow, avatarRow, compRow, questionsRow] = await Promise.all([
+      const [nichoRow, avatarRow, compRow, questionsRow, otherToolsRes] = await Promise.all([
         db.from('project_nicho').select('data_json').eq('project_id', projectId).maybeSingle(),
         db.from('project_avatar').select('data_json').eq('project_id', projectId).maybeSingle(),
         db.from('project_competencia').select('data_json').eq('project_id', projectId).maybeSingle(),
         db.from('project_questions').select('answers_json').eq('project_id', projectId).maybeSingle(),
+        db.from('project_tools').select('tool_id, result_json').eq('project_id', projectId),
       ])
 
-      // Log if any context query had an error (RLS, missing table, etc.)
       const ctxErrors = [
         nichoRow.error && `nicho: ${nichoRow.error.message}`,
         avatarRow.error && `avatar: ${avatarRow.error.message}`,
         compRow.error && `competencia: ${compRow.error.message}`,
         questionsRow.error && `questions: ${questionsRow.error.message}`,
+        otherToolsRes.error && `tools: ${otherToolsRes.error.message}`,
       ].filter(Boolean)
       if (ctxErrors.length > 0) {
         console.warn(`[tools/${toolId}] Context warnings:`, ctxErrors)
@@ -690,11 +776,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const answers = questionsRow.data?.answers_json || {}
 
+      // Cross-tool context: resultados de OTROS tools ya generados
+      const otherTools = (otherToolsRes.data || []).filter(t => t.tool_id !== toolId)
+      const cloneWinner = otherTools.find(t => t.tool_id === 'clone-winner')?.result_json
+      const calendario  = otherTools.find(t => t.tool_id === 'calendario')?.result_json
+      const estrategia  = otherTools.find(t => t.tool_id === 'estrategia')?.result_json
+
+      // Summary corto de cada tool generado (solo lo más relevante, para no inflar el prompt)
+      const otherToolsSummary = otherTools
+        .filter(t => t.tool_id !== 'clone-winner' && t.tool_id !== 'calendario' && t.tool_id !== 'estrategia')
+        .map(t => `- ${t.tool_id}: ${JSON.stringify(t.result_json).slice(0, 300)}…`)
+        .join('\n')
+
       const projectCtx = `
-PERFIL DEL NEGOCIO (del cuestionario inicial):
-- Nicho: ${JSON.stringify(nichoRow.data?.data_json || answers)}
-- Avatar ideal: ${JSON.stringify(avatarRow.data?.data_json || {})}
-- Análisis de competencia: ${JSON.stringify(compRow.data?.data_json || {})}`
+═══ CONTEXTO COMPLETO DEL PROYECTO ═══
+
+📊 PERFIL DEL NEGOCIO (cuestionario inicial):
+${JSON.stringify(answers, null, 2)}
+
+🎯 NICHO IDENTIFICADO:
+${JSON.stringify(nichoRow.data?.data_json || {}, null, 2)}
+
+👤 AVATAR DEL CLIENTE IDEAL:
+${JSON.stringify(avatarRow.data?.data_json || {}, null, 2)}
+
+⚔️ ANÁLISIS DE COMPETENCIA:
+${JSON.stringify(compRow.data?.data_json || {}, null, 2)}
+
+${cloneWinner ? `🏆 CLONE GANADOR (análisis de competidor exitoso):
+${JSON.stringify(cloneWinner, null, 2).slice(0, 2000)}
+` : ''}
+${calendario ? `📅 CALENDARIO YA GENERADO (úsalo para mantener coherencia con los temas/ángulos):
+${JSON.stringify(calendario, null, 2).slice(0, 1500)}
+` : ''}
+${estrategia ? `📈 ESTRATEGIA 90D YA GENERADA (alinéate con el plan):
+${JSON.stringify(estrategia, null, 2).slice(0, 1500)}
+` : ''}
+${otherToolsSummary ? `🛠️ OTRAS HERRAMIENTAS YA GENERADAS:
+${otherToolsSummary}
+` : ''}
+═══════════════════════════════════════
+
+INSTRUCCIÓN IMPORTANTE: Tu output DEBE ser coherente con TODO el contexto anterior. Usa el nicho, avatar, competencia y resultados previos para personalizar al máximo. NO generes contenido genérico.`
 
       const toolCtx = Object.keys(toolAnswers).length > 0
         ? `\nPARAMETROS ESPECÍFICOS (del usuario para esta herramienta):\n${Object.entries(toolAnswers).map(([k, v]) => `- ${k}: ${v}`).join('\n')}`
