@@ -17,10 +17,39 @@ interface Message {
 }
 
 // ─── Speech API declarations ────────────────────────────────────────────────────
+interface ISpeechRecognition extends EventTarget {
+  lang: string
+  interimResults: boolean
+  maxAlternatives: number
+  start(): void
+  stop(): void
+  onstart: ((this: ISpeechRecognition, ev: Event) => void) | null
+  onend: ((this: ISpeechRecognition, ev: Event) => void) | null
+  onerror: ((this: ISpeechRecognition, ev: Event) => void) | null
+  onresult: ((this: ISpeechRecognition, ev: ISpeechRecognitionEvent) => void) | null
+}
+
+interface ISpeechRecognitionEvent extends Event {
+  results: ISpeechRecognitionResultList
+}
+
+interface ISpeechRecognitionResultList {
+  [index: number]: ISpeechRecognitionResult
+}
+
+interface ISpeechRecognitionResult {
+  [index: number]: ISpeechRecognitionAlternative
+}
+
+interface ISpeechRecognitionAlternative {
+  transcript: string
+  confidence: number
+}
+
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
+    SpeechRecognition: new () => ISpeechRecognition
+    webkitSpeechRecognition: new () => ISpeechRecognition
   }
 }
 
@@ -131,7 +160,7 @@ export default function VoiceWidget() {
   const [noSpeechSupport, setNoSpeechSupport] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const recognitionRef = useRef<ISpeechRecognition | null>(null)
   const synthRef = useRef(window.speechSynthesis)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -237,7 +266,7 @@ export default function VoiceWidget() {
     recognition.onend = () => setListening(false)
     recognition.onerror = () => setListening(false)
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: ISpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript
       sendMessage(transcript)
     }
