@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 
 const STORAGE_KEY = 'mkt_app_build'
-const POLL_INTERVAL = 3 * 60 * 1000 // 3 minutos
+const POLL_INTERVAL = 3 * 60 * 1000
 
 async function fetchRemoteBuild(): Promise<string | null> {
   try {
@@ -16,6 +16,7 @@ async function fetchRemoteBuild(): Promise<string | null> {
 
 export default function UpdateBanner() {
   const [visible, setVisible] = useState(false)
+  const remoteBuild = useRef<string | null>(null)
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
   const shortcut = isMac ? '⌘ + Shift + R' : 'Ctrl + Shift + R'
 
@@ -24,8 +25,10 @@ export default function UpdateBanner() {
     if (!remote) return
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored === null) {
+      // Primera visita: guardar silenciosamente
       localStorage.setItem(STORAGE_KEY, remote)
     } else if (stored !== remote) {
+      remoteBuild.current = remote
       setVisible(true)
     }
   }, [])
@@ -35,6 +38,16 @@ export default function UpdateBanner() {
     const id = setInterval(check, POLL_INTERVAL)
     return () => clearInterval(id)
   }, [check])
+
+  const handleUpdate = () => {
+    if (remoteBuild.current) localStorage.setItem(STORAGE_KEY, remoteBuild.current)
+    window.location.reload()
+  }
+
+  const handleDismiss = () => {
+    if (remoteBuild.current) localStorage.setItem(STORAGE_KEY, remoteBuild.current)
+    setVisible(false)
+  }
 
   if (!visible) return null
 
@@ -69,7 +82,7 @@ export default function UpdateBanner() {
         </p>
       </div>
       <button
-        onClick={() => window.location.reload()}
+        onClick={handleUpdate}
         style={{
           background: 'rgba(0,217,255,0.15)',
           border: '1px solid rgba(0,217,255,0.4)',
@@ -86,7 +99,7 @@ export default function UpdateBanner() {
         Actualizar
       </button>
       <button
-        onClick={() => setVisible(false)}
+        onClick={handleDismiss}
         style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4, flexShrink: 0 }}
       >
         ×
