@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTheme } from '../../context/ThemeContext'
 import {
   CalendarDaysIcon, FilmIcon, DevicePhoneMobileIcon, PencilSquareIcon,
   PhotoIcon, ViewColumnsIcon, GlobeAltIcon, DocumentTextIcon,
@@ -131,6 +132,8 @@ export default function Sidebar({
   user, onLogout,
 }: SidebarProps) {
   const navigate = useNavigate()
+  const { isDark } = useTheme()
+  const logoSrc = isDark ? '/logo_blanco.png' : '/logo_negro.png'
   const userName   = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuario'
   const userInitial = (user?.user_metadata?.name || user?.email || 'U')[0].toUpperCase()
   const getState   = (id: string): ToolState => toolStates[id] || 'idle'
@@ -169,7 +172,7 @@ export default function Sidebar({
               }}
             >
               {mode === 'project' && <ArrowLeftIcon style={{ width: 14, height: 14, color: 'var(--text-3)', flexShrink: 0 }} />}
-              <img src="/logo_blanco.png" alt="MKT Hackers" style={{ height: 26, width: 'auto', objectFit: 'contain' }} />
+              <img src={logoSrc} alt="MKT Hackers" style={{ height: 26, width: 'auto', objectFit: 'contain' }} />
             </motion.button>
           )}
         </AnimatePresence>

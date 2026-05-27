@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTheme } from '../context/ThemeContext'
 
 const TOOLS = [
   {
@@ -142,6 +143,7 @@ const TOOLS = [
 export default function ToolsMenu() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { isDark } = useTheme()
 
   return (
     <div className="min-h-screen bg-dark">
@@ -155,7 +157,7 @@ export default function ToolsMenu() {
           <button onClick={() => navigate('/dashboard')} className="text-white/40 hover:text-white text-sm transition-colors">
             ← Dashboard
           </button>
-          <img src="/logo_blanco.png" alt="MKT Hackers" style={{ height: 28, width: 'auto', objectFit: 'contain', marginLeft: 16 }} />
+          <img src={isDark ? '/logo_blanco.png' : '/logo_negro.png'} alt="MKT Hackers" style={{ height: 28, width: 'auto', objectFit: 'contain', marginLeft: 16 }} />
           <div className="flex-1" />
           <Button3DLink onClick={() => navigate(`/proyecto/${id}/download`)}>
             📦 Descargar todo
