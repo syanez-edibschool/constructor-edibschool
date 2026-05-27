@@ -1,21 +1,40 @@
-import { useEffect, useState } from 'react'
-
-declare const __APP_BUILD__: string
+import { useEffect, useState, useCallback } from 'react'
 
 const STORAGE_KEY = 'mkt_app_build'
+const POLL_INTERVAL = 3 * 60 * 1000 // 3 minutos
+
+async function fetchRemoteBuild(): Promise<string | null> {
+  try {
+    const res = await fetch(`/version.json?t=${Date.now()}`)
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.build ?? null
+  } catch {
+    return null
+  }
+}
 
 export default function UpdateBanner() {
   const [visible, setVisible] = useState(false)
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
   const shortcut = isMac ? '⌘ + Shift + R' : 'Ctrl + Shift + R'
 
-  useEffect(() => {
+  const check = useCallback(async () => {
+    const remote = await fetchRemoteBuild()
+    if (!remote) return
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored !== __APP_BUILD__) {
-      if (stored !== null) setVisible(true)
-      localStorage.setItem(STORAGE_KEY, __APP_BUILD__)
+    if (stored === null) {
+      localStorage.setItem(STORAGE_KEY, remote)
+    } else if (stored !== remote) {
+      setVisible(true)
     }
   }, [])
+
+  useEffect(() => {
+    check()
+    const id = setInterval(check, POLL_INTERVAL)
+    return () => clearInterval(id)
+  }, [check])
 
   if (!visible) return null
 
@@ -37,21 +56,38 @@ export default function UpdateBanner() {
         boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 20px rgba(0,217,255,0.1)',
         backdropFilter: 'blur(20px)',
         minWidth: 320,
-        maxWidth: 480,
+        maxWidth: 500,
       }}
     >
       <span style={{ fontSize: 22, flexShrink: 0 }}>🚀</span>
       <div style={{ flex: 1 }}>
-        <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, marginBottom: 2 }}>
+        <p style={{ color: '#fff', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
           Nueva versión disponible
         </p>
-        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12 }}>
-          Presiona <kbd style={{ background: 'rgba(0,217,255,0.15)', border: '1px solid rgba(0,217,255,0.3)', borderRadius: 5, padding: '1px 6px', color: '#00D9FF', fontFamily: 'monospace', fontSize: 11 }}>{shortcut}</kbd> para ver los últimos cambios
+        <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>
+          o presiona <kbd style={{ background: 'rgba(0,217,255,0.12)', border: '1px solid rgba(0,217,255,0.3)', borderRadius: 5, padding: '1px 5px', color: '#00D9FF', fontFamily: 'monospace', fontSize: 10 }}>{shortcut}</kbd>
         </p>
       </div>
       <button
+        onClick={() => window.location.reload()}
+        style={{
+          background: 'rgba(0,217,255,0.15)',
+          border: '1px solid rgba(0,217,255,0.4)',
+          borderRadius: 8,
+          color: '#00D9FF',
+          fontSize: 12,
+          fontWeight: 600,
+          padding: '7px 14px',
+          cursor: 'pointer',
+          flexShrink: 0,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Actualizar
+      </button>
+      <button
         onClick={() => setVisible(false)}
-        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4, flexShrink: 0 }}
+        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 4, flexShrink: 0 }}
       >
         ×
       </button>
