@@ -10,6 +10,7 @@ import ReviewNiche from './pages/ReviewNiche'
 import Tools from './pages/Tools'
 import Download from './pages/Download'
 import CoachWidget from './components/AICoach/CoachWidget'
+import UpdateBanner from './components/ui/UpdateBanner'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -63,6 +64,7 @@ export default function App() {
         <Route path="/proyecto/:id/download" element={<ProtectedRoute><Download /></ProtectedRoute>} />
       </Routes>
       <CoachWidget />
+      <UpdateBanner />
     </BrowserRouter>
     </ThemeProvider>
   )

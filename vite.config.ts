@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  define: {
+    __APP_BUILD__: JSON.stringify(Date.now().toString()),
+  },
   plugins: [react()],
   resolve: {
     alias: {
