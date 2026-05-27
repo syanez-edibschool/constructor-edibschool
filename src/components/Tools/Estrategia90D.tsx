@@ -292,7 +292,7 @@ function WeekView({
 function MonthView({ plan, month, onToggleTask }: { plan: Plan; month: 1 | 2 | 3; onToggleTask: (id: string) => void }) {
   const startWeek = (month - 1) * 4 + 1
   const endWeek = Math.min(startWeek + 3, 13)
-  const weeks = plan.weeks.filter(w => w.week >= startWeek && w.week <= endWeek)
+  const weeks = (plan.weeks || []).filter(w => w.week >= startWeek && w.week <= endWeek)
 
   const taskMap: Record<string, Task> = {}
   plan.phases.forEach(ph => ph.tasks.forEach(t => { taskMap[t.id] = t }))
@@ -393,7 +393,20 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
 
       if (!data.success) throw new Error(data.error || 'Error generando plan')
 
-      const parsed: Plan = JSON.parse(data.content)
+      let parsed: Plan
+      try {
+        parsed = JSON.parse(data.content)
+      } catch {
+        throw new Error('La respuesta de IA fue truncada. Intenta de nuevo (puede tardar hasta 3 minutos).')
+      }
+
+      if (!parsed.phases || parsed.phases.length === 0) {
+        throw new Error('El plan generado está vacío. Intenta de nuevo.')
+      }
+
+      // Normalise weeks to always be an array
+      if (!parsed.weeks) parsed.weeks = []
+
       setPlan(parsed)
 
       await supabase.from('project_tools').upsert({
@@ -646,7 +659,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
               <div>
                 {/* Week selector */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 16 }}>
-                  {plan.weeks.map(w => (
+                  {(plan.weeks || []).map(w => (
                     <button
                       key={w.week}
                       onClick={() => setActiveWeek(w.week)}
@@ -662,7 +675,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
                   ))}
                 </div>
 
-                {plan.weeks
+                {(plan.weeks || [])
                   .filter(w => w.week === activeWeek)
                   .map(w => (
                     <WeekView key={w.week} week={w} plan={plan} onToggleTask={toggleTask} />

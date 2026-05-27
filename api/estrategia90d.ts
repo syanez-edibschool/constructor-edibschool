@@ -12,6 +12,15 @@ function getDb(token: string) {
   return createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
 }
 
+function parseJson(raw: string): unknown {
+  let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+  if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+    const match = cleaned.match(/[\[{][\s\S]*[\]}]/)
+    if (match) cleaned = match[0]
+  }
+  return JSON.parse(cleaned)
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
@@ -49,77 +58,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const cloneContext = cloneGanadorData
-      ? `
-DATOS DE CLONE THE WINNER (ganador: ${cloneGanadorData.handle}):
+      ? `DATOS DE CLONE THE WINNER (ganador: ${cloneGanadorData.handle}):
 - Engagement rate: ${cloneGanadorData.executive_summary?.engagement_rate}
 - Posts/semana: ${cloneGanadorData.executive_summary?.posts_per_week}
 - Factores de éxito: ${cloneGanadorData.executive_summary?.key_success_factors?.join(', ')}
 - Top hooks: ${cloneGanadorData.copy_analysis?.top_hooks?.slice(0, 3).map((h: any) => h.hook).join('; ')}
 - Top CTAs: ${cloneGanadorData.copy_analysis?.top_ctas?.slice(0, 3).map((c: any) => c.cta).join('; ')}
 - Tono de voz: ${cloneGanadorData.copy_analysis?.tone_of_voice}
-- Mix de contenido ganador: ${cloneGanadorData.content_mix?.map((c: any) => `${c.type} ${c.percentage}%`).join(', ')}
-- Tareas semana 1 del ganador: ${cloneGanadorData.implementation_plan?.week1?.tasks?.join(', ')}
-- Tareas semana 2 del ganador: ${cloneGanadorData.implementation_plan?.week2?.tasks?.join(', ')}
-`
+- Mix de contenido: ${cloneGanadorData.content_mix?.map((c: any) => `${c.type} ${c.percentage}%`).join(', ')}
+- Tareas semana 1: ${cloneGanadorData.implementation_plan?.week1?.tasks?.join(', ')}`
       : ''
 
-    const prompt = `Eres un experto en agencias de IA y marketing digital. Genera un plan de acción de 90 días (13 semanas) ultra detallado para lanzar una agencia de IA.
+    const client = getClient()
 
-${projectContext ? `CONTEXTO DEL PROYECTO:\n${projectContext}` : ''}
-${cloneContext}
+    // ── STEP 1: Generate phases with all tasks ────────────────────────────────
+    const phasesPrompt = `Eres un experto en agencias de IA. Genera las FASES de un plan de 90 días para lanzar una agencia de IA.
+${projectContext ? `\nCONTEXTO:\n${projectContext}` : ''}
+${cloneContext ? `\n${cloneContext}` : ''}
 
-INSTRUCCIONES CRÍTICAS:
-- Responde SOLO en JSON válido, sin markdown, sin explicaciones
-- El JSON debe seguir EXACTAMENTE la estructura indicada
-- Distribuye tareas reales y ejecutables
-- Semana 1: mínimo 6-7 tareas/día (lanzamiento intensivo)
-- Semanas 2-4: 3-5 tareas/día (infraestructura + primeras publicaciones + 30 contactos/día)
-- Semanas 5-8: 3-4 tareas/día (Instagram escalado + prospección activa)
-- Semanas 9-13: 2-4 tareas/día (publicidad + optimización + escalado)
-${cloneGanadorData ? `- Las primeras tareas de la semana 1 deben ser tareas específicas basadas en Clone The Winner (handle: ${cloneGanadorData.handle}), con source="clone_ganador"` : ''}
-
-FASES Y TAREAS OBLIGATORIAS:
-
-FASE 2 - Construcción de Oferta (semanas 1-2):
-- Redactar PUV: Ayudo a [micronicho] a [resultado] mediante [mecanismo IA] sin [objeción]
-- Definir oferta irresistible (auditoría gratis, prueba 7-14 días, implementación sin costo)
-- Crear lead magnet alineado al dolor del avatar
-- Validar oferta con 5 prospectos antes de escalar
-
-FASE 3 - Infraestructura Digital (semanas 2-4):
-- Montar funnel o sitio web con headline + problema + agitación + solución + CTA
-- Configurar calendario en GHL/Calendly con confirmación y recordatorios automáticos
-- Activar secuencia email post-registro (inmediato + educativa pre-llamada + post-llamada)
-- Configurar agente IA que responda DMs automáticamente
-- Preparar documento de propuesta comercial
-
-FASE 4 - Instagram Estratégico (semanas 3-8):
-- Optimizar perfil: foto profesional + bio con resultado + CTA
-- Publicar 9-12 posts iniciales
-- Crear 3 carruseles educativos del nicho
-- Crear 2 Reels explicando problemas del sector
-- Activar follow estratégico: máximo 30-50 cuentas/día del micronicho
-- Enviar DMs con script de apertura a prospectos calificados
-
-FASE 5 - Prospección Activa (SIEMPRE EN PARALELO desde semana 1):
-- Contactar mínimo 30 nuevos prospectos diarios
-- Llevar seguimiento en CRM
-- Hacer follow-up cada 48-72 horas
-
-FASE 6 - Publicidad (semanas 9-13):
-- TOFU: Campaña Follow Me Ads con lead magnet
-- MOFU: Campaña captación a formulario
-- BOFU: Retargeting a mensajes/agenda
-- Optimizar campañas con datos reales
-
-HÁBITOS DIARIOS/SEMANALES:
-- 30 contactos nuevos diarios
-- Seguimiento activo de pipeline
-- 3 publicaciones semanales en Instagram
-- Mejorar guión de ventas semanalmente
-- Estudiar 30-60 minutos diarios
-
-Genera el JSON con esta estructura exacta:
+Responde SOLO JSON válido sin markdown. Estructura exacta:
 {
   "phases": [
     {
@@ -130,52 +87,104 @@ Genera el JSON con esta estructura exacta:
       "week_start": 1,
       "week_end": 2,
       "tasks": [
-        {
-          "id": "f2-t1",
-          "task": "Redactar PUV: Ayudo a [micronicho] a [resultado] mediante [mecanismo IA] sin [objeción]",
-          "completed": false,
-          "week": 1,
-          "day": 1,
-          "priority": "alta",
-          "source": "plan_agencia"
-        }
+        {"id": "f2-t1", "task": "Redactar PUV", "completed": false, "week": 1, "day": 1, "priority": "alta", "source": "plan_agencia"}
       ]
     }
-  ],
+  ]
+}
+
+FASES REQUERIDAS:
+- Fase 2 "Construcción de Oferta" (sem 1-2): PUV, oferta irresistible, lead magnet, validación con 5 prospectos. 12 tareas.
+- Fase 3 "Infraestructura Digital" (sem 2-4): funnel/web, GHL/Calendly, secuencia email, agente IA DMs, propuesta comercial. 15 tareas.
+- Fase 4 "Instagram Estratégico" (sem 3-8): perfil, 9 posts iniciales, carruseles, reels, follows, DMs prospección. 20 tareas.
+- Fase 5 "Prospección Activa" (sem 1-13, paralelo): 30 contactos/día, CRM, follow-up 48-72h. 10 tareas recurrentes.
+- Fase 6 "Publicidad Paga" (sem 9-13): TOFU Follow Me Ads, MOFU captación formulario, BOFU retargeting, optimización. 12 tareas.
+${cloneGanadorData ? `Las primeras 3 tareas de fase 2 semana 1 deben basarse en Clone The Winner con source="clone_ganador".` : ''}
+
+Distribuye las tareas con week 1-13 y day 1-7. Genera al menos 65 tareas en total.`
+
+    const phasesResp = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 6000,
+      messages: [{ role: 'user', content: phasesPrompt }],
+    })
+
+    const phasesRaw = phasesResp.content[0].type === 'text' ? phasesResp.content[0].text : ''
+    const phasesData = parseJson(phasesRaw) as { phases: unknown[] }
+
+    if (!phasesData.phases || phasesData.phases.length === 0) {
+      throw new Error('No se generaron fases. Intenta de nuevo.')
+    }
+
+    // ── STEP 2: Generate weeks calendar ──────────────────────────────────────
+    // Extract task IDs grouped by week for the prompt
+    const tasksByWeek: Record<number, string[]> = {}
+    for (const phase of phasesData.phases as any[]) {
+      for (const task of phase.tasks || []) {
+        const w = task.week || 1
+        if (!tasksByWeek[w]) tasksByWeek[w] = []
+        tasksByWeek[w].push(`${task.id}(día ${task.day || 1})`)
+      }
+    }
+
+    const weeksContext = Object.entries(tasksByWeek)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([w, ids]) => `Semana ${w}: ${ids.join(', ')}`)
+      .join('\n')
+
+    const weeksPrompt = `Genera el calendario de 13 semanas para un plan de agencia de IA.
+Tienes estas tareas distribuidas por semana (id tarea con su día):
+${weeksContext}
+
+Responde SOLO JSON válido sin markdown. Estructura exacta:
+{
   "weeks": [
     {
       "week": 1,
       "label": "SEMANA DE LANZAMIENTO",
       "is_launch": true,
       "days": [
-        {
-          "day": 1,
-          "label": "Lunes",
-          "tasks": ["f2-t1", "f2-t2"]
-        }
+        {"day": 1, "label": "Lunes", "tasks": ["f2-t1", "f5-t1"]},
+        {"day": 2, "label": "Martes", "tasks": ["f2-t2"]},
+        {"day": 3, "label": "Miércoles", "tasks": ["f2-t3", "f5-t2"]},
+        {"day": 4, "label": "Jueves", "tasks": ["f3-t1"]},
+        {"day": 5, "label": "Viernes", "tasks": ["f3-t2", "f5-t3"]},
+        {"day": 6, "label": "Sábado", "tasks": []},
+        {"day": 7, "label": "Domingo", "tasks": []}
       ]
     }
   ]
 }
 
-Genera las 13 semanas completas con todos los días (lunes a domingo) y todas las tareas de todas las fases distribuidas correctamente.`
+Reglas:
+- Genera las 13 semanas completas (semana 1 a 13)
+- Semana 1 is_launch: true, las demás false
+- Distribuye los task IDs de cada semana en los días lunes-viernes principalmente
+- Cada día: 1-4 task IDs máximo
+- Usa los IDs exactos de las tareas que te di arriba
+- Day labels: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo`
 
-    const client = getClient()
-    const response = await client.messages.create({
+    const weeksResp = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 8000,
-      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: weeksPrompt }],
     })
 
-    const rawContent = response.content[0].type === 'text' ? response.content[0].text : ''
+    const weeksRaw = weeksResp.content[0].type === 'text' ? weeksResp.content[0].text : ''
 
-    let cleaned = rawContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    if (!cleaned.startsWith('{')) {
-      const match = cleaned.match(/\{[\s\S]*\}/)
-      if (match) cleaned = match[0]
+    let weeksData: { weeks: unknown[] } = { weeks: [] }
+    try {
+      weeksData = parseJson(weeksRaw) as { weeks: unknown[] }
+    } catch {
+      // weeks calendar is optional — fall back to empty
     }
 
-    return res.status(200).json({ success: true, content: cleaned })
+    const combined = {
+      phases: phasesData.phases,
+      weeks: weeksData.weeks || [],
+    }
+
+    return res.status(200).json({ success: true, content: JSON.stringify(combined) })
   } catch (error: any) {
     console.error('Estrategia 90D error:', error)
     return res.status(500).json({ error: error.message || 'Error generando estrategia' })
