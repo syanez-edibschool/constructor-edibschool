@@ -169,9 +169,7 @@ export default function Sidebar({
               }}
             >
               {mode === 'project' && <ArrowLeftIcon style={{ width: 14, height: 14, color: 'var(--text-3)', flexShrink: 0 }} />}
-              <span className="gradient-text font-black" style={{ fontSize: 15, whiteSpace: 'nowrap' }}>
-                ◆ Constructor
-              </span>
+              <img src="/logo_blanco.png" alt="MKT Hackers" style={{ height: 26, width: 'auto', objectFit: 'contain' }} />
             </motion.button>
           )}
         </AnimatePresence>

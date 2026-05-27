@@ -72,7 +72,7 @@ export default function Signup() {
         >
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-3">
-              <span className="text-3xl font-black gradient-text">◆ Constructor</span>
+              <img src="/logo_blanco.png" alt="MKT Hackers" style={{ height: 44, width: 'auto', objectFit: 'contain' }} />
             </div>
             <p className="text-white/50 text-sm tracking-widest uppercase">Crea tu cuenta gratis</p>
           </div>

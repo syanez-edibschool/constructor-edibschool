@@ -666,7 +666,7 @@ export default function Tools() {
                 <div style={{ width: 64, height: 64, borderRadius: 'var(--radius-lg)', background: 'var(--accent-d)', border: '1px solid var(--border-h)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <MapIcon style={{ width: 32, height: 32, color: 'var(--accent)' }} />
                 </div>
-                <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 700, color: 'var(--text)' }}>Constructor de Agencia IA</h2>
+                <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 700, color: 'var(--text)' }}>MKT Hackers — Constructor de Agencia IA</h2>
                 <p style={{ fontSize: 'var(--fs-base)', color: 'var(--text-2)', maxWidth: 360, lineHeight: 'var(--lh-base)' }}>
                   Selecciona una herramienta del menú lateral para comenzar.
                 </p>

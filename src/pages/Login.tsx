@@ -596,7 +596,7 @@ export default function Login() {
                           animate={{ backgroundPosition: ['0% 0','100% 0','0% 0'] }}
                           transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
                         >
-                          ◆ Constructor
+                          <img src="/logo_blanco.png" alt="MKT Hackers" style={{ height: 52, width: 'auto', objectFit: 'contain', display: 'block' }} />
                         </motion.span>
                       </motion.div>
                       <motion.p
