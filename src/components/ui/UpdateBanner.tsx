@@ -29,6 +29,7 @@ export default function UpdateBanner() {
       localStorage.setItem(STORAGE_KEY, remote)
     } else if (stored !== remote) {
       remoteBuild.current = remote
+      localStorage.setItem(STORAGE_KEY, remote) // marcar como visto antes de mostrar
       setVisible(true)
     }
   }, [])
@@ -39,15 +40,8 @@ export default function UpdateBanner() {
     return () => clearInterval(id)
   }, [check])
 
-  const handleUpdate = () => {
-    if (remoteBuild.current) localStorage.setItem(STORAGE_KEY, remoteBuild.current)
-    window.location.reload()
-  }
-
-  const handleDismiss = () => {
-    if (remoteBuild.current) localStorage.setItem(STORAGE_KEY, remoteBuild.current)
-    setVisible(false)
-  }
+  const handleUpdate = () => window.location.reload()
+  const handleDismiss = () => setVisible(false)
 
   if (!visible) return null
 
