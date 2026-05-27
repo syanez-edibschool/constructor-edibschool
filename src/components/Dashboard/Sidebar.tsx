@@ -32,10 +32,10 @@ const TOOLS: SidebarTool[] = [
   { id: 'propuesta',       Icon: DocumentTextIcon,       short: 'Propuesta',       cat: 'ventas'         },
   { id: 'precios',         Icon: BanknotesIcon,          short: 'Precios',         cat: 'ventas'         },
   { id: 'website',         Icon: GlobeAltIcon,           short: 'Sitio Web',       cat: 'ventas'         },
+  { id: 'contrato',        Icon: DocumentCheckIcon,      short: 'Contrato',        cat: 'ventas'         },
   // Automatización
   { id: 'prompt-generator', Icon: CpuChipIcon,           short: 'Prompts Agentes', cat: 'automatizacion' },
   { id: 'emails',           Icon: EnvelopeIcon,          short: 'Emails',          cat: 'automatizacion' },
-  { id: 'contrato',         Icon: DocumentCheckIcon,     short: 'Contrato',        cat: 'automatizacion' },
   // Tracking
   { id: 'tracker',         Icon: ChartBarIcon,           short: 'Tracker',         cat: 'tracking'       },
 ]
