@@ -5,7 +5,7 @@ import {
   PhotoIcon, ViewColumnsIcon, GlobeAltIcon, DocumentTextIcon,
   BanknotesIcon, PresentationChartBarIcon, EnvelopeIcon, GiftIcon,
   DocumentCheckIcon, ChartBarIcon, BookOpenIcon, MapIcon,
-  DocumentDuplicateIcon,
+  DocumentDuplicateIcon, CpuChipIcon,
   ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon,
   CheckCircleIcon, LockClosedIcon,
   PlusCircleIcon, BuildingOffice2Icon,
@@ -32,8 +32,9 @@ const TOOLS: SidebarTool[] = [
   { id: 'precios',         Icon: BanknotesIcon,          short: 'Precios',         cat: 'ventas'         },
   { id: 'website',         Icon: GlobeAltIcon,           short: 'Sitio Web',       cat: 'ventas'         },
   // Automatización
-  { id: 'emails',          Icon: EnvelopeIcon,           short: 'Emails',          cat: 'automatizacion' },
-  { id: 'contrato',        Icon: DocumentCheckIcon,      short: 'Contrato',        cat: 'automatizacion' },
+  { id: 'prompt-generator', Icon: CpuChipIcon,           short: 'Prompts Agentes', cat: 'automatizacion' },
+  { id: 'emails',           Icon: EnvelopeIcon,          short: 'Emails',          cat: 'automatizacion' },
+  { id: 'contrato',         Icon: DocumentCheckIcon,     short: 'Contrato',        cat: 'automatizacion' },
   // Tracking
   { id: 'tracker',         Icon: ChartBarIcon,           short: 'Tracker',         cat: 'tracking'       },
 ]
@@ -44,8 +45,9 @@ const TOOL_STEPS: Record<string, number> = {
   'estrategia90d': 2,
   'calendario': 3, 'story': 4, 'carruseles': 5, 'reels': 6, 'imagenes': 7,
   'vsl': 8, 'propuesta': 9, 'precios': 10, 'website': 11,
-  'emails': 12, 'contrato': 13,
-  'tracker': 14,
+  'prompt-generator': 12,
+  'emails': 13, 'contrato': 14,
+  'tracker': 15,
 }
 
 const CATS = ['analisis', 'contenido', 'ventas', 'automatizacion', 'tracking']

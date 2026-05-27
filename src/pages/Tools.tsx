@@ -7,9 +7,8 @@ import {
   PhotoIcon, ViewColumnsIcon, GlobeAltIcon, DocumentTextIcon,
   BanknotesIcon, EnvelopeIcon,
   DocumentCheckIcon, ChartBarIcon, MapIcon,
-  DocumentDuplicateIcon,
+  DocumentDuplicateIcon, CpuChipIcon,
   CheckIcon, ArrowPathIcon, SparklesIcon,
-  CpuChipIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../services/api'
 import { useTheme } from '../context/ThemeContext'
@@ -24,6 +23,7 @@ import CloneTheWinner                               from '../components/Tools/Cl
 import SitioWeb                                    from '../components/Tools/SitioWeb'
 import PropuestaComercial                          from '../components/Tools/PropuestaComercial'
 import Estrategia90D                               from '../components/Tools/Estrategia90D'
+import PromptGenerator                             from '../components/Tools/PromptGenerator'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
@@ -188,15 +188,9 @@ const TOOLS: ToolDef[] = [
     ],
   },
   {
-    id: 'chat-agent', Icon: CpuChipIcon, title: 'Agente IA Chat', short: 'Agente IA', cat: 'operaciones',
-    desc: 'Configura un agente conversacional de IA personalizado para tu nicho.',
-    qs: [
-      { id: 'objetivo',      label: '¿Cuál es el objetivo principal del agente?',  type: 'select',   options: ['Calificar leads', 'Atención al cliente 24/7', 'Vender productos/servicios', 'Onboarding de clientes', 'FAQ inteligente'] },
-      { id: 'plataforma',    label: '¿Dónde estará desplegado el agente?',         type: 'select',   options: ['WhatsApp Business', 'Instagram DM', 'Web (widget)', 'Telegram', 'Multi-canal'] },
-      { id: 'tono',          label: '¿Cómo debe hablar el agente?',                type: 'select',   options: ['Profesional y formal', 'Cercano y amigable', 'Directo y vendedor', 'Empático y educativo'] },
-      { id: 'flujo',         label: '¿Qué pasos clave debe seguir la conversación?', type: 'textarea', placeholder: 'Ej: saludo → preguntar necesidad → calificar presupuesto → ofrecer demo → cerrar agenda' },
-      { id: 'restricciones', label: '¿Qué NO debe hacer/decir el agente?',         type: 'textarea', placeholder: 'Ej: nunca dar precios sin antes calificar, no prometer resultados específicos' },
-    ],
+    id: 'prompt-generator', Icon: CpuChipIcon, title: 'Generador de Prompts', short: 'Prompts Agentes', cat: 'automatizacion',
+    desc: 'Genera el prompt de sistema profesional para tu agente IA, adaptado a GHL, ManyChat, WhatsApp, Voiceflow y más.',
+    qs: [],
   },
   {
     id: 'estrategia90d', Icon: MapIcon, title: 'Estrategia 90 Días', short: 'Estrategia 90D', cat: 'estrategia',
@@ -373,6 +367,10 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
 
   if (toolId === 'estrategia90d') {
     return <Estrategia90D projectId={projectId} />
+  }
+
+  if (toolId === 'prompt-generator') {
+    return <PromptGenerator projectId={projectId} />
   }
 
   if (toolId === 'propuesta') {
@@ -572,7 +570,7 @@ export default function Tools() {
     if (states[toolId]) return // already loaded
 
     // These tools manage their own data — skip the AI questions/generation flow
-    if (toolId === 'tracker' || toolId === 'website' || toolId === 'clone-winner' || toolId === 'propuesta' || toolId === 'estrategia90d') {
+    if (toolId === 'tracker' || toolId === 'website' || toolId === 'clone-winner' || toolId === 'propuesta' || toolId === 'estrategia90d' || toolId === 'prompt-generator') {
       setStates(p => ({ ...p, [toolId]: { phase: 'done', answers: {}, result: {} } }))
       return
     }
@@ -708,7 +706,7 @@ export default function Tools() {
             {activeTool && state?.phase === 'done' && (
               <motion.div key={`done-${activeTool}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {/* Header — only for AI-generated tools (not standalone interactive ones) */}
-                {!['calendario', 'tracker', 'website', 'clone-winner', 'propuesta'].includes(activeTool) && (
+                {!['calendario', 'tracker', 'website', 'clone-winner', 'propuesta', 'estrategia90d', 'prompt-generator'].includes(activeTool) && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--accent-d)', border: '1px solid var(--border-h)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
