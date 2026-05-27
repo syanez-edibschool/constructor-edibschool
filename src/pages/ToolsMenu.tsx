@@ -157,7 +157,7 @@ export default function ToolsMenu() {
           <button onClick={() => navigate('/dashboard')} className="text-white/40 hover:text-white text-sm transition-colors">
             ← Dashboard
           </button>
-          <img src={isDark ? '/logo_blanco.png' : '/logo_negro.png'} alt="MKT Hackers" style={{ height: 28, width: 'auto', objectFit: 'contain', marginLeft: 16 }} />
+          <img src={isDark ? '/logo_blanco.png' : '/logo_negro.png'} alt="MKT Hackers" style={{ height: isDark ? 34 : 44, width: 'auto', objectFit: 'contain', marginLeft: 16 }} />
           <div className="flex-1" />
           <Button3DLink onClick={() => navigate(`/proyecto/${id}/download`)}>
             📦 Descargar todo

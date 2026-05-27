@@ -172,7 +172,7 @@ export default function Sidebar({
               }}
             >
               {mode === 'project' && <ArrowLeftIcon style={{ width: 14, height: 14, color: 'var(--text-3)', flexShrink: 0 }} />}
-              <img src={logoSrc} alt="MKT Hackers" style={{ height: 26, width: 'auto', objectFit: 'contain' }} />
+              <img src={logoSrc} alt="MKT Hackers" style={{ height: isDark ? 32 : 42, width: 'auto', objectFit: 'contain' }} />
             </motion.button>
           )}
         </AnimatePresence>
