@@ -8,7 +8,7 @@ import {
 import { api } from '../../services/api'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Platform = 'ghl' | 'manychat' | 'whatsapp' | 'voiceflow' | 'botpress' | 'chatgpt' | 'otro'
+type Platform = 'ghl' | 'manychat' | 'whatsapp' | 'voiceflow' | 'botpress' | 'chatgpt' | 'elevenlabs' | 'otro'
 type Interaction = 'texto' | 'voz'
 
 interface AgentData {
@@ -23,13 +23,14 @@ interface AgentData {
 
 // ─── Platform data ─────────────────────────────────────────────────────────────
 const PLATFORMS: { id: Platform; label: string; abbr: string; color: string }[] = [
-  { id: 'ghl',       label: 'Go High Level',     abbr: 'GHL',  color: '#00D9FF' },
-  { id: 'manychat',  label: 'ManyChat',           abbr: 'MC',   color: '#8B5CF6' },
-  { id: 'whatsapp',  label: 'WhatsApp',           abbr: 'WA',   color: '#25D366' },
-  { id: 'voiceflow', label: 'Voiceflow',          abbr: 'VF',   color: '#4F46E5' },
-  { id: 'botpress',  label: 'Botpress',           abbr: 'BP',   color: '#EC4899' },
-  { id: 'chatgpt',   label: 'ChatGPT / GPT',      abbr: 'GPT',  color: '#10B981' },
-  { id: 'otro',      label: 'Otra plataforma',    abbr: '...',  color: '#6B7280' },
+  { id: 'ghl',        label: 'Go High Level',   abbr: 'GHL',  color: '#00D9FF' },
+  { id: 'manychat',   label: 'ManyChat',         abbr: 'MC',   color: '#8B5CF6' },
+  { id: 'whatsapp',   label: 'WhatsApp',         abbr: 'WA',   color: '#25D366' },
+  { id: 'voiceflow',  label: 'Voiceflow',        abbr: 'VF',   color: '#4F46E5' },
+  { id: 'botpress',   label: 'Botpress',         abbr: 'BP',   color: '#EC4899' },
+  { id: 'chatgpt',    label: 'ChatGPT / GPT',    abbr: 'GPT',  color: '#10B981' },
+  { id: 'elevenlabs', label: 'ElevenLabs',       abbr: 'EL',   color: '#F97316' },
+  { id: 'otro',       label: 'Otra plataforma',  abbr: '...',  color: '#6B7280' },
 ]
 
 // ─── Input styles ─────────────────────────────────────────────────────────────
@@ -67,35 +68,105 @@ function Textarea({ value, onChange, placeholder, rows = 3 }: { value: string; o
   )
 }
 
-function FieldLabel({ n, label, optional }: { n: number; label: string; optional?: boolean }) {
+// ─── Field row with AI suggest button ────────────────────────────────────────
+function FieldRow({
+  n, label, optional, fieldKey, value, onChange, placeholder, rows = 3,
+  projectId, agentData, platform, interaction,
+}: {
+  n: number; label: string; optional?: boolean
+  fieldKey: keyof AgentData; value: string; onChange: (v: string) => void
+  placeholder: string; rows?: number
+  projectId: string; agentData: AgentData
+  platform: Platform | null; interaction: Interaction | null
+}) {
+  const [busy, setBusy] = useState(false)
+
+  const suggest = async () => {
+    setBusy(true)
+    try {
+      const { data } = await api.post('/suggest-answer', {
+        projectId,
+        toolId: 'prompt-generator',
+        questionId: fieldKey,
+        questionLabel: label,
+        questionType: 'textarea',
+        existingAnswers: {
+          ...agentData,
+          platform: platform ?? '',
+          interactionType: interaction ?? '',
+        },
+      })
+      if (data?.suggestion) onChange(data.suggestion)
+    } catch { /* silently ignore */ }
+    finally { setBusy(false) }
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'monospace', color: 'var(--accent)', opacity: 0.7 }}>
+            {String(n).padStart(2, '0')}
+          </span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{label}</span>
+          {optional && (
+            <span style={{ fontSize: 10, color: 'var(--text-3)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px' }}>
+              opcional
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={suggest}
+          disabled={busy}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '4px 10px', borderRadius: 999,
+            background: busy ? 'var(--surface)' : 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))',
+            border: '1px solid var(--border-h)',
+            color: 'var(--accent)', fontSize: 11, fontWeight: 600,
+            cursor: busy ? 'wait' : 'pointer', flexShrink: 0, transition: 'all .2s',
+          }}
+        >
+          {busy
+            ? <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+            : <SparklesIcon style={{ width: 12, height: 12 }} />}
+          {busy ? 'Generando…' : 'Generar con IA'}
+        </button>
+      </div>
+      <Textarea value={value} onChange={onChange} placeholder={placeholder} rows={rows} />
+    </div>
+  )
+}
+
+function FieldLabel({ n, label }: { n: number; label: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
       <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'monospace', color: 'var(--accent)', opacity: 0.7 }}>
         {String(n).padStart(2, '0')}
       </span>
       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{label}</span>
-      {optional && <span style={{ fontSize: 10, color: 'var(--text-3)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 4, padding: '1px 5px' }}>opcional</span>}
     </div>
   )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function PromptGenerator({ projectId }: { projectId: string }) {
-  const [platform, setPlatform]   = useState<Platform | null>(null)
+  const [platform, setPlatform]       = useState<Platform | null>(null)
   const [interaction, setInteraction] = useState<Interaction | null>(null)
-  const [agentData, setAgentData] = useState<AgentData>({
+  const [agentData, setAgentData]     = useState<AgentData>({
     agentName: '', businessType: '', targetAudience: '',
     mainObjective: '', personality: '', objections: '', additionalInfo: '',
   })
-  const [loading, setLoading]     = useState(false)
-  const [result, setResult]       = useState<string | null>(null)
-  const [error, setError]         = useState<string | null>(null)
-  const [copied, setCopied]       = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [result, setResult]   = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
+  const [copied, setCopied]   = useState(false)
 
   const set = (key: keyof AgentData) => (v: string) => setAgentData(p => ({ ...p, [key]: v }))
 
   const isGhlText   = platform === 'ghl' && interaction === 'texto'
-  const showQ8      = !isGhlText  // objections only when not GHL+text
+  const showQ8      = !isGhlText
   const formatBadge = isGhlText ? 'Formato GHL' : 'Formato Profesional'
 
   const canSubmit = Boolean(
@@ -145,16 +216,13 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
     a.click()
   }
 
-  const reset = () => {
-    setResult(null)
-    setError(null)
-  }
+  // Shared props for FieldRow
+  const fieldProps = { projectId, agentData, platform, interaction }
 
   // ── Result view ──
   if (result) {
     return (
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 720, margin: '0 auto', padding: '24px 20px' }}>
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--accent-d)', border: '1px solid var(--border-h)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -163,8 +231,7 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', lineHeight: 1.3 }}>Prompt generado</p>
               <p style={{ fontSize: 11, color: '#10B981', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <CheckCircleIcon style={{ width: 12, height: 12 }} />
-                Listo para usar
+                <CheckCircleIcon style={{ width: 12, height: 12 }} /> Listo para usar
               </p>
             </div>
           </div>
@@ -179,61 +246,30 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
               {formatBadge}
             </span>
             <button
-              onClick={reset}
+              onClick={() => { setResult(null); setError(null) }}
               style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: 12, color: 'var(--text-2)' }}
             >
-              <ArrowPathIcon style={{ width: 13, height: 13 }} />
-              Regenerar
+              <ArrowPathIcon style={{ width: 13, height: 13 }} /> Regenerar
             </button>
           </div>
         </div>
 
-        {/* Prompt text area */}
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, overflow: 'hidden', marginBottom: 12 }}>
-          <div style={{ padding: '10px 14px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ padding: '10px 14px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
             <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Prompt del sistema</span>
           </div>
           <textarea
-            readOnly
-            value={result}
-            style={{
-              width: '100%', minHeight: 420, padding: '16px 18px',
-              background: 'transparent', border: 'none', outline: 'none',
-              color: 'var(--text)', fontSize: 13, lineHeight: 1.75,
-              fontFamily: 'inherit', resize: 'vertical',
-              boxSizing: 'border-box',
-            }}
+            readOnly value={result}
+            style={{ width: '100%', minHeight: 420, padding: '16px 18px', background: 'transparent', border: 'none', outline: 'none', color: 'var(--text)', fontSize: 13, lineHeight: 1.75, fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
           />
         </div>
 
-        {/* Action buttons */}
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={copyPrompt}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              padding: '12px 0', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-              background: copied ? 'rgba(16,185,129,0.15)' : 'var(--accent-d)',
-              border: `1px solid ${copied ? 'rgba(16,185,129,0.3)' : 'var(--border-h)'}`,
-              color: copied ? '#10B981' : 'var(--accent)',
-              transition: 'all .2s',
-            }}
-          >
-            {copied
-              ? <><CheckCircleIcon style={{ width: 16, height: 16 }} /> Copiado</>
-              : <><ClipboardDocumentIcon style={{ width: 16, height: 16 }} /> Copiar prompt</>}
+          <button onClick={copyPrompt} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px 0', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, background: copied ? 'rgba(16,185,129,0.15)' : 'var(--accent-d)', border: `1px solid ${copied ? 'rgba(16,185,129,0.3)' : 'var(--border-h)'}`, color: copied ? '#10B981' : 'var(--accent)', transition: 'all .2s' }}>
+            {copied ? <><CheckCircleIcon style={{ width: 16, height: 16 }} /> Copiado</> : <><ClipboardDocumentIcon style={{ width: 16, height: 16 }} /> Copiar prompt</>}
           </button>
-          <button
-            onClick={downloadPrompt}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              padding: '12px 0', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-              background: 'var(--surface)', border: '1px solid var(--border)',
-              color: 'var(--text-2)', transition: 'all .2s',
-            }}
-          >
-            <ArrowDownTrayIcon style={{ width: 16, height: 16 }} />
-            Descargar .txt
+          <button onClick={downloadPrompt} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '12px 0', borderRadius: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-2)' }}>
+            <ArrowDownTrayIcon style={{ width: 16, height: 16 }} /> Descargar .txt
           </button>
         </div>
       </motion.div>
@@ -243,7 +279,6 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
   // ── Form view ──
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 20px' }}>
-      {/* Title */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 28 }}>
         <div style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-d)', border: '1px solid var(--border-h)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <CpuChipIcon style={{ width: 26, height: 26, color: 'var(--accent)' }} />
@@ -315,115 +350,76 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
           </div>
           {platform && interaction && (
             <motion.div
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                marginTop: 10, padding: '8px 12px', borderRadius: 8,
-                background: isGhlText ? 'rgba(0,217,255,0.06)' : 'rgba(139,92,246,0.06)',
-                border: `1px solid ${isGhlText ? 'rgba(0,217,255,0.2)' : 'rgba(139,92,246,0.2)'}`,
-                fontSize: 11, color: isGhlText ? '#00D9FF' : '#8B5CF6',
-              }}
+              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+              style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: isGhlText ? 'rgba(0,217,255,0.06)' : 'rgba(139,92,246,0.06)', border: `1px solid ${isGhlText ? 'rgba(0,217,255,0.2)' : 'rgba(139,92,246,0.2)'}`, fontSize: 11, color: isGhlText ? '#00D9FF' : '#8B5CF6' }}
             >
-              {isGhlText
-                ? 'Formato GHL: 3 secciones (PERSONALIDAD · OBJETIVO · INFORMACIÓN ADICIONAL)'
-                : 'Formato Profesional: 8 secciones completas'}
+              {isGhlText ? 'Formato GHL: 3 secciones (PERSONALIDAD · OBJETIVO · INFORMACIÓN ADICIONAL)' : 'Formato Profesional: 8 secciones completas'}
             </motion.div>
           )}
         </div>
 
-        {/* Questions 3-9 — visible once platform + interaction selected */}
+        {/* Questions 3-9 */}
         <AnimatePresence>
           {platform && interaction && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-            >
-              {/* Q3 */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+              {/* Q3 — text input, no AI suggest */}
               <div>
                 <FieldLabel n={3} label="Nombre del agente" />
-                <Input
-                  value={agentData.agentName}
-                  onChange={set('agentName')}
-                  placeholder="Ej: Sofia, Asistente Virtual de Bienes Raíces"
-                />
+                <Input value={agentData.agentName} onChange={set('agentName')} placeholder="Ej: Sofia, Asistente Virtual de Bienes Raíces" />
               </div>
 
-              {/* Q4 */}
+              {/* Q4 — text input, no AI suggest */}
               <div>
                 <FieldLabel n={4} label="¿Qué tipo de negocio lo usará?" />
-                <Input
-                  value={agentData.businessType}
-                  onChange={set('businessType')}
-                  placeholder="Ej: Inmobiliaria de lujo en Madrid"
-                />
+                <Input value={agentData.businessType} onChange={set('businessType')} placeholder="Ej: Inmobiliaria de lujo en Madrid" />
               </div>
 
               {/* Q5 */}
-              <div>
-                <FieldLabel n={5} label="¿Quién es el cliente ideal que hablará con el agente?" />
-                <Textarea
-                  value={agentData.targetAudience}
-                  onChange={set('targetAudience')}
-                  placeholder="Ej: Inversores entre 40-60 años buscando propiedades +500k€"
-                />
-              </div>
+              <FieldRow n={5} label="¿Quién es el cliente ideal que hablará con el agente?"
+                fieldKey="targetAudience" value={agentData.targetAudience} onChange={set('targetAudience')}
+                placeholder="Ej: Inversores entre 40-60 años buscando propiedades +500k€"
+                {...fieldProps}
+              />
 
               {/* Q6 */}
-              <div>
-                <FieldLabel n={6} label="¿Cuál es el objetivo principal del agente?" />
-                <Textarea
-                  value={agentData.mainObjective}
-                  onChange={set('mainObjective')}
-                  placeholder="Ej: Calificar prospectos y agendar visitas presenciales"
-                />
-              </div>
+              <FieldRow n={6} label="¿Cuál es el objetivo principal del agente?"
+                fieldKey="mainObjective" value={agentData.mainObjective} onChange={set('mainObjective')}
+                placeholder="Ej: Calificar prospectos y agendar visitas presenciales"
+                {...fieldProps}
+              />
 
               {/* Q7 */}
-              <div>
-                <FieldLabel n={7} label="¿Cómo debe ser la personalidad del agente?" />
-                <Textarea
-                  value={agentData.personality}
-                  onChange={set('personality')}
-                  placeholder="Ej: Profesional pero cercano, usa lenguaje formal, genera confianza"
-                />
-              </div>
+              <FieldRow n={7} label="¿Cómo debe ser la personalidad del agente?"
+                fieldKey="personality" value={agentData.personality} onChange={set('personality')}
+                placeholder="Ej: Profesional pero cercano, usa lenguaje formal, genera confianza"
+                {...fieldProps}
+              />
 
-              {/* Q8 — only for non-GHL or voice */}
+              {/* Q8 — conditional */}
               {showQ8 && (
-                <div>
-                  <FieldLabel n={8} label="¿Hay objeciones comunes que debe manejar?" optional />
-                  <Textarea
-                    value={agentData.objections}
-                    onChange={set('objections')}
-                    placeholder="Ej: Es muy caro, no tengo tiempo, déjame pensarlo"
-                  />
-                </div>
+                <FieldRow n={8} label="¿Hay objeciones comunes que debe manejar?" optional
+                  fieldKey="objections" value={agentData.objections} onChange={set('objections')}
+                  placeholder="Ej: Es muy caro, no tengo tiempo, déjame pensarlo"
+                  {...fieldProps}
+                />
               )}
 
               {/* Q9 */}
-              <div>
-                <FieldLabel n={showQ8 ? 9 : 8} label="Flujo o información adicional" />
-                <Textarea
-                  value={agentData.additionalInfo}
-                  onChange={set('additionalInfo')}
-                  placeholder="Ej: Primero preguntar nombre → luego presupuesto → luego zona → ofrecer llamada"
-                  rows={4}
-                />
-              </div>
+              <FieldRow n={showQ8 ? 9 : 8} label="Flujo o información adicional"
+                fieldKey="additionalInfo" value={agentData.additionalInfo} onChange={set('additionalInfo')}
+                placeholder="Ej: Primero preguntar nombre → luego presupuesto → luego zona → ofrecer llamada"
+                rows={4} {...fieldProps}
+              />
 
-              {/* Error */}
               {error && (
                 <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
                   <p style={{ fontSize: 12, color: '#EF4444' }}>{error}</p>
                 </div>
               )}
 
-              {/* Submit */}
               <button
-                onClick={generate}
-                disabled={!canSubmit || loading}
+                onClick={generate} disabled={!canSubmit || loading}
                 style={{
                   width: '100%', padding: '14px 0', borderRadius: 12,
                   background: canSubmit && !loading ? 'var(--accent)' : 'var(--surface)',
@@ -436,15 +432,9 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
                 }}
               >
                 {loading ? (
-                  <>
-                    <span style={{ width: 16, height: 16, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
-                    Generando prompt...
-                  </>
+                  <><span style={{ width: 16, height: 16, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#000', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} /> Generando prompt...</>
                 ) : (
-                  <>
-                    <SparklesIcon style={{ width: 18, height: 18 }} />
-                    Generar Prompt Profesional
-                  </>
+                  <><SparklesIcon style={{ width: 18, height: 18 }} /> Generar Prompt Profesional</>
                 )}
               </button>
             </motion.div>
