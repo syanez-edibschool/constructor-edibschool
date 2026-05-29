@@ -37,7 +37,7 @@ function parseJSON<T>(raw: string): T {
 // Per-tool max_tokens — los tools con JSON gigante necesitan más
 const TOOL_MAX_TOKENS: Record<string, number> = {
   'clone-winner': 16000,  // schema enorme: executive_summary + content_mix + schedule + aesthetics + copy + landing + score + plan
-  'calendario':     8000, // 4 semanas × contenido — Haiku es rápido, no da 504
+  'calendario':     4000, // compacto: 5 piezas/sem × 4 semanas con Haiku
   'imagenes':      10000, // 6 prompts largos con todos los specs
   'carruseles':    10000, // 8 carruseles × 7 slides
   'emails':         8000, // múltiples emails con A/B subjects y bodies completos
@@ -86,20 +86,20 @@ function buildPrompt(
   toolAnswers: Record<string, string>
 ): string | null {
   const prompts: Record<string, string> = {
-    calendario: `Eres un senior content strategist con 15 años de experiencia en marketing digital para agencias de IA.
+    calendario: `Eres content strategist para agencias de IA.
 ${ctx}
 
-Crea un calendario de contenido de 4 semanas ultra personalizado basado en:
-- Frecuencia: ${toolAnswers.frecuencia || '3x/semana'}
-- Plataformas: ${toolAnswers.plataformas || 'Instagram, LinkedIn'}
-- Temas principales: ${toolAnswers.temas || 'automatización, productividad, IA'}
-- Horario de publicación: ${toolAnswers.horario || 'Tardes (17-19h)'}
-- Tipo de contenido: ${toolAnswers.tipo_contenido || 'Educativo'}
-- Fase de la audiencia: ${toolAnswers.fase_audiencia || 'Tibia'}
+Crea calendario 4 semanas. Parámetros:
+Frecuencia: ${toolAnswers.frecuencia || '3x/semana'} | Plataformas: ${toolAnswers.plataformas || 'Instagram'} | Temas: ${toolAnswers.temas || 'IA, automatización'} | Tipo: ${toolAnswers.tipo_contenido || 'Educativo'} | Audiencia: ${toolAnswers.fase_audiencia || 'Tibia'}
 
-Cada pieza debe ser ESPECÍFICA (no genérica): incluye el ángulo exacto, el hook y por qué funciona para este nicho.
-Devuelve SOLO JSON: { "weeks": [{ "week": 1, "days": [{ "day": "Lunes", "type": "Reel|Carrusel|Story|Post|Video|Email", "content": "Descripción específica del contenido con ángulo y hook", "timing": "18:00h" }] }] }
-Genera semanas 1, 2, 3 y 4. Cada semana 7-8 piezas de contenido.`,
+REGLAS:
+- 5 piezas por semana máximo
+- content: máximo 15 palabras (título + tipo de hook, sin explicaciones)
+- Varía los tipos: Reel, Carrusel, Story, Post, Email
+
+Devuelve SOLO JSON sin markdown:
+{"weeks":[{"week":1,"days":[{"day":"Lunes","type":"Reel","content":"Texto breve del contenido","timing":"18:00h"}]}]}
+Semanas 1, 2, 3 y 4.`,
 
     vsl: `Eres el mejor copywriter de Video Sales Letters del mundo hispanohablante, con 200+ VSLs creados.
 ${ctx}
