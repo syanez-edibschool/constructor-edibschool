@@ -5,6 +5,7 @@ import {
   GlobeAltIcon, DevicePhoneMobileIcon, FunnelIcon, CpuChipIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
+import { exportToPDF, exportToWord } from '../../services/exportContent'
 import toast from 'react-hot-toast'
 
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
@@ -292,7 +293,21 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
                 className="btn-secondary"
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}
               >
-                <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> Descargar
+                <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> TXT
+              </button>
+              <button
+                onClick={() => exportToPDF('Propuesta Comercial', content)}
+                className="btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}
+              >
+                <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> PDF
+              </button>
+              <button
+                onClick={() => exportToWord('Propuesta Comercial', content)}
+                className="btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}
+              >
+                <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> Word
               </button>
               <button
                 onClick={regenerate}

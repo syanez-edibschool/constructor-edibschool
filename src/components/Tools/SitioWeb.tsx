@@ -7,6 +7,7 @@ import {
   BriefcaseIcon, UserGroupIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
+import { exportToPDF, exportToWord } from '../../services/exportContent'
 
 // ─── Site type definitions ────────────────────────────────────────────────────
 interface SiteTypeConfig {
@@ -315,7 +316,21 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
               className="btn-secondary"
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}
             >
-              <ArrowDownTrayIcon style={{ width: 14 }} /> Descargar
+              <ArrowDownTrayIcon style={{ width: 14 }} /> TXT
+            </button>
+            <button
+              onClick={() => exportToPDF(`Sitio Web ${selectedType || ''}`.trim(), result.content)}
+              className="btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}
+            >
+              <ArrowDownTrayIcon style={{ width: 14 }} /> PDF
+            </button>
+            <button
+              onClick={() => exportToWord(`Sitio Web ${selectedType || ''}`.trim(), result.content)}
+              className="btn-secondary"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}
+            >
+              <ArrowDownTrayIcon style={{ width: 14 }} /> Word
             </button>
             <button
               onClick={() => { setStep('select'); setSelectedType(null); setColors(''); setAdditional('') }}

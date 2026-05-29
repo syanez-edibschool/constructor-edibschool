@@ -1,13 +1,27 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   CheckCircleIcon, ChevronDownIcon, ChevronUpIcon,
   ArrowPathIcon, ArrowDownTrayIcon, SparklesIcon,
   CalendarDaysIcon, ListBulletIcon, TrophyIcon,
+  DocumentArrowDownIcon, ArrowRightIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { supabase } from '../../services/supabase'
+import LoadingTrivia from '../ui/LoadingTrivia'
+import { exportToPDF, exportToWord } from '../../services/exportContent'
+
+// Detecta si una tarea es de contenido y a qué herramienta enlaza.
+// Devuelve el toolId o null si no es tarea de contenido.
+function contentToolFor(text: string): { toolId: string; label: string; color: string } | null {
+  const t = text.toLowerCase()
+  if (t.includes('reel')) return { toolId: 'reels', label: 'Reels', color: '#EC4899' }
+  if (t.includes('carrusel') || t.includes('carousel')) return { toolId: 'carruseles', label: 'Carruseles', color: '#8B5CF6' }
+  if (t.includes('story') || t.includes('stories') || t.includes('historia')) return { toolId: 'story', label: 'Story', color: '#00D9FF' }
+  if (t.includes('post') || t.includes('publicaci')) return { toolId: 'carruseles', label: 'Carruseles', color: '#8B5CF6' }
+  return null
+}
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 interface Task {
@@ -70,17 +84,6 @@ const PRIORITY_COLORS: Record<string, string> = {
 }
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-
-// ─── Skeleton loader ─────────────────────────────────────────────────────────
-function Skeleton() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {[1, 2, 3].map(i => (
-        <div key={i} style={{ height: 80, borderRadius: 12, background: 'var(--card-bg)', border: '1px solid var(--border)', opacity: 0.7, animation: 'pulse 1.5s infinite' }} />
-      ))}
-    </div>
-  )
-}
 
 // ─── Task item ───────────────────────────────────────────────────────────────
 function TaskItem({
@@ -225,10 +228,12 @@ function WeekView({
   week,
   plan,
   onToggleTask,
+  onOpenTool,
 }: {
   week: Week
   plan: Plan
   onToggleTask: (id: string) => void
+  onOpenTool: (toolId: string, topic: string) => void
 }) {
   const taskMap: Record<string, Task> = {}
   plan.phases.forEach(ph => ph.tasks.forEach(t => { taskMap[t.id] = t }))
@@ -261,22 +266,42 @@ function WeekView({
                 if (!t) return null
                 const ph = plan.phases.find(p => p.tasks.some(pt => pt.id === taskId))
                 const color = ph ? (PHASE_COLORS[ph.phase] || ph.color) : '#6B7280'
+                const content = contentToolFor(t.task)
                 return (
                   <div
                     key={taskId}
-                    onClick={() => onToggleTask(taskId)}
-                    title={t.task}
                     style={{
                       padding: '4px 6px', borderRadius: 5, fontSize: 10, lineHeight: 1.3,
                       background: t.completed ? 'rgba(16,185,129,0.1)' : `${color}15`,
                       border: `1px solid ${t.completed ? 'rgba(16,185,129,0.3)' : `${color}30`}`,
+                      borderLeft: content ? `3px solid ${content.color}` : undefined,
                       color: t.completed ? '#10B981' : color,
-                      cursor: 'pointer', textDecoration: t.completed ? 'line-through' : 'none',
-                      overflow: 'hidden', textOverflow: 'ellipsis',
-                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                    } as React.CSSProperties}
+                      textDecoration: t.completed ? 'line-through' : 'none',
+                    }}
                   >
-                    {t.task}
+                    <div
+                      onClick={() => onToggleTask(taskId)}
+                      title={t.task}
+                      style={{
+                        cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis',
+                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                      } as React.CSSProperties}
+                    >
+                      {t.task}
+                    </div>
+                    {content && !t.completed && (
+                      <button
+                        onClick={() => onOpenTool(content.toolId, t.task)}
+                        style={{
+                          marginTop: 3, display: 'inline-flex', alignItems: 'center', gap: 2,
+                          padding: '1px 5px', borderRadius: 999, fontSize: 8.5, fontWeight: 700,
+                          background: `${content.color}20`, color: content.color,
+                          border: `1px solid ${content.color}40`, cursor: 'pointer',
+                        }}
+                      >
+                        {content.label} <ArrowRightIcon style={{ width: 8, height: 8 }} />
+                      </button>
+                    )}
                   </div>
                 )
               })}
@@ -351,7 +376,14 @@ function MonthView({ plan, month, onToggleTask }: { plan: Plan; month: 1 | 2 | 3
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Estrategia90D({ projectId }: { projectId: string }) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { id: routeProjectId } = useParams<{ id: string }>()
   const cloneGanadorData = (location.state as any)?.cloneGanadorData ?? null
+
+  const openTool = (toolId: string, topic: string) => {
+    const pid = routeProjectId || projectId
+    navigate(`/proyecto/${pid}/tools/${toolId}`, { state: { topic, hook: topic, fromCalendar: true } })
+  }
 
   const [plan, setPlan] = useState<Plan | null>(null)
   const [loading, setLoading] = useState(false)
@@ -453,6 +485,22 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
     Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'estrategia-90d.csv' }).click()
   }
 
+  const planToText = (): string => {
+    if (!plan) return ''
+    const out: string[] = ['## Estrategia 90 Días', '']
+    plan.phases.forEach(ph => {
+      out.push(`## Fase ${ph.phase} — ${ph.title} (Semanas ${ph.week_start}-${ph.week_end})`)
+      ph.tasks.forEach(t => {
+        out.push(`- [${t.completed ? 'x' : ' '}] Sem ${t.week}${t.day ? ` D${t.day}` : ''} · ${t.task} (${t.priority})`)
+      })
+      out.push('')
+    })
+    return out.join('\n')
+  }
+
+  const exportPDF = () => exportToPDF('Estrategia 90 Dias', planToText())
+  const exportWord = () => exportToWord('Estrategia 90 Dias', planToText())
+
   const allTasks = plan ? plan.phases.flatMap(ph => ph.tasks) : []
   const done = allTasks.filter(t => t.completed).length
   const total = allTasks.length
@@ -495,12 +543,8 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
   // ── Loading ──
   if (loading) {
     return (
-      <div style={{ padding: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <div style={{ width: 32, height: 32, border: '2px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-          <p style={{ fontSize: 14, color: 'var(--text-2)' }}>Generando plan 90 días con IA...</p>
-        </div>
-        <Skeleton />
+      <div style={{ padding: '40px 24px' }}>
+        <LoadingTrivia />
       </div>
     )
   }
@@ -538,6 +582,12 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
             </button>
             <button onClick={exportCSV} title="Exportar CSV" style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ArrowDownTrayIcon style={{ width: 15, height: 15, color: 'var(--text-2)' }} />
+            </button>
+            <button onClick={exportPDF} title="Descargar PDF" style={{ height: 34, padding: '0 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
+              <DocumentArrowDownIcon style={{ width: 15, height: 15 }} /> PDF
+            </button>
+            <button onClick={exportWord} title="Descargar Word" style={{ height: 34, padding: '0 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
+              <DocumentArrowDownIcon style={{ width: 15, height: 15 }} /> Word
             </button>
           </div>
         </div>
@@ -678,7 +728,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
                 {(plan.weeks || [])
                   .filter(w => w.week === activeWeek)
                   .map(w => (
-                    <WeekView key={w.week} week={w} plan={plan} onToggleTask={toggleTask} />
+                    <WeekView key={w.week} week={w} plan={plan} onToggleTask={toggleTask} onOpenTool={openTool} />
                   ))}
               </div>
             )}

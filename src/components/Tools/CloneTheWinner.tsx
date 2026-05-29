@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { supabase } from '../../services/supabase'
+import { exportToPDF, exportToWord } from '../../services/exportContent'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface ContentMixItem  { type: string; percentage: number; engagement_rate: number; is_winner?: boolean; why_it_works?: string }
@@ -178,26 +179,29 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
   const score = a.score?.overall ?? 0
   const scoreColor = score >= 75 ? '#10B981' : score >= 50 ? '#F59E0B' : '#EF4444'
 
+  const buildAnalysisText = () => [
+    `CLONE THE WINNER — ANÁLISIS DE ${a.handle}`,
+    `Plataforma: ${a.platform}\n`,
+    `RESUMEN EJECUTIVO`,
+    `Followers estimados: ${a.executive_summary?.estimated_followers}`,
+    `Engagement: ${a.executive_summary?.engagement_rate}`,
+    `Posts/semana: ${a.executive_summary?.posts_per_week}`,
+    `Ingresos estimados: ${a.executive_summary?.estimated_revenue_monthly}`,
+    `\nFACTORES CLAVE DE ÉXITO:`,
+    ...(a.executive_summary?.key_success_factors?.map(f => `• ${f}`) || []),
+    `\nSCORE DE CLONACIÓN: ${score}/100`,
+    a.score?.summary,
+    `\nPLAN DE IMPLEMENTACIÓN`,
+    `SEMANA 1: ${a.implementation_plan?.week1?.title}`,
+    ...(a.implementation_plan?.week1?.tasks?.map(t => `☐ ${t}`) || []),
+  ].join('\n')
+
   const downloadAnalysis = () => {
-    const lines = [
-      `CLONE THE WINNER — ANÁLISIS DE ${a.handle}`,
-      `Plataforma: ${a.platform}\n`,
-      `RESUMEN EJECUTIVO`,
-      `Followers estimados: ${a.executive_summary?.estimated_followers}`,
-      `Engagement: ${a.executive_summary?.engagement_rate}`,
-      `Posts/semana: ${a.executive_summary?.posts_per_week}`,
-      `Ingresos estimados: ${a.executive_summary?.estimated_revenue_monthly}`,
-      `\nFACTORES CLAVE DE ÉXITO:`,
-      ...(a.executive_summary?.key_success_factors?.map(f => `• ${f}`) || []),
-      `\nSCORE DE CLONACIÓN: ${score}/100`,
-      a.score?.summary,
-      `\nPLAN DE IMPLEMENTACIÓN`,
-      `SEMANA 1: ${a.implementation_plan?.week1?.title}`,
-      ...(a.implementation_plan?.week1?.tasks?.map(t => `☐ ${t}`) || []),
-    ]
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    const blob = new Blob([buildAnalysisText()], { type: 'text/plain' })
     Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `clone-${a.handle?.replace('@', '')}.txt` }).click()
   }
+  const exportPDF = () => exportToPDF(`Clone ${a.handle || ''}`.trim(), buildAnalysisText())
+  const exportWord = () => exportToWord(`Clone ${a.handle || ''}`.trim(), buildAnalysisText())
 
   return (
     <div>
@@ -222,7 +226,13 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={downloadAnalysis} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}>
-            <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> Descargar
+            <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> TXT
+          </button>
+          <button onClick={exportPDF} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}>
+            <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> PDF
+          </button>
+          <button onClick={exportWord} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, borderRadius: 10 }}>
+            <ArrowDownTrayIcon style={{ width: 15, height: 15 }} /> Word
           </button>
           <button
             onClick={() => navigate(`/proyecto/${projectId}/tools/estrategia90d`, { state: { cloneGanadorData: a } })}

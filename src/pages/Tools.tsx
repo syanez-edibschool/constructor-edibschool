@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import {
@@ -8,9 +8,10 @@ import {
   BanknotesIcon, EnvelopeIcon,
   DocumentCheckIcon, ChartBarIcon, MapIcon,
   DocumentDuplicateIcon, CpuChipIcon,
-  CheckIcon, ArrowPathIcon, SparklesIcon,
+  CheckIcon, ArrowPathIcon, SparklesIcon, DocumentArrowDownIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../services/api'
+import { exportToPDF, exportToWord } from '../services/exportContent'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar          from '../components/Dashboard/Sidebar'
@@ -214,17 +215,29 @@ function Section({ children }: { children: React.ReactNode }) {
 function CopyBtn({ text }: { text: string }) {
   return <button onClick={() => copy(text)} style={{ fontSize: 11, color: 'var(--accent)', background: 'var(--accent-d)', border: '1px solid var(--border)', borderRadius: 6, padding: '3px 8px', cursor: 'pointer' }}>Copiar</button>
 }
-function ActionBar({ onCopy, onDownload }: { onCopy?: () => void; onDownload?: () => void }) {
-  return <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-    {onCopy && <button onClick={onCopy} className="btn-secondary" style={{ flex: 1, padding: '10px 0', borderRadius: 10, fontSize: 13 }}>Copiar todo</button>}
-    {onDownload && <button onClick={onDownload} className="btn-secondary" style={{ flex: 1, padding: '10px 0', borderRadius: 10, fontSize: 13 }}>Descargar</button>}
+function ActionBar({ onCopy, onDownload, exportText, exportTitle }: { onCopy?: () => void; onDownload?: () => void; exportText?: string; exportTitle?: string }) {
+  return <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+    {onCopy && <button onClick={onCopy} className="btn-secondary" style={{ flex: 1, minWidth: 120, padding: '10px 0', borderRadius: 10, fontSize: 13 }}>Copiar todo</button>}
+    {onDownload && <button onClick={onDownload} className="btn-secondary" style={{ flex: 1, minWidth: 120, padding: '10px 0', borderRadius: 10, fontSize: 13 }}>Descargar TXT</button>}
+    {exportText && (
+      <>
+        <button onClick={() => exportToPDF(exportTitle || 'documento', exportText)} className="btn-secondary" style={{ flex: 1, minWidth: 120, padding: '10px 0', borderRadius: 10, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <DocumentArrowDownIcon style={{ width: 15, height: 15 }} /> PDF
+        </button>
+        <button onClick={() => exportToWord(exportTitle || 'documento', exportText)} className="btn-secondary" style={{ flex: 1, minWidth: 120, padding: '10px 0', borderRadius: 10, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <DocumentArrowDownIcon style={{ width: 15, height: 15 }} /> Word
+        </button>
+      </>
+    )}
   </div>
 }
 function TextBlocks({ items, label }: { items: string[]; label: string }) {
-  return <div>{items.map((item, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label} {i + 1}</span><CopyBtn text={item} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{item}</pre></Section>)}<ActionBar onCopy={() => copy(items.join('\n\n---\n\n'))} /></div>
+  const joined = items.map((it, i) => `## ${label} ${i + 1}\n${it}`).join('\n\n')
+  return <div>{items.map((item, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label} {i + 1}</span><CopyBtn text={item} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{item}</pre></Section>)}<ActionBar onCopy={() => copy(items.join('\n\n---\n\n'))} exportText={joined} exportTitle={label} /></div>
 }
 function DocBlock({ content, filename }: { content: string; filename: string }) {
-  return <div><Section><div style={{ maxHeight: '55vh', overflowY: 'auto' }}><pre style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.8, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content}</pre></div></Section><ActionBar onCopy={() => copy(content)} onDownload={() => download(content, filename)} /></div>
+  const title = filename.replace(/\.[^.]+$/, '')
+  return <div><Section><div style={{ maxHeight: '55vh', overflowY: 'auto' }}><pre style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.8, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{content}</pre></div></Section><ActionBar onCopy={() => copy(content)} onDownload={() => download(content, filename)} exportText={content} exportTitle={title} /></div>
 }
 function MegaPromptBlock({ prompt }: { prompt: string }) {
   return <div><div style={{ background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 10, padding: '12px 16px', marginBottom: 12, fontSize: 13, color: 'var(--accent)', fontWeight: 500 }}>Copia este mega-prompt y pégalo en <strong>Claude Code</strong> para generar tu sitio web completo.</div><Section><div style={{ maxHeight: '50vh', overflowY: 'auto' }}><pre style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>{prompt}</pre></div></Section><button onClick={() => copy(prompt)} className="btn-primary" style={{ width: '100%', padding: '12px 0', borderRadius: 10, fontSize: 13, marginTop: 12 }}>Copiar Mega-Prompt para Claude Code</button></div>
@@ -314,11 +327,12 @@ function PricingOutput({ packages, irresistible_offer, strategy_notes }: { packa
 }
 
 function SlidesOutput({ slides }: { slides: Array<{ number: number; title: string; content: string; notes: string }> }) {
-  return <div>{slides?.map((s, i) => <Section key={i}><div style={{ display: 'flex', gap: 12, marginBottom: 8 }}><span style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.number}</span><p style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4 }}>{s.title}</p></div><p style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 8 }}>{s.content}</p>{s.notes && <p style={{ fontSize: 11, color: 'var(--text-3)', borderTop: '1px solid var(--border)', paddingTop: 8 }}>Presentador: {s.notes}</p>}</Section>)}<ActionBar onDownload={() => download(slides?.map(s => `SLIDE ${s.number}: ${s.title}\n\n${s.content}\n\nPresentador: ${s.notes}`).join('\n\n---\n\n') || '', 'pitch-deck.txt')} /></div>
+  return <div>{slides?.map((s, i) => <Section key={i}><div style={{ display: 'flex', gap: 12, marginBottom: 8 }}><span style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.number}</span><p style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4 }}>{s.title}</p></div><p style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 8 }}>{s.content}</p>{s.notes && <p style={{ fontSize: 11, color: 'var(--text-3)', borderTop: '1px solid var(--border)', paddingTop: 8 }}>Presentador: {s.notes}</p>}</Section>)}<ActionBar onDownload={() => download(slides?.map(s => `SLIDE ${s.number}: ${s.title}\n\n${s.content}\n\nPresentador: ${s.notes}`).join('\n\n---\n\n') || '', 'pitch-deck.txt')} exportText={slides?.map(s => `## SLIDE ${s.number}: ${s.title}\n${s.content}\nPresentador: ${s.notes}`).join('\n\n') || ''} exportTitle="Pitch Deck" /></div>
 }
 
 function EmailsOutput({ sequences }: { sequences: Array<{ name: string; emails: Array<{ subject: string; body: string }> }> }) {
-  return <div>{sequences?.map((seq, si) => <div key={si} style={{ marginBottom: 24 }}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{si + 1}</span>{seq.name}</p>{seq.emails?.map((email, ei) => <Section key={ei}><p style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4 }}>Email {ei + 1} — Asunto:</p><p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{email.subject}</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{email.body}</p><div style={{ marginTop: 10 }}><CopyBtn text={`Asunto: ${email.subject}\n\n${email.body}`} /></div></Section>)}</div>)}</div>
+  const exportText = sequences?.map(seq => `## ${seq.name}\n${seq.emails?.map((e, i) => `Email ${i + 1} — Asunto: ${e.subject}\n${e.body}`).join('\n\n')}`).join('\n\n') || ''
+  return <div>{sequences?.map((seq, si) => <div key={si} style={{ marginBottom: 24 }}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{si + 1}</span>{seq.name}</p>{seq.emails?.map((email, ei) => <Section key={ei}><p style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4 }}>Email {ei + 1} — Asunto:</p><p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{email.subject}</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{email.body}</p><div style={{ marginTop: 10 }}><CopyBtn text={`Asunto: ${email.subject}\n\n${email.body}`} /></div></Section>)}</div>)}<ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="Secuencia de Emails" /></div>
 }
 
 function CasesOutput({ cases }: { cases: Array<{ title: string; problem: string; solution: string; result: string }> }) {
@@ -388,7 +402,7 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
     case 'chat-agent': return <DocBlock content={r.content as string} filename="agente-ia-blueprint.md" />
     case 'vsl': {
       const sections = r.sections as Array<{ label: string; timing: string; content: string }>
-      return <div>{sections?.map((s, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><div><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{s.label}</span><span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>{s.timing}</span></div><CopyBtn text={s.content} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.7, fontFamily: 'monospace' }}>{s.content}</pre></Section>)}<ActionBar onCopy={() => copy(sections?.map(s => `[${s.label}]\n${s.content}`).join('\n\n') || '')} onDownload={() => download(sections?.map(s => `[${s.label} - ${s.timing}]\n${s.content}`).join('\n\n') || '', 'vsl-script.txt')} /></div>
+      return <div>{sections?.map((s, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><div><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{s.label}</span><span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>{s.timing}</span></div><CopyBtn text={s.content} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.7, fontFamily: 'monospace' }}>{s.content}</pre></Section>)}<ActionBar onCopy={() => copy(sections?.map(s => `[${s.label}]\n${s.content}`).join('\n\n') || '')} onDownload={() => download(sections?.map(s => `[${s.label} - ${s.timing}]\n${s.content}`).join('\n\n') || '', 'vsl-script.txt')} exportText={sections?.map(s => `## ${s.label} (${s.timing})\n${s.content}`).join('\n\n') || ''} exportTitle="VSL Script" /></div>
     }
     default: {
       const listKey = Object.keys(r).find(k => Array.isArray(r[k]))
@@ -400,10 +414,16 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
 }
 
 // ─── Question form ─────────────────────────────────────────────────────────────
-function QuestionForm({ tool, onSubmit, loading, projectId }: { tool: ToolDef; onSubmit: (a: Record<string, string>) => void; loading?: boolean; projectId?: string }) {
-  const [answers, setAnswers] = useState<Record<string, string>>(() =>
-    Object.fromEntries(tool.qs.map(q => [q.id, q.options?.[0] || '']))
-  )
+function QuestionForm({ tool, onSubmit, loading, projectId, initialTopic }: { tool: ToolDef; onSubmit: (a: Record<string, string>) => void; loading?: boolean; projectId?: string; initialTopic?: string | null }) {
+  // Campo principal de tema/mensaje donde se prerellena el tema importado del calendario
+  const topicField = tool.qs.find(q => q.type === 'textarea')?.id
+    || tool.qs.find(q => ['tema', 'mensaje', 'beneficio'].includes(q.id))?.id
+
+  const [answers, setAnswers] = useState<Record<string, string>>(() => {
+    const base = Object.fromEntries(tool.qs.map(q => [q.id, q.options?.[0] || '']))
+    if (initialTopic && topicField) base[topicField] = initialTopic
+    return base
+  })
   const [suggesting, setSuggesting] = useState<Record<string, boolean>>({})
   const set      = (id: string, val: string) => setAnswers(p => ({ ...p, [id]: val }))
   const allFilled = tool.qs.every(q => answers[q.id]?.trim())
@@ -448,6 +468,15 @@ function QuestionForm({ tool, onSubmit, loading, projectId }: { tool: ToolDef; o
           <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-2)', lineHeight: 'var(--lh-base)' }}>{tool.desc}</p>
         </div>
       </div>
+
+      {initialTopic && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: 'rgba(0,217,255,0.08)', border: '1px solid rgba(0,217,255,0.25)', marginBottom: 'var(--sp-md)' }}>
+          <MapIcon style={{ width: 16, height: 16, color: 'var(--accent)', flexShrink: 0 }} />
+          <p style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>
+            Tarea importada desde Estrategia 90D: {initialTopic}
+          </p>
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-sm)' }}>
         {tool.qs.map((q, i) => {
           const busy = !!suggesting[q.id]
@@ -536,10 +565,16 @@ function RegenerateModal({ tool, onConfirm, onCancel }: { tool: ToolDef; onConfi
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Tools() {
-  const { id } = useParams<{ id: string }>()
+  const { id, toolId: routeToolId } = useParams<{ id: string; toolId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { isDark, toggleTheme } = useTheme()
   const { user, logout }        = useAuth()
+
+  // Tema importado desde el calendario de Estrategia 90D (si aplica)
+  const calendarTopic = (location.state as { fromCalendar?: boolean; topic?: string } | null)?.fromCalendar
+    ? (location.state as { topic?: string }).topic ?? null
+    : null
 
   const [activeTool, setActiveTool]   = useState<string | null>(null)
   const [states, setStates]           = useState<Record<string, ToolState>>({})
@@ -565,13 +600,19 @@ export default function Tools() {
       .catch(() => {})
   }, [id])
 
-  const checkAndLoad = async (toolId: string) => {
+  const checkAndLoad = async (toolId: string, forceQuestions = false) => {
     setActiveTool(toolId)
-    if (states[toolId]) return // already loaded
+    if (states[toolId] && !forceQuestions) return // already loaded
 
     // These tools manage their own data — skip the AI questions/generation flow
     if (toolId === 'tracker' || toolId === 'website' || toolId === 'clone-winner' || toolId === 'propuesta' || toolId === 'estrategia90d' || toolId === 'prompt-generator') {
       setStates(p => ({ ...p, [toolId]: { phase: 'done', answers: {}, result: {} } }))
+      return
+    }
+
+    // Si llega un tema desde el calendario, ir directo a preguntas para generar nuevo contenido
+    if (forceQuestions) {
+      setStates(p => ({ ...p, [toolId]: { phase: 'questions', answers: {}, result: null } }))
       return
     }
 
@@ -587,6 +628,15 @@ export default function Tools() {
       setStates(p => ({ ...p, [toolId]: { phase: 'questions', answers: {}, result: null } }))
     }
   }
+
+  // Auto-seleccionar la herramienta indicada en la URL (/proyecto/:id/tools/:toolId),
+  // útil al navegar desde el calendario de Estrategia 90D con un tema importado.
+  useEffect(() => {
+    if (routeToolId && routeToolId !== activeTool) {
+      checkAndLoad(routeToolId, !!calendarTopic)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeToolId])
 
   const handleSubmit = async (answers: Record<string, string>) => {
     if (!activeTool) return
@@ -739,7 +789,7 @@ export default function Tools() {
             {/* ── Questions ── */}
             {activeTool && state?.phase === 'questions' && (
               <motion.div key={`q-${activeTool}`} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                {tool && <QuestionForm tool={tool} onSubmit={handleSubmit} projectId={id} />}
+                {tool && <QuestionForm tool={tool} onSubmit={handleSubmit} projectId={id} initialTopic={calendarTopic} />}
               </motion.div>
             )}
           </AnimatePresence>
