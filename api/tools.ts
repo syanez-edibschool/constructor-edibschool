@@ -901,33 +901,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       step = 'parse-body'
       const toolAnswers: Record<string, string> = req.body?.toolAnswers || {}
 
-      // ── Step 4: fetch project context + TODOS los tools ya generados ────────
+      // ── Step 4: fetch project context (queries mínimas para velocidad) ─────────
       step = 'supabase-fetch-context'
-      const [nichoRow, avatarRow, compRow, questionsRow, otherToolsRes] = await Promise.all([
+      // Solo 3 queries paralelas esenciales + 2 targeted para cross-tool context
+      const [nichoRow, avatarRow, questionsRow] = await Promise.all([
         db.from('project_nicho').select('data_json').eq('project_id', projectId).maybeSingle(),
         db.from('project_avatar').select('data_json').eq('project_id', projectId).maybeSingle(),
-        db.from('project_competencia').select('data_json').eq('project_id', projectId).maybeSingle(),
         db.from('project_questions').select('answers_json').eq('project_id', projectId).maybeSingle(),
-        db.from('project_tools').select('tool_id, result_json').eq('project_id', projectId),
       ])
-
-      const ctxErrors = [
-        nichoRow.error && `nicho: ${nichoRow.error.message}`,
-        avatarRow.error && `avatar: ${avatarRow.error.message}`,
-        compRow.error && `competencia: ${compRow.error.message}`,
-        questionsRow.error && `questions: ${questionsRow.error.message}`,
-        otherToolsRes.error && `tools: ${otherToolsRes.error.message}`,
-      ].filter(Boolean)
-      if (ctxErrors.length > 0) {
-        console.warn(`[tools/${toolId}] Context warnings:`, ctxErrors)
-      }
 
       const answers = questionsRow.data?.answers_json || {}
 
-      // Cross-tool context: solo los resultados más útiles (clone-winner y calendario)
-      const otherTools = (otherToolsRes.data || [])
-      const cloneWinner = otherTools.find(t => t.tool_id === 'clone-winner')?.result_json
-      const calendario  = otherTools.find(t => t.tool_id === 'calendario')?.result_json
+      // Cross-tool context: solo clone-winner y calendario si existen, queries separadas y pequeñas
+      const needsCrossCtx = ['reels', 'story', 'carruseles', 'copy', 'emails', 'vsl'].includes(toolId)
+      let cloneWinner: unknown = null
+      let calendario: unknown = null
+      if (needsCrossCtx) {
+        const [cwRow, calRow] = await Promise.all([
+          db.from('project_tools').select('result_json').eq('project_id', projectId).eq('tool_id', 'clone-winner').maybeSingle(),
+          db.from('project_tools').select('result_json').eq('project_id', projectId).eq('tool_id', 'calendario').maybeSingle(),
+        ])
+        cloneWinner = cwRow.data?.result_json ?? null
+        calendario  = calRow.data?.result_json ?? null
+      }
 
       // Límites estrictos para no inflar el input (cada 1000 chars ≈ 250 tokens)
       const s = (v: unknown, limit = 800) => JSON.stringify(v ?? {}).slice(0, limit)
