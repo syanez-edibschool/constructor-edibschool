@@ -40,6 +40,39 @@ function repairTruncatedJSON(input: string): string {
   return str
 }
 
+// Escapa comillas dobles que aparecen DENTRO de un valor string (las que el
+// modelo no escapó). Una comilla solo se considera cierre legítimo si va seguida
+// (ignorando espacios) de : , } ] o fin de texto.
+function repairInnerQuotes(s: string): string {
+  let out = ''
+  let inStr = false
+  let escaped = false
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (!inStr) {
+      out += c
+      if (c === '"') inStr = true
+      continue
+    }
+    if (escaped) { out += c; escaped = false; continue }
+    if (c === '\\') { out += c; escaped = true; continue }
+    if (c === '"') {
+      let j = i + 1
+      while (j < s.length && /\s/.test(s[j])) j++
+      const next = s[j]
+      if (next === ':' || next === ',' || next === '}' || next === ']' || next === undefined) {
+        out += c
+        inStr = false
+      } else {
+        out += '\\"' // comilla interna → escapar
+      }
+      continue
+    }
+    out += c
+  }
+  return out
+}
+
 function parseJSON<T>(raw: string): T {
   // Strip code fences
   let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
@@ -52,21 +85,23 @@ function parseJSON<T>(raw: string): T {
     else if (arrMatch) cleaned = arrMatch[0]
   }
 
-  try {
-    return JSON.parse(cleaned)
-  } catch {
-    // Intento 2: reparar JSON truncado y volver a parsear
+  // Cadena de intentos de reparación, del menos al más agresivo
+  const attempts: Array<(x: string) => string> = [
+    (x) => x,
+    (x) => repairTruncatedJSON(x),
+    (x) => repairInnerQuotes(x),
+    (x) => repairTruncatedJSON(repairInnerQuotes(x)),
+  ]
+  for (const fix of attempts) {
     try {
-      return JSON.parse(repairTruncatedJSON(cleaned))
-    } catch {
-      const lastChar = cleaned.trim().slice(-1)
-      const looksTruncated = lastChar !== '}' && lastChar !== ']'
-      const hint = looksTruncated
-        ? 'Respuesta TRUNCADA — sube max_tokens para esta herramienta'
-        : 'JSON malformado'
-      throw new Error(`${hint}. Últimos 200 chars: ${cleaned.slice(-200)}`)
-    }
+      return JSON.parse(fix(cleaned))
+    } catch { /* siguiente intento */ }
   }
+
+  const lastChar = cleaned.trim().slice(-1)
+  const looksTruncated = lastChar !== '}' && lastChar !== ']'
+  const hint = looksTruncated ? 'Respuesta TRUNCADA' : 'JSON malformado'
+  throw new Error(`${hint}. Últimos 200 chars: ${cleaned.slice(-200)}`)
 }
 
 const SONNET = 'claude-sonnet-4-6'
@@ -989,7 +1024,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       const maxTokens = TOOL_MAX_TOKENS[toolId] ?? DEFAULT_MAX_TOKENS
       const model     = TOOL_MODEL[toolId] ?? DEFAULT_MODEL
-      const SYSTEM = 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado (todas las llaves, corchetes y comillas). NO incluyes texto antes ni después. NO uses bloques de código markdown.'
+      const SYSTEM = 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado. NO incluyes texto antes ni después. NO uses bloques de código markdown. REGLA CRÍTICA DE FORMATO: dentro de los valores de texto del JSON NUNCA uses comillas dobles ("). Para citar diálogos o frases usa SIEMPRE comillas tipográficas (« » o " ") o comillas simples (\'). Las comillas dobles se reservan EXCLUSIVAMENTE para delimitar las claves y valores del JSON. Esto es obligatorio para que el JSON sea válido.'
 
       // Streaming: mantiene la conexión activa enviando tokens continuamente,
       // evitando que un gateway corte la petición con 504 antes de los 60s.
