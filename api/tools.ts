@@ -896,16 +896,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const cloneWinner: unknown = null
       const calendario: unknown = null
 
-      // Límites estrictos para no inflar el input (cada 1000 chars ≈ 250 tokens)
+      // Límites estrictos para no inflar el input. Omite campos vacíos.
+      const isEmpty = (v: unknown) => !v || (typeof v === 'object' && Object.keys(v as object).length === 0)
       const s = (v: unknown, limit = 800) => JSON.stringify(v ?? {}).slice(0, limit)
 
-      const projectCtx = `CONTEXTO DEL PROYECTO:
-Negocio: ${s(answers, 600)}
-Nicho: ${s(nichoRow.data?.data_json, 500)}
-Avatar: ${s(avatarRow.data?.data_json, 500)}
-${cloneWinner ? `Clone Ganador: ${s(cloneWinner, 800)}\n` : ''}${calendario ? `Calendario previo: ${s(calendario, 600)}\n` : ''}
+      const ctxLines: string[] = []
+      if (!isEmpty(answers)) ctxLines.push(`Negocio: ${s(answers, 600)}`)
+      if (!isEmpty(nichoRow.data?.data_json)) ctxLines.push(`Nicho: ${s(nichoRow.data?.data_json, 500)}`)
+      if (!isEmpty(avatarRow.data?.data_json)) ctxLines.push(`Avatar: ${s(avatarRow.data?.data_json, 500)}`)
+      if (cloneWinner) ctxLines.push(`Clone Ganador: ${s(cloneWinner, 800)}`)
+      if (calendario) ctxLines.push(`Calendario previo: ${s(calendario, 600)}`)
 
-Personaliza TODO al nicho y avatar. NO generes contenido genérico.`
+      const projectCtx = ctxLines.length > 0
+        ? `CONTEXTO DEL PROYECTO:\n${ctxLines.join('\n')}\n\nPersonaliza al máximo con este contexto.`
+        : 'No hay contexto de proyecto guardado. Usa los parámetros del usuario abajo y supuestos razonables del sector para generar contenido útil y profesional.'
 
       const toolCtx = Object.keys(toolAnswers).length > 0
         ? `\nPARAMETROS ESPECÍFICOS (del usuario para esta herramienta):\n${Object.entries(toolAnswers).map(([k, v]) => `- ${k}: ${v}`).join('\n')}`
@@ -928,7 +932,7 @@ Personaliza TODO al nicho y avatar. NO generes contenido genérico.`
       const response = await anthropic.messages.create({
         model,
         max_tokens: maxTokens,
-        system: 'Devuelves SOLO JSON válido y completo. NO incluyes texto antes ni después. NO uses bloques de código markdown. Asegúrate de cerrar todas las llaves, corchetes y comillas. Si el JSON sería demasiado largo, prioriza completarlo correctamente sobre añadir más detalle.',
+        system: 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado (todas las llaves, corchetes y comillas). NO incluyes texto antes ni después. NO uses bloques de código markdown.',
         messages: [{ role: 'user', content: prompt }],
       })
 
