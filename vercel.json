@@ -3,13 +3,13 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/tools.ts":            { "maxDuration": 60 },
+    "api/tools.ts":            { "maxDuration": 300 },
     "api/analysis.ts":         { "maxDuration": 300 },
-    "api/coach/message.ts":    { "maxDuration": 60 },
+    "api/coach/message.ts":    { "maxDuration": 120 },
     "api/coach/voice.ts":      { "maxDuration": 120 },
-    "api/suggest-answer.ts":   { "maxDuration": 60 },
-    "api/estrategia90d.ts":    { "maxDuration": 180 },
-    "api/prompt-generator.ts": { "maxDuration": 60 }
+    "api/suggest-answer.ts":   { "maxDuration": 120 },
+    "api/estrategia90d.ts":    { "maxDuration": 300 },
+    "api/prompt-generator.ts": { "maxDuration": 300 }
   },
   "rewrites": [
     { "source": "/api/projects/:projectId/generate-nicho-avatar-competencia", "destination": "/api/analysis?operation=generate" },

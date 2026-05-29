@@ -69,31 +69,52 @@ function parseJSON<T>(raw: string): T {
   }
 }
 
-// Todos a Haiku para evitar timeout — es 3-5x más rápido que Sonnet
-const HAIKU = 'claude-haiku-4-5-20251001'
+const SONNET = 'claude-sonnet-4-6'
+const HAIKU  = 'claude-haiku-4-5-20251001'
 const DEFAULT_MODEL = HAIKU
 
-// Tokens: con streaming + reparación de JSON truncado podemos ser generosos.
-// Haiku genera ~130 tok/s; 6000 tokens ≈ 45s, dentro del límite de 60s de Vercel.
-const TOOL_MAX_TOKENS: Record<string, number> = {
-  'clone-winner': 6000,
-  'calendario':   5000,
-  'imagenes':     6000,
-  'carruseles':   6000,
-  'emails':       6000,
-  'website':      6000,
-  'contrato':     5000,
-  'casos':        5000,
-  'tracker':      4000,
-  'vsl':          5000,
-  'reels':        6000,
-  'story':        6000,
-  'copy':         4000,
-  'precios':      5000,
-  'propuesta':    5000,
-  'chat-agent':   5000,
+// Con Vercel Pro (300s) + streaming + reparación de JSON hay margen de sobra.
+// Sonnet (mejor calidad) en copy/razonamiento; Haiku (rápido) en lo estructurado.
+const TOOL_MODEL: Record<string, string> = {
+  'clone-winner': SONNET,
+  'website':      SONNET,
+  'contrato':     SONNET,
+  'precios':      SONNET,
+  'emails':       SONNET,
+  'vsl':          SONNET,
+  'propuesta':    SONNET,
+  'casos':        SONNET,
+  'carruseles':   SONNET,
+  'reels':        SONNET,
+  'story':        SONNET,
+  // Haiku (rápido) para lo más estructurado/simple
+  'calendario':   HAIKU,
+  'imagenes':     HAIKU,
+  'tracker':      HAIKU,
+  'copy':         HAIKU,
+  'chat-agent':   SONNET,
 }
-const DEFAULT_MAX_TOKENS = 5000
+
+// Tokens generosos: con 300s de límite y reparación de truncación, sin riesgo.
+const TOOL_MAX_TOKENS: Record<string, number> = {
+  'clone-winner': 12000,
+  'calendario':    6000,
+  'imagenes':      8000,
+  'carruseles':   10000,
+  'emails':        8000,
+  'website':       8000,
+  'contrato':      8000,
+  'casos':         8000,
+  'tracker':       5000,
+  'vsl':           6000,
+  'reels':         8000,
+  'story':         8000,
+  'copy':          5000,
+  'precios':       6000,
+  'propuesta':     6000,
+  'chat-agent':    8000,
+}
+const DEFAULT_MAX_TOKENS = 6000
 
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
 function buildPrompt(
@@ -981,7 +1002,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       step = 'anthropic-call'
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       const maxTokens = TOOL_MAX_TOKENS[toolId] ?? DEFAULT_MAX_TOKENS
-      const model     = DEFAULT_MODEL
+      const model     = TOOL_MODEL[toolId] ?? DEFAULT_MODEL
       const SYSTEM = 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado (todas las llaves, corchetes y comillas). NO incluyes texto antes ni después. NO uses bloques de código markdown.'
 
       // Streaming: mantiene la conexión activa enviando tokens continuamente,
