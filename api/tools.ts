@@ -883,16 +883,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // ── Step 4: fetch project context (queries mínimas para velocidad) ─────────
       step = 'supabase-fetch-context'
-      // Solo 3 queries paralelas esenciales + 2 targeted para cross-tool context
+      // Seleccionamos * porque data_json puede venir como string (JSON.stringify)
+      // o estar vacío, y entonces usamos las columnas individuales como fallback.
       const [nichoRow, avatarRow, questionsRow] = await Promise.all([
-        db.from('project_nicho').select('data_json').eq('project_id', projectId).maybeSingle(),
-        db.from('project_avatar').select('data_json').eq('project_id', projectId).maybeSingle(),
+        db.from('project_nicho').select('*').eq('project_id', projectId).maybeSingle(),
+        db.from('project_avatar').select('*').eq('project_id', projectId).maybeSingle(),
         db.from('project_questions').select('answers_json').eq('project_id', projectId).maybeSingle(),
       ])
 
-      const answers = questionsRow.data?.answers_json || {}
+      // Normaliza un campo: data_json puede ser objeto, string JSON, o estar vacío.
+      // Si está vacío usa las columnas individuales como fallback.
+      const normalize = (row: Record<string, unknown> | null, cols: string[]): Record<string, unknown> | null => {
+        if (!row) return null
+        let dj: unknown = row.data_json
+        if (typeof dj === 'string') { try { dj = JSON.parse(dj) } catch { /* keep string */ } }
+        if (dj && typeof dj === 'object' && Object.keys(dj as object).length > 0) return dj as Record<string, unknown>
+        const fb: Record<string, unknown> = {}
+        for (const c of cols) if (row[c] != null && row[c] !== '') fb[c] = row[c]
+        return Object.keys(fb).length > 0 ? fb : null
+      }
 
-      // Sin queries extra de cross-tool (para evitar latencia adicional)
+      let answers: unknown = questionsRow.data?.answers_json || {}
+      if (typeof answers === 'string') { try { answers = JSON.parse(answers) } catch { /* keep */ } }
+
+      const nicho  = normalize(nichoRow.data, ['sector', 'micronicho', 'tam', 'ticket', 'trend', 'momento', 'razon'])
+      const avatar = normalize(avatarRow.data, ['name', 'age', 'pains', 'desires', 'objections'])
+
+      // Cross-tool context deshabilitado para evitar latencia adicional
       const cloneWinner: unknown = null
       const calendario: unknown = null
 
@@ -902,8 +919,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const ctxLines: string[] = []
       if (!isEmpty(answers)) ctxLines.push(`Negocio: ${s(answers, 600)}`)
-      if (!isEmpty(nichoRow.data?.data_json)) ctxLines.push(`Nicho: ${s(nichoRow.data?.data_json, 500)}`)
-      if (!isEmpty(avatarRow.data?.data_json)) ctxLines.push(`Avatar: ${s(avatarRow.data?.data_json, 500)}`)
+      if (!isEmpty(nicho)) ctxLines.push(`Nicho: ${s(nicho, 500)}`)
+      if (!isEmpty(avatar)) ctxLines.push(`Avatar: ${s(avatar, 500)}`)
       if (cloneWinner) ctxLines.push(`Clone Ganador: ${s(cloneWinner, 800)}`)
       if (calendario) ctxLines.push(`Calendario previo: ${s(calendario, 600)}`)
 
