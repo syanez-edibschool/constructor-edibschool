@@ -40,12 +40,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const db = getDb(token)
       const [projRes, nichoRes, avatarRes] = await Promise.all([
         db.from('projects').select('name, description').eq('id', projectId).single(),
-        db.from('project_nicho').select('data_json').eq('project_id', projectId).single(),
-        db.from('project_avatar').select('data_json').eq('project_id', projectId).single(),
+        db.from('project_nicho').select('*').eq('project_id', projectId).maybeSingle(),
+        db.from('project_avatar').select('*').eq('project_id', projectId).maybeSingle(),
       ])
       const p = projRes.data
-      const n = nichoRes.data?.data_json as Record<string, string> | null
-      const av = avatarRes.data?.data_json as Record<string, string> | null
+      // data_json puede venir como string (JSON.stringify), objeto, o vacío.
+      // Si está vacío usamos las columnas individuales como fallback.
+      const norm = (row: Record<string, unknown> | null): Record<string, unknown> | null => {
+        if (!row) return null
+        let dj: unknown = row.data_json
+        if (typeof dj === 'string') { try { dj = JSON.parse(dj) } catch { /* keep */ } }
+        if (dj && typeof dj === 'object' && Object.keys(dj as object).length > 0) return dj as Record<string, unknown>
+        return row // fallback: usa las columnas sueltas (sector, micronicho, name, etc.)
+      }
+      const n = norm(nichoRes.data) as Record<string, string> | null
+      const av = norm(avatarRes.data) as Record<string, string> | null
       const lines: string[] = []
       if (p?.name) lines.push(`Proyecto: ${p.name}`)
       if (p?.description) lines.push(`Descripción: ${p.description}`)
