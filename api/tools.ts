@@ -924,7 +924,7 @@ Personaliza TODO al nicho y avatar. NO generes contenido genérico.`
       step = 'anthropic-call'
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       const maxTokens = TOOL_MAX_TOKENS[toolId] ?? DEFAULT_MAX_TOKENS
-      const model     = TOOL_MODEL[toolId] ?? DEFAULT_MODEL
+      const model     = DEFAULT_MODEL
       const response = await anthropic.messages.create({
         model,
         max_tokens: maxTokens,
