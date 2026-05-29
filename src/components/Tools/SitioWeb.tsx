@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
+import { SparklesIcon } from '@heroicons/react/24/outline'
 
 // ─── Site type definitions ────────────────────────────────────────────────────
 interface SiteTypeConfig {
@@ -71,6 +72,30 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
   const [additional, setAdditional]   = useState('')
   const [result, setResult]           = useState<SiteResult | null>(null)
   const [savedAt, setSavedAt]         = useState<string | undefined>()
+  const [suggesting, setSuggesting]   = useState<Record<string, boolean>>({})
+
+  const suggest = async (field: 'colors' | 'additional') => {
+    setSuggesting(p => ({ ...p, [field]: true }))
+    try {
+      const { data } = await api.post('/suggest-answer', {
+        projectId,
+        toolId: 'website',
+        questionId: field,
+        questionLabel: field === 'colors' ? '¿Paleta de colores?' : '¿Algo adicional?',
+        questionType: field === 'colors' ? 'text' : 'textarea',
+        existingAnswers: { siteType: selectedType, colors, additional },
+      })
+      if (data?.suggestion) {
+        if (field === 'colors') setColors(data.suggestion)
+        else setAdditional(data.suggestion)
+        toast.success('Sugerencia generada', { duration: 1500 })
+      }
+    } catch {
+      toast.error('Error generando sugerencia')
+    } finally {
+      setSuggesting(p => ({ ...p, [field]: false }))
+    }
+  }
 
   // Load existing data on mount
   useEffect(() => {
@@ -217,10 +242,21 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
         {/* Questions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>
-              <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 8, fontSize: 11, fontWeight: 700 }}>01</span>
-              ¿Paleta de colores? (ej: Azul + Blanco, Negro + Cyan)
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>
+                <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 8, fontSize: 11, fontWeight: 700 }}>01</span>
+                ¿Paleta de colores? (ej: Azul + Blanco, Negro + Cyan)
+              </label>
+              <button
+                type="button"
+                onClick={() => !suggesting.colors && suggest('colors')}
+                disabled={!!suggesting.colors}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600, cursor: suggesting.colors ? 'wait' : 'pointer' }}
+              >
+                {suggesting.colors ? <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} /> : <SparklesIcon style={{ width: 12, height: 12 }} />}
+                {suggesting.colors ? 'Generando…' : 'Generar con IA'}
+              </button>
+            </div>
             <input
               value={colors}
               onChange={e => setColors(e.target.value)}
@@ -231,10 +267,21 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
           </div>
 
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>
-              <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 8, fontSize: 11, fontWeight: 700 }}>02</span>
-              ¿Algo adicional? (garantía, testimonios con video, secciones extra…)
-            </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>
+                <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 8, fontSize: 11, fontWeight: 700 }}>02</span>
+                ¿Algo adicional? (garantía, testimonios con video, secciones extra…)
+              </label>
+              <button
+                type="button"
+                onClick={() => !suggesting.additional && suggest('additional')}
+                disabled={!!suggesting.additional}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600, cursor: suggesting.additional ? 'wait' : 'pointer' }}
+              >
+                {suggesting.additional ? <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} /> : <SparklesIcon style={{ width: 12, height: 12 }} />}
+                {suggesting.additional ? 'Generando…' : 'Generar con IA'}
+              </button>
+            </div>
             <textarea
               value={additional}
               onChange={e => setAdditional(e.target.value)}
