@@ -37,7 +37,7 @@ function parseJSON<T>(raw: string): T {
 // Per-tool max_tokens — los tools con JSON gigante necesitan más
 const TOOL_MAX_TOKENS: Record<string, number> = {
   'clone-winner': 16000,  // schema enorme: executive_summary + content_mix + schedule + aesthetics + copy + landing + score + plan
-  'calendario':     6000, // 4 semanas × contenido detallado (reducido para evitar 504)
+  'calendario':     8000, // 4 semanas × contenido — Haiku es rápido, no da 504
   'imagenes':      10000, // 6 prompts largos con todos los specs
   'carruseles':    10000, // 8 carruseles × 7 slides
   'emails':         8000, // múltiples emails con A/B subjects y bodies completos
