@@ -9,6 +9,37 @@ function getDb(token: string) {
   return createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
 }
 
+// Repara JSON truncado: cierra strings, arrays y objetos abiertos.
+// Recorre el texto rastreando el estado para cerrar lo que quedó abierto.
+function repairTruncatedJSON(input: string): string {
+  let str = input.trim()
+  const stack: string[] = []
+  let inStr = false
+  let escaped = false
+
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i]
+    if (inStr) {
+      if (escaped) escaped = false
+      else if (c === '\\') escaped = true
+      else if (c === '"') inStr = false
+      continue
+    }
+    if (c === '"') inStr = true
+    else if (c === '{') stack.push('}')
+    else if (c === '[') stack.push(']')
+    else if (c === '}' || c === ']') stack.pop()
+  }
+
+  // Si quedó una cadena abierta, ciérrala
+  if (inStr) str += '"'
+  // Quita coma colgante o "clave": incompleta al final
+  str = str.replace(/,\s*$/, '').replace(/,\s*"[^"]*$/, '').replace(/:\s*$/, ': null')
+  // Cierra todos los brackets pendientes (en orden inverso)
+  while (stack.length) str += stack.pop()
+  return str
+}
+
 function parseJSON<T>(raw: string): T {
   // Strip code fences
   let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
@@ -24,13 +55,17 @@ function parseJSON<T>(raw: string): T {
   try {
     return JSON.parse(cleaned)
   } catch {
-    // Detect truncation — el último carácter no es } o ]
-    const lastChar = cleaned.trim().slice(-1)
-    const looksTruncated = lastChar !== '}' && lastChar !== ']'
-    const hint = looksTruncated
-      ? 'Respuesta TRUNCADA — sube max_tokens para esta herramienta'
-      : 'JSON malformado'
-    throw new Error(`${hint}. Últimos 200 chars: ${cleaned.slice(-200)}`)
+    // Intento 2: reparar JSON truncado y volver a parsear
+    try {
+      return JSON.parse(repairTruncatedJSON(cleaned))
+    } catch {
+      const lastChar = cleaned.trim().slice(-1)
+      const looksTruncated = lastChar !== '}' && lastChar !== ']'
+      const hint = looksTruncated
+        ? 'Respuesta TRUNCADA — sube max_tokens para esta herramienta'
+        : 'JSON malformado'
+      throw new Error(`${hint}. Últimos 200 chars: ${cleaned.slice(-200)}`)
+    }
   }
 }
 
@@ -38,26 +73,27 @@ function parseJSON<T>(raw: string): T {
 const HAIKU = 'claude-haiku-4-5-20251001'
 const DEFAULT_MODEL = HAIKU
 
-// Tokens reducidos para garantizar respuesta dentro del límite de Vercel
+// Tokens: con streaming + reparación de JSON truncado podemos ser generosos.
+// Haiku genera ~130 tok/s; 6000 tokens ≈ 45s, dentro del límite de 60s de Vercel.
 const TOOL_MAX_TOKENS: Record<string, number> = {
-  'clone-winner': 5000,
-  'calendario':   3000,
-  'imagenes':     4000,
-  'carruseles':   4000,
-  'emails':       4000,
-  'website':      4000,
-  'contrato':     4000,
-  'casos':        4000,
-  'tracker':      3000,
-  'vsl':          3000,
-  'reels':        4000,
-  'story':        4000,
-  'copy':         3000,
-  'precios':      3000,
-  'propuesta':    3000,
-  'chat-agent':   4000,
+  'clone-winner': 6000,
+  'calendario':   5000,
+  'imagenes':     6000,
+  'carruseles':   6000,
+  'emails':       6000,
+  'website':      6000,
+  'contrato':     5000,
+  'casos':        5000,
+  'tracker':      4000,
+  'vsl':          5000,
+  'reels':        6000,
+  'story':        6000,
+  'copy':         4000,
+  'precios':      5000,
+  'propuesta':    5000,
+  'chat-agent':   5000,
 }
-const DEFAULT_MAX_TOKENS = 3000
+const DEFAULT_MAX_TOKENS = 5000
 
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
 function buildPrompt(
@@ -941,26 +977,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(404).json({ error: `Herramienta no encontrada: ${toolId}`, step })
       }
 
-      // ── Step 6: call Anthropic ───────────────────────────────────────────────
+      // ── Step 6: call Anthropic (con STREAMING para evitar 504 prematuros) ──────
       step = 'anthropic-call'
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       const maxTokens = TOOL_MAX_TOKENS[toolId] ?? DEFAULT_MAX_TOKENS
       const model     = DEFAULT_MODEL
-      const response = await anthropic.messages.create({
+      const SYSTEM = 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado (todas las llaves, corchetes y comillas). NO incluyes texto antes ni después. NO uses bloques de código markdown.'
+
+      // Streaming: mantiene la conexión activa enviando tokens continuamente,
+      // evitando que un gateway corte la petición con 504 antes de los 60s.
+      const stream = anthropic.messages.stream({
         model,
         max_tokens: maxTokens,
-        system: 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado (todas las llaves, corchetes y comillas). NO incluyes texto antes ni después. NO uses bloques de código markdown.',
+        system: SYSTEM,
         messages: [{ role: 'user', content: prompt }],
       })
+      const response = await stream.finalMessage()
 
-      const raw = response.content[0].type === 'text' ? response.content[0].text : ''
+      const raw = response.content[0]?.type === 'text' ? response.content[0].text : ''
       if (!raw) {
         throw new Error('Anthropic devolvió respuesta vacía')
       }
 
-      // Detectar truncación temprano para dar un error claro
+      // Si se truncó, parseJSON repara el JSON incompleto automáticamente.
       if (response.stop_reason === 'max_tokens') {
-        throw new Error(`Claude truncó la respuesta al llegar al límite de ${maxTokens} tokens. Sube TOOL_MAX_TOKENS["${toolId}"].`)
+        console.warn(`[tools/${toolId}] respuesta tocó el límite de ${maxTokens} tokens; se reparará el JSON.`)
       }
 
       // ── Step 7: parse JSON ───────────────────────────────────────────────────
