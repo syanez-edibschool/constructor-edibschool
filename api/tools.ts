@@ -924,44 +924,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const answers = questionsRow.data?.answers_json || {}
 
-      // Cross-tool context: resultados de OTROS tools ya generados
-      const otherTools = (otherToolsRes.data || []).filter(t => t.tool_id !== toolId)
+      // Cross-tool context: solo los resultados más útiles (clone-winner y calendario)
+      const otherTools = (otherToolsRes.data || [])
       const cloneWinner = otherTools.find(t => t.tool_id === 'clone-winner')?.result_json
       const calendario  = otherTools.find(t => t.tool_id === 'calendario')?.result_json
 
-      // Summary corto de cada tool generado (solo lo más relevante, para no inflar el prompt)
-      const otherToolsSummary = otherTools
-        .filter(t => t.tool_id !== 'clone-winner' && t.tool_id !== 'calendario')
-        .map(t => `- ${t.tool_id}: ${JSON.stringify(t.result_json).slice(0, 300)}…`)
-        .join('\n')
+      // Límites estrictos para no inflar el input (cada 1000 chars ≈ 250 tokens)
+      const s = (v: unknown, limit = 800) => JSON.stringify(v ?? {}).slice(0, limit)
 
-      const projectCtx = `
-═══ CONTEXTO COMPLETO DEL PROYECTO ═══
+      const projectCtx = `CONTEXTO DEL PROYECTO:
+Negocio: ${s(answers, 600)}
+Nicho: ${s(nichoRow.data?.data_json, 500)}
+Avatar: ${s(avatarRow.data?.data_json, 500)}
+Competencia: ${s(compRow.data?.data_json, 400)}${cloneWinner ? `\nClone Ganador: ${s(cloneWinner, 800)}` : ''}${calendario ? `\nCalendario previo: ${s(calendario, 600)}` : ''}
 
-📊 PERFIL DEL NEGOCIO (cuestionario inicial):
-${JSON.stringify(answers, null, 2)}
-
-🎯 NICHO IDENTIFICADO:
-${JSON.stringify(nichoRow.data?.data_json || {}, null, 2)}
-
-👤 AVATAR DEL CLIENTE IDEAL:
-${JSON.stringify(avatarRow.data?.data_json || {}, null, 2)}
-
-⚔️ ANÁLISIS DE COMPETENCIA:
-${JSON.stringify(compRow.data?.data_json || {}, null, 2)}
-
-${cloneWinner ? `🏆 CLONE GANADOR (análisis de competidor exitoso):
-${JSON.stringify(cloneWinner, null, 2).slice(0, 2000)}
-` : ''}
-${calendario ? `📅 CALENDARIO YA GENERADO (úsalo para mantener coherencia con los temas/ángulos):
-${JSON.stringify(calendario, null, 2).slice(0, 1500)}
-` : ''}
-${otherToolsSummary ? `🛠️ OTRAS HERRAMIENTAS YA GENERADAS:
-${otherToolsSummary}
-` : ''}
-═══════════════════════════════════════
-
-INSTRUCCIÓN IMPORTANTE: Tu output DEBE ser coherente con TODO el contexto anterior. Usa el nicho, avatar, competencia y resultados previos para personalizar al máximo. NO generes contenido genérico.`
+Personaliza TODO al nicho y avatar. NO generes contenido genérico.`
 
       const toolCtx = Object.keys(toolAnswers).length > 0
         ? `\nPARAMETROS ESPECÍFICOS (del usuario para esta herramienta):\n${Object.entries(toolAnswers).map(([k, v]) => `- ${k}: ${v}`).join('\n')}`
