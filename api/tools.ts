@@ -73,48 +73,34 @@ const SONNET = 'claude-sonnet-4-6'
 const HAIKU  = 'claude-haiku-4-5-20251001'
 const DEFAULT_MODEL = HAIKU
 
-// Con Vercel Pro (300s) + streaming + reparación de JSON hay margen de sobra.
-// Sonnet (mejor calidad) en copy/razonamiento; Haiku (rápido) en lo estructurado.
+// Haiku (rápido) para casi todo — calidad muy buena y 2-3x más veloz.
+// Sonnet SOLO donde el razonamiento profundo marca diferencia real.
 const TOOL_MODEL: Record<string, string> = {
-  'clone-winner': SONNET,
-  'website':      SONNET,
-  'contrato':     SONNET,
-  'precios':      SONNET,
-  'emails':       SONNET,
-  'vsl':          SONNET,
-  'propuesta':    SONNET,
-  'casos':        SONNET,
-  'carruseles':   SONNET,
-  'reels':        SONNET,
-  'story':        SONNET,
-  // Haiku (rápido) para lo más estructurado/simple
-  'calendario':   HAIKU,
-  'imagenes':     HAIKU,
-  'tracker':      HAIKU,
-  'copy':         HAIKU,
-  'chat-agent':   SONNET,
+  'clone-winner': SONNET, // análisis estratégico profundo
+  'website':      SONNET, // copy de conversión largo
+  // Todo lo demás usa Haiku (DEFAULT_MODEL) — rápido
 }
 
-// Tokens generosos: con 300s de límite y reparación de truncación, sin riesgo.
+// Tokens ajustados a lo que cada resultado realmente necesita (menos = más rápido).
 const TOOL_MAX_TOKENS: Record<string, number> = {
-  'clone-winner': 12000,
-  'calendario':    6000,
-  'imagenes':      8000,
-  'carruseles':   10000,
-  'emails':        8000,
-  'website':       8000,
-  'contrato':      8000,
-  'casos':         8000,
-  'tracker':       5000,
-  'vsl':           6000,
-  'reels':         8000,
-  'story':         8000,
-  'copy':          5000,
-  'precios':       6000,
-  'propuesta':     6000,
-  'chat-agent':    8000,
+  'clone-winner': 8000,
+  'calendario':   4000,
+  'imagenes':     4000,
+  'carruseles':   5000,
+  'emails':       4000,
+  'website':      6000,
+  'contrato':     4500,
+  'casos':        4000,
+  'tracker':      3000,
+  'vsl':          3500,
+  'reels':        4000,
+  'story':        3500,
+  'copy':         3000,
+  'precios':      4000,
+  'propuesta':    4000,
+  'chat-agent':   4500,
 }
-const DEFAULT_MAX_TOKENS = 6000
+const DEFAULT_MAX_TOKENS = 4000
 
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
 function buildPrompt(
