@@ -37,7 +37,7 @@ function parseJSON<T>(raw: string): T {
 // Per-tool max_tokens — los tools con JSON gigante necesitan más
 const TOOL_MAX_TOKENS: Record<string, number> = {
   'clone-winner': 16000,  // schema enorme: executive_summary + content_mix + schedule + aesthetics + copy + landing + score + plan
-  'calendario':    12000, // 4 semanas × 7-8 días de contenido detallado
+  'calendario':     6000, // 4 semanas × contenido detallado (reducido para evitar 504)
   'imagenes':      10000, // 6 prompts largos con todos los specs
   'carruseles':    10000, // 8 carruseles × 7 slides
   'emails':         8000, // múltiples emails con A/B subjects y bodies completos
@@ -60,7 +60,7 @@ const SONNET = 'claude-sonnet-4-6'
 const HAIKU  = 'claude-haiku-4-5-20251001'
 const TOOL_MODEL: Record<string, string> = {
   'clone-winner': SONNET, // razonamiento + análisis profundo
-  'calendario':   SONNET, // 28 piezas únicas, necesita creatividad
+  'calendario':   HAIKU,  // velocidad: 4 semanas de contenido sin necesitar razonamiento profundo
   'imagenes':     SONNET, // prompts MJ con sintaxis técnica
   'carruseles':   SONNET, // 8 narrativas distintas
   'emails':       SONNET, // copy persuasivo, A/B subjects

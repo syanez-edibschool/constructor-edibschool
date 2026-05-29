@@ -3,7 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/tools.ts":            { "maxDuration": 120 },
+    "api/tools.ts":            { "maxDuration": 60 },
     "api/analysis.ts":         { "maxDuration": 300 },
     "api/coach/message.ts":    { "maxDuration": 60 },
     "api/coach/voice.ts":      { "maxDuration": 120 },
