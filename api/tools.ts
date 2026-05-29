@@ -34,50 +34,30 @@ function parseJSON<T>(raw: string): T {
   }
 }
 
-// Per-tool max_tokens — los tools con JSON gigante necesitan más
-const TOOL_MAX_TOKENS: Record<string, number> = {
-  'clone-winner': 16000,  // schema enorme: executive_summary + content_mix + schedule + aesthetics + copy + landing + score + plan
-  'calendario':     4000, // compacto: 5 piezas/sem × 4 semanas con Haiku
-  'imagenes':      10000, // 6 prompts largos con todos los specs
-  'carruseles':    10000, // 8 carruseles × 7 slides
-  'emails':         8000, // múltiples emails con A/B subjects y bodies completos
-  'website':        8000, // varía por siteType pero secciones largas
-  'contrato':       6000, // texto legal completo
-  'casos':          6000, // 10 casos detallados
-  'tracker':        5000, // 6+ meses de números
-  'vsl':            4096, // 7 secciones cortas
-  'reels':          6000, // 3 guiones ultra detallados (en markdown completo)
-  'story':          6000, // 5 stories ultra detalladas (en markdown completo)
-  'copy':           4096, // legacy compat
-  'precios':        5000, // 3 paquetes + oferta irresistible + notas
-  'propuesta':      4096, // texto formato
-  'chat-agent':     8000, // blueprint completo (system prompt + flujo + intents + integración)
-}
-const DEFAULT_MAX_TOKENS = 4096
+// Todos a Haiku para evitar timeout — es 3-5x más rápido que Sonnet
+const HAIKU = 'claude-haiku-4-5-20251001'
+const DEFAULT_MODEL = HAIKU
 
-// Modelo por tool — Haiku ~3-5x más rápido y barato, Sonnet para los complejos
-const SONNET = 'claude-sonnet-4-6'
-const HAIKU  = 'claude-haiku-4-5-20251001'
-const TOOL_MODEL: Record<string, string> = {
-  'clone-winner': SONNET, // razonamiento + análisis profundo
-  'calendario':   HAIKU,  // velocidad: 4 semanas de contenido sin necesitar razonamiento profundo
-  'imagenes':     SONNET, // prompts MJ con sintaxis técnica
-  'carruseles':   SONNET, // 8 narrativas distintas
-  'emails':       SONNET, // copy persuasivo, A/B subjects
-  'website':      SONNET, // copy de conversión largo
-  'casos':        SONNET, // 10 casos reales con números
-  'contrato':     SONNET, // texto legal preciso
-  // Haiku para tools simples/estructurados — mucho más rápido
-  'vsl':          HAIKU,
-  'reels':        SONNET,  // ahora producen markdown muy detallado
-  'story':        SONNET,  // 5 stories con guion + visual + sticker, requiere creatividad
-  'copy':         HAIKU,
-  'precios':      SONNET,  // 3 paquetes + oferta irresistible con razonamiento
-  'propuesta':    HAIKU,
-  'tracker':      HAIKU,
-  'chat-agent':   SONNET,  // blueprint técnico, system prompt complejo
+// Tokens reducidos para garantizar respuesta dentro del límite de Vercel
+const TOOL_MAX_TOKENS: Record<string, number> = {
+  'clone-winner': 5000,
+  'calendario':   3000,
+  'imagenes':     4000,
+  'carruseles':   4000,
+  'emails':       4000,
+  'website':      4000,
+  'contrato':     4000,
+  'casos':        4000,
+  'tracker':      3000,
+  'vsl':          3000,
+  'reels':        4000,
+  'story':        4000,
+  'copy':         3000,
+  'precios':      3000,
+  'propuesta':    3000,
+  'chat-agent':   4000,
 }
-const DEFAULT_MODEL = SONNET
+const DEFAULT_MAX_TOKENS = 3000
 
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
 function buildPrompt(
@@ -912,18 +892,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const answers = questionsRow.data?.answers_json || {}
 
-      // Cross-tool context: solo clone-winner y calendario si existen, queries separadas y pequeñas
-      const needsCrossCtx = ['reels', 'story', 'carruseles', 'copy', 'emails', 'vsl'].includes(toolId)
-      let cloneWinner: unknown = null
-      let calendario: unknown = null
-      if (needsCrossCtx) {
-        const [cwRow, calRow] = await Promise.all([
-          db.from('project_tools').select('result_json').eq('project_id', projectId).eq('tool_id', 'clone-winner').maybeSingle(),
-          db.from('project_tools').select('result_json').eq('project_id', projectId).eq('tool_id', 'calendario').maybeSingle(),
-        ])
-        cloneWinner = cwRow.data?.result_json ?? null
-        calendario  = calRow.data?.result_json ?? null
-      }
+      // Sin queries extra de cross-tool (para evitar latencia adicional)
+      const cloneWinner: unknown = null
+      const calendario: unknown = null
 
       // Límites estrictos para no inflar el input (cada 1000 chars ≈ 250 tokens)
       const s = (v: unknown, limit = 800) => JSON.stringify(v ?? {}).slice(0, limit)
