@@ -932,7 +932,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 Negocio: ${s(answers, 600)}
 Nicho: ${s(nichoRow.data?.data_json, 500)}
 Avatar: ${s(avatarRow.data?.data_json, 500)}
-Competencia: ${s(compRow.data?.data_json, 400)}${cloneWinner ? `\nClone Ganador: ${s(cloneWinner, 800)}` : ''}${calendario ? `\nCalendario previo: ${s(calendario, 600)}` : ''}
+${cloneWinner ? `Clone Ganador: ${s(cloneWinner, 800)}\n` : ''}${calendario ? `Calendario previo: ${s(calendario, 600)}\n` : ''}
 
 Personaliza TODO al nicho y avatar. NO generes contenido genérico.`
 
