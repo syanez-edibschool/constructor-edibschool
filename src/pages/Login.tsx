@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
@@ -374,7 +374,7 @@ function GradientButton({ children, loading }: { children: React.ReactNode; load
         />
       ))}
       <span className="relative z-10 flex items-center justify-center gap-2">
-        {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Entrando...</> : children}
+        {loading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Enviando...</> : children}
       </span>
     </motion.button>
   )
@@ -423,12 +423,10 @@ function cardScale(sp: number): number {
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Login() {
-  const { login, loginWithMagicLink } = useAuth()
-  const navigate = useNavigate()
+  const { loginWithMagicLink } = useAuth()
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [magicLoading, setMagicLoading] = useState(false)
+  const [sent, setSent] = useState(false)
   const [sp, setSp] = useState(0)     // scroll progress 0-1
   const glitching = useGlitch()
 
@@ -490,28 +488,16 @@ export default function Login() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!email || !password) { toast.error('Completa todos los campos'); return }
+    if (!email) { toast.error('Escribe tu email'); return }
     setLoading(true)
     try {
-      await login(email, password)
-      navigate('/dashboard')
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al iniciar sesión')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleMagicLink = async () => {
-    if (!email) { toast.error('Escribe tu email primero'); return }
-    setMagicLoading(true)
-    try {
       await loginWithMagicLink(email)
-      toast.success('Te enviamos un link de acceso a tu email. Revisa tu bandeja.', { duration: 6000 })
+      setSent(true)
+      toast.success('Te enviamos un link de acceso a tu email.', { duration: 6000 })
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'No se pudo enviar el link')
     } finally {
-      setMagicLoading(false)
+      setLoading(false)
     }
   }
 
@@ -630,38 +616,24 @@ export default function Login() {
                         <NeonInput label="Email" type="email" placeholder="tu@email.com"
                           value={email} onChange={setEmail} autoComplete="email" />
                       </motion.div>
-                      <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.42 }}>
-                        <NeonInput label="Contraseña" type="password" placeholder="••••••••"
-                          value={password} onChange={setPassword} autoComplete="current-password" />
-                      </motion.div>
 
-                      <motion.div className="flex items-center justify-between text-[11px]"
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.48 }}>
-                        <label className="flex items-center gap-2 cursor-pointer" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                          <div className="w-3.5 h-3.5 rounded border" style={{ borderColor: 'rgba(0,217,255,0.25)', background: 'rgba(0,217,255,0.05)' }} />
-                          Recordarme
-                        </label>
-                        <button type="button" className="transition-colors" style={{ color: 'rgba(0,217,255,0.7)' }}
-                          onMouseEnter={e => (e.currentTarget.style.color = '#00D9FF')}
-                          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(0,217,255,0.7)')}>
-                          ¿Olvidaste tu contraseña?
-                        </button>
-                      </motion.div>
+                      <motion.p className="text-[11px] leading-relaxed"
+                        style={{ color: 'rgba(255,255,255,0.4)' }}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}>
+                        Escribe tu correo y te enviaremos un link de acceso. No necesitas contraseña.
+                      </motion.p>
 
                       <motion.div className="mt-1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.54 }}>
-                        <GradientButton loading={loading}>ENTRAR →</GradientButton>
+                        <GradientButton loading={loading}>{sent ? 'LINK ENVIADO ✓' : 'ENVIAR LINK DE ACCESO →'}</GradientButton>
                       </motion.div>
 
-                      <motion.button
-                        type="button"
-                        onClick={handleMagicLink}
-                        disabled={magicLoading}
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.58 }}
-                        className="w-full py-3 rounded-xl text-[12px] font-semibold tracking-[0.1em] transition-colors disabled:opacity-50"
-                        style={{ background: 'rgba(0,217,255,0.06)', border: '1px solid rgba(0,217,255,0.2)', color: 'rgba(0,217,255,0.85)' }}
-                      >
-                        {magicLoading ? 'Enviando link...' : '✦ Entrar con link a mi email (sin contraseña)'}
-                      </motion.button>
+                      {sent && (
+                        <motion.p className="text-[11px] text-center leading-relaxed"
+                          style={{ color: 'rgba(0,217,255,0.7)' }}
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                          Revisa tu bandeja de entrada (y spam). Haz clic en el link para entrar.
+                        </motion.p>
+                      )}
                     </form>
 
                     {/* Divider */}
