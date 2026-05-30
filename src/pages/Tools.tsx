@@ -8,8 +8,9 @@ import {
   BanknotesIcon, EnvelopeIcon,
   DocumentCheckIcon, ChartBarIcon, MapIcon,
   DocumentDuplicateIcon, CpuChipIcon,
-  CheckIcon, ArrowPathIcon, SparklesIcon, DocumentArrowDownIcon,
+  CheckIcon, ArrowPathIcon, SparklesIcon, DocumentArrowDownIcon, Bars3Icon,
 } from '@heroicons/react/24/outline'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { api } from '../services/api'
 import { exportToPDF, exportToWord } from '../services/exportContent'
 import { useTheme } from '../context/ThemeContext'
@@ -579,6 +580,8 @@ export default function Tools() {
   const [activeTool, setActiveTool]   = useState<string | null>(null)
   const [states, setStates]           = useState<Record<string, ToolState>>({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const isMobile = useIsMobile()
   const [projectName, setProjectName] = useState<string | undefined>()
   const [projectProgress, setProjectProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState(1)
@@ -680,6 +683,8 @@ export default function Tools() {
         mode="project"
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(c => !c)}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
         projectName={projectName}
         projectProgress={projectProgress}
         currentStep={currentStep}
@@ -699,6 +704,11 @@ export default function Tools() {
           isDark={isDark}
           onToggleTheme={toggleTheme}
           scrolled={false}
+          left={isMobile ? (
+            <button onClick={() => setMobileNavOpen(true)} className="btn-icon" style={{ width: 36, height: 36, flexShrink: 0 }} title="Menú" aria-label="Abrir menú">
+              <Bars3Icon style={{ width: 20, height: 20 }} />
+            </button>
+          ) : undefined}
           right={
             <span style={{ fontSize: 12, color: 'var(--text-3)', paddingRight: 8 }} aria-live="polite">
               {doneCount}/{TOOLS.length} completadas

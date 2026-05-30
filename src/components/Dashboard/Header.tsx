@@ -9,9 +9,10 @@ interface HeaderProps {
   onToggleTheme: () => void
   scrolled?: boolean
   right?: React.ReactNode
+  left?: React.ReactNode
 }
 
-export default function DashboardHeader({ breadcrumb = [], isDark, onToggleTheme, scrolled, right }: HeaderProps) {
+export default function DashboardHeader({ breadcrumb = [], isDark, onToggleTheme, scrolled, right, left }: HeaderProps) {
   const navigate = useNavigate()
 
   return (
@@ -34,6 +35,9 @@ export default function DashboardHeader({ breadcrumb = [], isDark, onToggleTheme
         flexShrink: 0,
       }}
     >
+      {/* Left slot (ej: hamburguesa en móvil) */}
+      {left}
+
       {/* Breadcrumb */}
       {breadcrumb.length > 0 && (
         <nav aria-label="Breadcrumb" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>

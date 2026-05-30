@@ -10,7 +10,9 @@ import {
   ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon,
   CheckCircleIcon, LockClosedIcon,
   PlusCircleIcon, BuildingOffice2Icon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
 export type ToolState = 'done' | 'active' | 'locked' | 'idle'
@@ -59,6 +61,9 @@ export interface SidebarProps {
   mode: 'dashboard' | 'project'
   collapsed: boolean
   onToggle: () => void
+  // Móvil: drawer controlado desde el padre
+  mobileOpen?: boolean
+  onMobileClose?: () => void
   // Dashboard-mode actions
   onNewProject?: () => void
   projects?: { id: string; name: string }[]
@@ -125,34 +130,54 @@ function Divider() {
 }
 
 export default function Sidebar({
-  mode, collapsed, onToggle, onNewProject,
-  projects = [], onProjectSelect,
+  mode, collapsed: collapsedProp, onToggle,
+  mobileOpen = false, onMobileClose,
+  onNewProject: onNewProjectProp,
+  projects = [], onProjectSelect: onProjectSelectProp,
   projectName, projectProgress = 0, currentStep = 1,
-  toolStates = {}, activeToolId, onToolSelect, onBack,
+  toolStates = {}, activeToolId, onToolSelect: onToolSelectProp, onBack,
   user, onLogout,
 }: SidebarProps) {
   const navigate = useNavigate()
   const { isDark } = useTheme()
+  const isMobile = useIsMobile()
+  // En móvil el drawer siempre va expandido (no tiene sentido colapsar a 72px)
+  const collapsed = isMobile ? false : collapsedProp
+  // En móvil, al elegir algo, cerramos el drawer automáticamente
+  const onToolSelect = (id: string) => { onToolSelectProp?.(id); if (isMobile) onMobileClose?.() }
+  const onProjectSelect = (id: string) => { onProjectSelectProp?.(id); if (isMobile) onMobileClose?.() }
+  const onNewProject = () => { onNewProjectProp?.(); if (isMobile) onMobileClose?.() }
   const logoSrc = isDark ? '/logo_blanco.png' : '/logo_negro.png'
   const userName   = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuario'
   const userInitial = (user?.user_metadata?.name || user?.email || 'U')[0].toUpperCase()
   const getState   = (id: string): ToolState => toolStates[id] || 'idle'
 
   return (
+    <>
+      {/* Backdrop oscuro detrás del drawer en móvil */}
+      {isMobile && mobileOpen && (
+        <div
+          onClick={onMobileClose}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 40 }}
+        />
+      )}
     <motion.aside
-      animate={{ width: collapsed ? 72 : 280 }}
+      animate={isMobile ? { x: mobileOpen ? 0 : -300 } : { width: collapsed ? 72 : 280 }}
       transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
       style={{
         flexShrink: 0,
         height: '100vh',
+        width: isMobile ? 280 : undefined,
         background: 'var(--sidebar)',
         borderRight: '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        position: 'sticky',
+        position: isMobile ? 'fixed' : 'sticky',
+        left: isMobile ? 0 : undefined,
         top: 0,
-        zIndex: 20,
+        zIndex: isMobile ? 50 : 20,
+        boxShadow: isMobile ? '4px 0 30px rgba(0,0,0,.45)' : undefined,
       }}
     >
       {/* ── Logo + collapse toggle ── */}
@@ -177,10 +202,17 @@ export default function Sidebar({
           )}
         </AnimatePresence>
         {collapsed && <div style={{ flex: 1 }} />}
-        <button onClick={onToggle} className="btn-icon" style={{ width: 32, height: 32, flexShrink: 0 }} title={collapsed ? 'Expandir' : 'Colapsar'}>
-          {collapsed
-            ? <ChevronRightIcon style={{ width: 15, height: 15 }} />
-            : <ChevronLeftIcon  style={{ width: 15, height: 15 }} />}
+        <button
+          onClick={isMobile ? onMobileClose : onToggle}
+          className="btn-icon"
+          style={{ width: 32, height: 32, flexShrink: 0 }}
+          title={isMobile ? 'Cerrar' : (collapsed ? 'Expandir' : 'Colapsar')}
+        >
+          {isMobile
+            ? <XMarkIcon style={{ width: 18, height: 18 }} />
+            : collapsed
+              ? <ChevronRightIcon style={{ width: 15, height: 15 }} />
+              : <ChevronLeftIcon  style={{ width: 15, height: 15 }} />}
         </button>
       </div>
 
@@ -372,5 +404,6 @@ export default function Sidebar({
         )}
       </div>
     </motion.aside>
+    </>
   )
 }

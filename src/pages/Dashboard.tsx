@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { getProjects, createProject, deleteProject, type Project } from '../services/projectsService'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, Bars3Icon } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 import Sidebar        from '../components/Dashboard/Sidebar'
 import DashboardHeader from '../components/Dashboard/Header'
@@ -254,6 +255,8 @@ export default function Dashboard() {
   const [loading, setLoading]               = useState(true)
   const [showModal, setShowModal]           = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen]   = useState(false)
+  const isMobile = useIsMobile()
   const [scrollY, setScrollY]               = useState(0)
   const [mousePos, setMousePos]             = useState({ x: .5, y: .5 })
   const [headerSolid, setHeaderSolid]       = useState(false)
@@ -338,6 +341,8 @@ export default function Dashboard() {
         mode="dashboard"
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(c => !c)}
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
         onNewProject={() => setShowModal(true)}
         projects={projects.map(p => ({ id: p.id, name: p.name }))}
         onProjectSelect={id => navigate(`/proyecto/${id}/tools`)}
@@ -354,6 +359,11 @@ export default function Dashboard() {
           isDark={isDark}
           onToggleTheme={toggleTheme}
           scrolled={headerSolid}
+          left={isMobile ? (
+            <button onClick={() => setMobileNavOpen(true)} className="btn-icon" style={{ width: 36, height: 36, flexShrink: 0 }} title="Menú" aria-label="Abrir menú">
+              <Bars3Icon style={{ width: 20, height: 20 }} />
+            </button>
+          ) : undefined}
           right={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ position: 'relative' }}>
