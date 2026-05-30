@@ -34,7 +34,7 @@ async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
         Authorization: `Bearer ${openaiApiKey}`,
         ...formData.getHeaders(),
       },
-      body: formData,
+      body: formData as unknown as BodyInit,
     })
 
     if (!response.ok) {
@@ -165,7 +165,7 @@ ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
       output_format: 'mp3_44100_64',
     })
 
-    const audioBase64 = Buffer.from(audioBuffer2).toString('base64')
+    const audioBase64 = Buffer.from(audioBuffer2 as unknown as Uint8Array).toString('base64')
 
     return res.status(200).json({
       transcript,

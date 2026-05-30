@@ -7,7 +7,8 @@
     "dev": "concurrently -n frontend,backend -c cyan,magenta \"vite\" \"tsx watch server/index.ts\"",
     "dev:frontend": "vite",
     "dev:backend": "tsx watch server/index.ts",
-    "build": "node scripts/generate-version.js && tsc && vite build",
+    "build": "node scripts/generate-version.js && tsc && tsc -p tsconfig.api.json && vite build",
+    "check": "tsc && tsc -p tsconfig.api.json",
     "preview": "vite preview",
     "server": "tsx server/index.ts",
     "test:anthropic": "tsx scripts/test-anthropic.ts"

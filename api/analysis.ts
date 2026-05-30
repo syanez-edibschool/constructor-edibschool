@@ -8,7 +8,7 @@ function getDb(token: string) {
   return createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
 }
 
-function parseJSON<T>(raw: string): T {
+function parseJSON<T = any>(raw: string): T {
   let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
   if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
     const objMatch = cleaned.match(/\{[\s\S]*\}/)
