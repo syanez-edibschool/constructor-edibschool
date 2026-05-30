@@ -423,11 +423,12 @@ function cardScale(sp: number): number {
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Login() {
-  const { login } = useAuth()
+  const { login, loginWithMagicLink } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [magicLoading, setMagicLoading] = useState(false)
   const [sp, setSp] = useState(0)     // scroll progress 0-1
   const glitching = useGlitch()
 
@@ -498,6 +499,19 @@ export default function Login() {
       toast.error(err instanceof Error ? err.message : 'Error al iniciar sesión')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleMagicLink = async () => {
+    if (!email) { toast.error('Escribe tu email primero'); return }
+    setMagicLoading(true)
+    try {
+      await loginWithMagicLink(email)
+      toast.success('Te enviamos un link de acceso a tu email. Revisa tu bandeja.', { duration: 6000 })
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo enviar el link')
+    } finally {
+      setMagicLoading(false)
     }
   }
 
@@ -637,6 +651,17 @@ export default function Login() {
                       <motion.div className="mt-1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.54 }}>
                         <GradientButton loading={loading}>ENTRAR →</GradientButton>
                       </motion.div>
+
+                      <motion.button
+                        type="button"
+                        onClick={handleMagicLink}
+                        disabled={magicLoading}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.58 }}
+                        className="w-full py-3 rounded-xl text-[12px] font-semibold tracking-[0.1em] transition-colors disabled:opacity-50"
+                        style={{ background: 'rgba(0,217,255,0.06)', border: '1px solid rgba(0,217,255,0.2)', color: 'rgba(0,217,255,0.85)' }}
+                      >
+                        {magicLoading ? 'Enviando link...' : '✦ Entrar con link a mi email (sin contraseña)'}
+                      </motion.button>
                     </form>
 
                     {/* Divider */}

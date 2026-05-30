@@ -33,9 +33,29 @@ export function useAuth() {
     if (error) throw new Error(error.message)
   }
 
+  // Magic link: envía un email con un link de acceso sin contraseña.
+  // shouldCreateUser:false → SOLO entran emails ya creados (vía WordPress/webhook).
+  const loginWithMagicLink = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    })
+    if (error) {
+      // Mensaje claro si el email no está autorizado
+      if (error.message.toLowerCase().includes('signups not allowed') ||
+          error.message.toLowerCase().includes('not found')) {
+        throw new Error('Este email no tiene acceso. Pídele a tu administrador que te dé de alta.')
+      }
+      throw new Error(error.message)
+    }
+  }
+
   const logout = async () => {
     await supabase.auth.signOut()
   }
 
-  return { user, loading, login, signup, logout }
+  return { user, loading, login, signup, logout, loginWithMagicLink }
 }
