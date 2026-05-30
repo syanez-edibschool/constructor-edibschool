@@ -252,7 +252,8 @@ function WeekView({
         <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{week.label}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+      <div style={{ overflowX: 'auto' }}>
+      <div style={{ minWidth: 470, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
         {week.days.map(d => (
           <div key={d.day} style={{ borderRadius: 10, border: '1px solid var(--border)', overflow: 'hidden' }}>
             <div style={{ padding: '8px 10px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
@@ -308,6 +309,7 @@ function WeekView({
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   )

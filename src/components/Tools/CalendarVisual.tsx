@@ -224,6 +224,9 @@ export default function CalendarVisual({ projectId, weeks: initialWeeks, updated
                 </span>
               </div>
 
+              {/* Calendario: scroll horizontal en móvil para mantener celdas legibles */}
+              <div style={{ overflowX: 'auto' }}>
+              <div style={{ minWidth: 470 }}>
               {/* Day columns header */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, marginBottom: 6 }}>
                 {WEEK_DAYS_SHORT.map(d => (
@@ -309,6 +312,8 @@ export default function CalendarVisual({ projectId, weeks: initialWeeks, updated
                     </motion.button>
                   )
                 })}
+              </div>
+              </div>
               </div>
             </motion.div>
           )
