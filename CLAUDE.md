@@ -12,6 +12,18 @@
 - Keep files under 500 lines
 - Validate input at system boundaries
 
+## Reglas de cambios seguros (OBLIGATORIO en CADA cambio)
+
+Estas reglas evitan que un cambio rompa otra cosa. Aplícalas SIEMPRE, aunque el usuario no las repita:
+
+1. **Un cambio a la vez.** Toca SOLO lo necesario para lo pedido. No mezcles arreglos/mejoras no relacionados en el mismo commit.
+2. **Lee antes de editar** cualquier archivo.
+3. **`npm run check` antes de commitear.** Este comando verifica `src/` Y `api/` (incluye `tsconfig.api.json`). Si sale rojo, arréglalo antes de seguir. NUNCA hagas commit ni push con `check` en rojo.
+4. **La carpeta `api/` SÍ se revisa.** No asumas que solo `src/` importa — `npm run check` y el build (`tsc && tsc -p tsconfig.api.json`) cubren ambos. Si agregas un archivo nuevo en `api/`, debe compilar limpio.
+5. **Un commit claro por cambio**, con mensaje que diga QUÉ y POR QUÉ. Luego push.
+6. **Reporta en una línea** qué archivo(s) cambiaste, para poder revertir fácil con `git revert HEAD` si algo falla.
+7. **Si algo se rompe en producción:** `git revert HEAD` + push para volver atrás ANTES de investigar. No acumules más cambios encima de algo roto.
+
 ## Agent Comms (SendMessage-First Coordination)
 
 Named agents coordinate via `SendMessage`, not polling or shared state.
