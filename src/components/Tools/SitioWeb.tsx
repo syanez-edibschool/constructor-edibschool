@@ -157,7 +157,7 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
           <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>Sitio Web con IA</h2>
           <p style={{ fontSize: 13, color: 'var(--text-2)' }}>Elige el tipo de sitio y genera el copy completo listo para usar</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 14 }}>
           {Object.entries(SITE_TYPES).map(([key, cfg], i) => (
             <motion.button
               key={key}

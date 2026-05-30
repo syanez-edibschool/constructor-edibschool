@@ -405,7 +405,7 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
         {a.copy_analysis?.top_ctas?.length > 0 && (
           <>
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8B5CF6', marginBottom: 8 }}>Estructura ganadora (CTAs)</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 6, marginBottom: 16 }}>
               {a.copy_analysis.top_ctas.slice(0, 4).map((c, i) => (
                 <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--card-bg)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 11, color: 'var(--text-2)', flex: 1 }}>{c.cta}</span>
@@ -875,7 +875,7 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', marginBottom: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           ¿Cuántos competidores quieres analizar? (mínimo 2 para comparar)
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(70px,1fr))', gap: 10, marginBottom: 32 }}>
           {[2, 3, 4, 5].map(n => (
             <motion.button
               key={n}

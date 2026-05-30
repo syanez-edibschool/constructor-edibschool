@@ -142,7 +142,7 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
         <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', marginBottom: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Tipo de servicio
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
           {SERVICE_TYPES.map(s => (
             <motion.button
               key={s.id}

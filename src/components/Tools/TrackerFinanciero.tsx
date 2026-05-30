@@ -158,7 +158,7 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 8, marginBottom: 20 }}>
         {summaryCards.map(c => (
           <div key={c.label} style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--card-bg)', border: `1px solid ${c.color}25` }}>
             <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 4 }}>{c.label}</p>

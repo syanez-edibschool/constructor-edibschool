@@ -246,7 +246,7 @@ function MegaPromptBlock({ prompt }: { prompt: string }) {
 
 function TrackerOutput({ data }: { data: { summary: Record<string, number>; months: Array<Record<string, unknown>>; alertas: string[]; recomendaciones: string[] } }) {
   return <div>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 16 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8, marginBottom: 16 }}>
       {[{ l: 'MRR Actual', v: `€${(data.summary?.mrr_actual || 0).toLocaleString()}`, c: 'var(--accent)' }, { l: 'MRR Objetivo', v: `€${(data.summary?.mrr_objetivo || 0).toLocaleString()}`, c: 'var(--purple)' }, { l: 'Clientes', v: String(data.summary?.clientes_actuales || 0), c: 'var(--text)' }, { l: 'Ticket Prom.', v: `€${(data.summary?.ticket_promedio || 0).toLocaleString()}`, c: '#10B981' }].map((s, i) => <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: 14, textAlign: 'center' }}><p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4 }}>{s.l}</p><p style={{ fontSize: 18, fontWeight: 800, color: s.c }}>{s.v}</p></div>)}
     </div>
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
@@ -266,7 +266,7 @@ interface PricingPackage { name: string; price: string; setup?: string; monthly?
 interface IrresistibleOffer { name: string; setup?: string; monthly?: string; price?: string; description: string; conditions?: string[]; features?: string[]; why_it_works?: string; pitch_script?: string }
 function PricingOutput({ packages, irresistible_offer, strategy_notes }: { packages: PricingPackage[]; irresistible_offer?: IrresistibleOffer; strategy_notes?: string[] }) {
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
       {packages?.map((pkg, i) => <div key={i} style={{ background: 'var(--surface)', border: `1px solid ${i === 1 ? 'var(--border-h)' : 'var(--border)'}`, borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {i === 1 && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 20, padding: '3px 10px', width: 'fit-content' }}>MÁS POPULAR</span>}
         <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{pkg.name}</p>
@@ -337,7 +337,7 @@ function EmailsOutput({ sequences }: { sequences: Array<{ name: string; emails: 
 }
 
 function CasesOutput({ cases }: { cases: Array<{ title: string; problem: string; solution: string; result: string }> }) {
-  return <div>{cases?.map((c, i) => <Section key={i}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{c.title}</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, fontSize: 12 }}><div><p style={{ color: '#EF4444', fontWeight: 600, marginBottom: 4 }}>Problema</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.problem}</p></div><div><p style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 4 }}>Solución IA</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.solution}</p></div><div><p style={{ color: '#10B981', fontWeight: 600, marginBottom: 4 }}>Resultado</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.result}</p></div></div></Section>)}</div>
+  return <div>{cases?.map((c, i) => <Section key={i}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{c.title}</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, fontSize: 12 }}><div><p style={{ color: '#EF4444', fontWeight: 600, marginBottom: 4 }}>Problema</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.problem}</p></div><div><p style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 4 }}>Solución IA</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.solution}</p></div><div><p style={{ color: '#10B981', fontWeight: 600, marginBottom: 4 }}>Resultado</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.result}</p></div></div></Section>)}</div>
 }
 
 function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
@@ -730,7 +730,7 @@ export default function Tools() {
                 <p style={{ fontSize: 'var(--fs-base)', color: 'var(--text-2)', maxWidth: 360, lineHeight: 'var(--lh-base)' }}>
                   Selecciona una herramienta del menú lateral para comenzar.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginTop: 8, maxWidth: 560 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 8, marginTop: 8, maxWidth: 560 }}>
                   {TOOLS.slice(0, 8).map(t => (
                     <button key={t.id} onClick={() => checkAndLoad(t.id)}
                       style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, transition: 'all .15s', fontSize: 11, color: 'var(--text-2)', fontWeight: 500 }}

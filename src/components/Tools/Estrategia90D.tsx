@@ -698,7 +698,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
             </div>
 
             {calView === 'month' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
                 {([1, 2, 3] as const).map(m => (
                   <MonthView key={m} plan={plan} month={m} onToggleTask={toggleTask} />
                 ))}

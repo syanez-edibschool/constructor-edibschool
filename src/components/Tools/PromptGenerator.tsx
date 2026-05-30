@@ -296,7 +296,7 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
         {/* Q1: Platform */}
         <div>
           <FieldLabel n={1} label="¿En qué plataforma va el agente?" />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8 }}>
             {PLATFORMS.map(p => (
               <button
                 key={p.id}
