@@ -5,8 +5,9 @@ import {
   ViewColumnsIcon, FilmIcon, DevicePhoneMobileIcon, PhotoIcon,
   VideoCameraIcon, EnvelopeIcon, SignalIcon, DocumentTextIcon,
 } from '@heroicons/react/24/outline'
+import toast from 'react-hot-toast'
 import DayDetail, { type CalendarDay } from './DayDetail'
-import { api } from '../../services/api'
+import { supabase } from '../../services/supabase'
 
 export interface CalendarWeek {
   week: number
@@ -105,29 +106,48 @@ export default function CalendarVisual({ projectId, weeks: initialWeeks, updated
   const [selected, setSelected]   = useState<SelectedDay | null>(null)
   const [contentFilter, setContentFilter] = useState<string>('all')
 
+  // Persiste el calendario completo en Supabase (en prod no existe el endpoint /update-day).
+  // Conserva el resto de campos del result_json y solo reemplaza weeks.
+  const persistWeeks = async (next: CalendarWeek[]) => {
+    try {
+      const { data } = await supabase
+        .from('project_tools')
+        .select('result_json')
+        .eq('project_id', projectId)
+        .eq('tool_id', 'calendario')
+        .maybeSingle()
+      const current = (data?.result_json as Record<string, unknown>) || {}
+      const { error } = await supabase.from('project_tools').upsert({
+        project_id: projectId,
+        tool_id: 'calendario',
+        result_json: { ...current, weeks: next },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'project_id,tool_id' })
+      if (error) throw error
+    } catch {
+      toast.error('No se pudo guardar el cambio del calendario')
+    }
+  }
+
   const handleSave = async (weekIndex: number, dayIndex: number, updates: Partial<CalendarDay>) => {
-    await api.patch(`/projects/${projectId}/tools/calendario/update-day`, { weekIndex, dayIndex, updates })
-    setWeeks(prev => {
-      const next = prev.map((w, wi) => wi !== weekIndex ? w : {
-        ...w,
-        days: w.days.map((d, di) => di !== dayIndex ? d : { ...d, ...updates }),
-      })
-      onWeeksChange(next)
-      return next
+    const next = weeks.map((w, wi) => wi !== weekIndex ? w : {
+      ...w,
+      days: w.days.map((d, di) => di !== dayIndex ? d : { ...d, ...updates }),
     })
+    setWeeks(next)
+    onWeeksChange(next)
     if (selected) setSelected(s => s ? { ...s, day: { ...s.day, ...updates } } : s)
+    await persistWeeks(next)
   }
 
   const handleDelete = async (weekIndex: number, dayIndex: number) => {
-    await api.delete(`/projects/${projectId}/tools/calendario/day`, { data: { weekIndex, dayIndex } })
-    setWeeks(prev => {
-      const next = prev.map((w, wi) => wi !== weekIndex ? w : {
-        ...w,
-        days: w.days.filter((_, di) => di !== dayIndex),
-      })
-      onWeeksChange(next)
-      return next
+    const next = weeks.map((w, wi) => wi !== weekIndex ? w : {
+      ...w,
+      days: w.days.filter((_, di) => di !== dayIndex),
     })
+    setWeeks(next)
+    onWeeksChange(next)
+    await persistWeeks(next)
   }
 
   const totalPosts = weeks.reduce((s, w) => s + w.days.length, 0)
