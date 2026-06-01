@@ -3,7 +3,6 @@ import { Toaster } from 'react-hot-toast'
 import { useAuth } from './hooks/useAuth'
 import { ThemeProvider } from './context/ThemeContext'
 import Login from './pages/Login'
-import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import Questions from './pages/Questions'
 import ReviewNiche from './pages/ReviewNiche'
@@ -55,7 +54,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+        {/* Registro libre deshabilitado: el acceso es solo por invitación (WordPress + magic link) */}
+        <Route path="/signup" element={<Navigate to="/login" replace />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/proyecto/:id/questions" element={<ProtectedRoute><Questions /></ProtectedRoute>} />
         <Route path="/proyecto/:id/review-niche" element={<ProtectedRoute><ReviewNiche /></ProtectedRoute>} />
