@@ -23,6 +23,17 @@ export async function getProjects(): Promise<Project[]> {
   return data || []
 }
 
+export async function getProject(id: string): Promise<Project | null> {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) return null
+  return data
+}
+
 export async function createProject(name: string, description: string): Promise<Project> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')

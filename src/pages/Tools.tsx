@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { api } from '../services/api'
+import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../hooks/useAuth'
@@ -590,12 +591,12 @@ export default function Tools() {
   const tool  = TOOLS.find(t => t.id === activeTool)
   const state = activeTool ? states[activeTool] : undefined
 
-  // Fetch project info for sidebar
+  // Fetch project info for sidebar (Supabase directo: en prod no existe GET /api/projects/:id)
   useEffect(() => {
     if (!id) return
-    api.get(`/projects/${id}`)
-      .then(r => {
-        const p = r.data.project
+    getProject(id)
+      .then(p => {
+        if (!p) return
         setProjectName(p.name)
         setProjectProgress(p.progress || 0)
         setCurrentStep(p.current_step || 1)
