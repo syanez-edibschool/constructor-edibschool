@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { api } from '../services/api'
-import { getProject } from '../services/projectsService'
+import { getProject, updateProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
 import { saveToHistory } from '../services/toolHistory'
 import HistoryPanel from '../components/Tools/HistoryPanel'
@@ -592,7 +592,6 @@ export default function Tools() {
   const isMobile = useIsMobile()
   const [projectName, setProjectName] = useState<string | undefined>()
   const [projectProgress, setProjectProgress] = useState(0)
-  const [currentStep, setCurrentStep] = useState(1)
   const [showRegenModal, setShowRegenModal] = useState(false)
 
   const tool  = TOOLS.find(t => t.id === activeTool)
@@ -606,7 +605,6 @@ export default function Tools() {
         if (!p) return
         setProjectName(p.name)
         setProjectProgress(p.progress || 0)
-        setCurrentStep(p.current_step || 1)
       })
       .catch(() => {})
   }, [id])
@@ -680,6 +678,19 @@ export default function Tools() {
   if (activeTool) sidebarToolStates[activeTool] = state?.phase === 'done' ? 'done' : state?.phase === 'generating' ? 'active' : 'active'
 
   const doneCount = Object.values(states).filter(s => s.phase === 'done').length
+  // Progreso real = herramientas completadas / total. Tomamos el máximo entre lo
+  // guardado en BD y lo hecho en esta sesión para que NUNCA baje y quede consistente
+  // con el "X/15 completadas" del header (antes el sidebar mostraba un % viejo fijo).
+  const sessionProgress = TOOLS.length ? Math.round((doneCount / TOOLS.length) * 100) : 0
+  const displayProgress = Math.max(projectProgress, sessionProgress)
+  const displayDone = Math.round((displayProgress / 100) * TOOLS.length)
+
+  // Persistir el progreso cuando la sesión supera lo guardado (solo sube, nunca baja).
+  useEffect(() => {
+    if (!id || sessionProgress <= projectProgress) return
+    setProjectProgress(sessionProgress)
+    updateProject(id, { progress: sessionProgress }).catch(() => {})
+  }, [id, sessionProgress, projectProgress])
 
   const breadcrumb = [
     { label: 'Dashboard', href: '/dashboard' },
@@ -698,8 +709,7 @@ export default function Tools() {
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
         projectName={projectName}
-        projectProgress={projectProgress}
-        currentStep={currentStep}
+        projectProgress={displayProgress}
         toolStates={sidebarToolStates}
         activeToolId={activeTool || undefined}
         onToolSelect={checkAndLoad}
@@ -723,7 +733,7 @@ export default function Tools() {
           ) : undefined}
           right={
             <span style={{ fontSize: 12, color: 'var(--text-3)', paddingRight: 8 }} aria-live="polite">
-              {doneCount}/{TOOLS.length} completadas
+              {displayDone}/{TOOLS.length} completadas
             </span>
           }
         />

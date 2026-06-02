@@ -71,7 +71,6 @@ export interface SidebarProps {
   // Project-mode info
   projectName?: string
   projectProgress?: number
-  currentStep?: number
   toolStates?: Record<string, ToolState>
   activeToolId?: string
   onToolSelect?: (toolId: string) => void
@@ -134,7 +133,7 @@ export default function Sidebar({
   mobileOpen = false, onMobileClose,
   onNewProject: onNewProjectProp,
   projects = [], onProjectSelect: onProjectSelectProp,
-  projectName, projectProgress = 0, currentStep = 1,
+  projectName, projectProgress = 0,
   toolStates = {}, activeToolId, onToolSelect: onToolSelectProp, onBack,
   user, onLogout,
 }: SidebarProps) {
@@ -279,7 +278,7 @@ export default function Sidebar({
                 </p>
               </div>
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 6 }}>
-                Paso {currentStep} de 8 · {projectProgress}%
+                Progreso · {projectProgress}%
               </p>
               <div style={{ height: 4, borderRadius: 999, background: 'var(--border)', overflow: 'hidden' }}>
                 <motion.div
