@@ -14,6 +14,11 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { api } from '../services/api'
 import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
+import { saveToHistory } from '../services/toolHistory'
+import HistoryPanel from '../components/Tools/HistoryPanel'
+
+// Herramientas de contenido con pestaña de historial
+const HISTORY_TOOLS = new Set(['story', 'carruseles', 'imagenes', 'vsl', 'reels', 'emails'])
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar          from '../components/Dashboard/Sidebar'
@@ -579,6 +584,7 @@ export default function Tools() {
     : null
 
   const [activeTool, setActiveTool]   = useState<string | null>(null)
+  const [outputTab, setOutputTab]     = useState<'current' | 'history'>('current')
   const [states, setStates]           = useState<Record<string, ToolState>>({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -606,6 +612,7 @@ export default function Tools() {
 
   const checkAndLoad = async (toolId: string, forceQuestions = false) => {
     setActiveTool(toolId)
+    setOutputTab('current')
     if (states[toolId] && !forceQuestions) return // already loaded
 
     // These tools manage their own data — skip the AI questions/generation flow
@@ -647,7 +654,10 @@ export default function Tools() {
     setStates(p => ({ ...p, [activeTool]: { phase: 'generating', answers, result: null } }))
     try {
       const { data } = await api.post(`/projects/${id}/tools/${activeTool}`, { toolAnswers: answers })
-      setStates(p => ({ ...p, [activeTool]: { phase: 'done', answers, result: data.result ?? data, savedAt: new Date().toISOString() } }))
+      const result = data.result ?? data
+      setStates(p => ({ ...p, [activeTool]: { phase: 'done', answers, result, savedAt: new Date().toISOString() } }))
+      // Guardar en historial (Story, Carruseles, Imágenes, VSL, Reels, Emails)
+      if (id && HISTORY_TOOLS.has(activeTool)) saveToHistory(id, activeTool, result)
     } catch {
       toast.error('Error al generar. Inténtalo de nuevo.')
       setStates(p => ({ ...p, [activeTool]: { phase: 'questions', answers, result: null } }))
@@ -787,13 +797,36 @@ export default function Tools() {
                     </button>
                   </div>
                 )}
-                <RenderOutput
-                  toolId={activeTool}
-                  result={state.result}
-                  projectId={id!}
-                  savedAt={state.savedAt}
-                  onRegenerate={handleRegenerate}
-                />
+                {HISTORY_TOOLS.has(activeTool) && (
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 16, borderBottom: '1px solid var(--border)' }}>
+                    {([['current', 'Resultado'], ['history', 'Historial']] as const).map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => setOutputTab(key)}
+                        style={{
+                          padding: '8px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          background: 'transparent', border: 'none',
+                          color: outputTab === key ? 'var(--accent)' : 'var(--text-3)',
+                          borderBottom: `2px solid ${outputTab === key ? 'var(--accent)' : 'transparent'}`,
+                          marginBottom: -1,
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {HISTORY_TOOLS.has(activeTool) && outputTab === 'history' ? (
+                  <HistoryPanel projectId={id!} toolId={activeTool} title={tool?.title || 'Contenido'} />
+                ) : (
+                  <RenderOutput
+                    toolId={activeTool}
+                    result={state.result}
+                    projectId={id!}
+                    savedAt={state.savedAt}
+                    onRegenerate={handleRegenerate}
+                  />
+                )}
               </motion.div>
             )}
 
