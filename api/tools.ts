@@ -879,19 +879,15 @@ Devuelve SOLO JSON:
     "adaptability": number,
     "timeline_months": number,
     "summary": "una frase sobre la viabilidad de clonar esta estrategia"
-  },
-  "implementation_plan": {
-    "week1": { "title": "Setup y Preparación", "hours": number, "tasks": ["tarea específica 1", "tarea 2", "tarea 3", "tarea 4", "tarea 5"] },
-    "week2": { "title": "Publicación Consistente", "hours": number, "tasks": ["tarea 1", "tarea 2", "tarea 3"] },
-    "week3": { "title": "Medir y Optimizar", "hours": number, "tasks": ["tarea 1", "tarea 2", "tarea 3"] },
-    "month1_results": {
-      "engagement_improvement": "ej: 2% → 6-8%",
-      "followers_growth": "ej: +300-500 orgánico",
-      "leads_per_week": "ej: 3-5 leads/semana",
-      "estimated_revenue": "ej: $5K-10K"
-    }
   }
-}`,
+}
+
+REGLAS DE SALIDA OBLIGATORIAS (datos completos, exactos y consistentes):
+- Devuelve EXACTAMENTE los campos del esquema de arriba: NI UNO MÁS, NI UNO MENOS. No inventes campos nuevos ni omitas ninguno.
+- TODOS los campos deben venir rellenos con datos realistas. NUNCA dejes un valor vacío, null, "N/A" ni "no disponible".
+- Longitud fija de arrays: key_success_factors=3, content_mix=4, your_content_mix=3, top_hooks=3, top_ctas=3, your_hooks=3, your_ctas=3, color_palette=3, photo_style=3, your_improvements=3, best_hours=2, best_days=3.
+- Personaliza SIEMPRE las recomendaciones "your_*" con el CONTEXTO DEL PROYECTO de arriba (nicho, avatar, negocio del usuario).
+- Responde ÚNICAMENTE el objeto JSON, sin texto antes ni después.`,
   }
 
   return prompts[toolId] || null
