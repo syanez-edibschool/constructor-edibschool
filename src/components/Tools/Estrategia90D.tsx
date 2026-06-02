@@ -32,6 +32,14 @@ interface Task {
   day: number | null
   priority: 'alta' | 'media' | 'baja'
   source: 'clone_ganador' | 'plan_agencia' | 'habito'
+  tool?: string
+}
+
+// Color por herramienta asignada a la tarea
+const TOOL_COLORS: Record<string, string> = {
+  Claude: '#D97757',
+  ChatGPT: '#10A37F',
+  GoHighLevel: '#8B5CF6',
 }
 
 interface Phase {
@@ -130,6 +138,16 @@ function TaskItem({
           }}>
             {task.source === 'clone_ganador' ? 'Clone Ganador' : task.source === 'habito' ? 'Hábito' : 'Plan Agencia'}
           </span>
+          {task.tool && TOOL_COLORS[task.tool] && (
+            <span style={{
+              fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 999,
+              background: `${TOOL_COLORS[task.tool]}15`,
+              color: TOOL_COLORS[task.tool],
+              border: `1px solid ${TOOL_COLORS[task.tool]}30`,
+            }}>
+              {task.tool}
+            </span>
+          )}
           <span style={{
             fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 999,
             background: `${PRIORITY_COLORS[task.priority]}15`,

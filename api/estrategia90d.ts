@@ -85,6 +85,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 ${projectContext ? `\nCONTEXTO:\n${projectContext}` : ''}
 ${cloneContext ? `\n${cloneContext}` : ''}
 
+REGLAS GLOBALES OBLIGATORIAS (aplican a TODAS las tareas, sin excepción):
+- NO menciones ningún nombre propio de persona ni de marca específica en ninguna tarea.
+- NO incluyas precios ni tarifas de servicios en ninguna parte. La ÚNICA cifra de dinero permitida es el presupuesto de campañas: 5 € al día de media.
+- NO menciones ningún software fuera de estos cuatro: Claude, ChatGPT, GoHighLevel y Notion. PROHIBIDO mencionar ManyChat, Calendly, Mailchimp, Zapier o cualquier otro.
+- NUNCA repitas una tarea ya mencionada en una fase anterior (ej: si ya dijiste "configurar CRM", no lo vuelvas a poner en fases posteriores).
+- El lead magnet se capta y se entrega SIEMPRE por CHAT/DM, NUNCA por email.
+- En lugar de "social proof" o "prueba social", usa SIEMPRE la palabra "demos".
+- El CTA de TODAS las tareas de MOFU es exactamente "agendar demo".
+- PROHIBIDO incluir tareas de "documentar objeciones, dolores y lenguaje" o de "ajustar propuesta y PUV".
+
+ASIGNACIÓN DE HERRAMIENTA POR TAREA (rellena el campo "tool"):
+- Diseño de lead magnet y tareas de contenido/diseño → "Claude"
+- Generación de imágenes → "ChatGPT"
+- Documento de oferta final con entregables en Notion → "Claude"
+- Sitios, dominios, funnels y todo lo relacionado → "GoHighLevel"
+- Agentes / automatizaciones de DMs → "GoHighLevel"
+- Todo lo de TOFU → "Claude"
+- Si una tarea no encaja en ninguna, deja "tool": "".
+
 Responde SOLO JSON válido sin markdown. Estructura exacta:
 {
   "phases": [
@@ -96,21 +115,21 @@ Responde SOLO JSON válido sin markdown. Estructura exacta:
       "week_start": 1,
       "week_end": 2,
       "tasks": [
-        {"id": "f2-t1", "task": "Redactar PUV", "completed": false, "week": 1, "day": 1, "priority": "alta", "source": "plan_agencia"}
+        {"id": "f2-t1", "task": "Diseñar la oferta irresistible", "completed": false, "week": 1, "day": 1, "priority": "alta", "source": "plan_agencia", "tool": "Claude"}
       ]
     }
   ]
 }
 
 FASES REQUERIDAS:
-- Fase 2 "Construcción de Oferta" (sem 1-2): PUV, oferta irresistible, lead magnet, validación con 5 prospectos. 12 tareas.
-- Fase 3 "Infraestructura Digital" (sem 2-4): funnel/web, GHL/Calendly, secuencia email, agente IA DMs, propuesta comercial. 15 tareas.
-- Fase 4 "Instagram Estratégico" (sem 3-8): perfil, 9 posts iniciales, carruseles, reels, follows, DMs prospección. 20 tareas.
-- Fase 5 "Prospección Activa" (sem 1-13, paralelo): 30 contactos/día, CRM, follow-up 48-72h. 10 tareas recurrentes.
-- Fase 6 "Publicidad Paga" (sem 9-13): TOFU Follow Me Ads, MOFU captación formulario, BOFU retargeting, optimización. 12 tareas.
+- Fase 2 "Construcción de Oferta" (sem 1-2): definir la oferta irresistible, diseñar el lead magnet (captado y entregado por CHAT, nunca email), documento de oferta final con entregables en Notion, validación con 5 prospectos. 12 tareas.
+- Fase 3 "Infraestructura Digital" (sem 2-4): montar sitio/funnel/dominio en GoHighLevel, sistema de agendamiento en GoHighLevel, agente IA de DMs en GoHighLevel. 15 tareas.
+- Fase 4 "Instagram Estratégico" (sem 3-8): perfil, 9 posts iniciales, carruseles, reels, imágenes, follows, DMs de prospección. 20 tareas.
+- Fase 5 "Prospección Activa" (sem 1-13, paralelo): 30 contactos/día, configurar CRM en GoHighLevel (una sola vez en todo el plan), follow-up 48-72h. 10 tareas recurrentes.
+- Fase 6 "Publicidad Paga" (sem 9-13): contenido TOFU, MOFU de captación con CTA "agendar demo", BOFU de retargeting con demos, campañas con presupuesto medio de 5 € al día, optimización. 12 tareas.
 ${cloneGanadorData ? `Las primeras 3 tareas de fase 2 semana 1 deben basarse en Clone The Winner con source="clone_ganador".` : ''}
 
-Distribuye las tareas con week 1-13 y day 1-7. Genera al menos 65 tareas en total.`
+Distribuye las tareas con week 1-13 y day 1-7. Genera al menos 65 tareas en total. Incluye el campo "tool" en CADA tarea según la asignación de arriba.`
 
     const phasesResp = await client.messages.create({
       model: 'claude-sonnet-4-6',
