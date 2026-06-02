@@ -150,29 +150,6 @@ function RecommendationBox({ children }: { children: React.ReactNode }) {
   )
 }
 
-function CheckItem({ text }: { text: string }) {
-  const [done, setDone] = useState(false)
-  return (
-    <div
-      onClick={() => setDone(d => !d)}
-      style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer', borderBottom: '1px solid var(--border)' }}
-    >
-      <div style={{
-        width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 1,
-        border: `2px solid ${done ? '#10B981' : 'var(--border-h)'}`,
-        background: done ? '#10B981' : 'transparent',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'all .15s',
-      }}>
-        {done && <CheckCircleIcon style={{ width: 12, height: 12, color: '#fff' }} />}
-      </div>
-      <span style={{ fontSize: 12, color: done ? 'var(--text-3)' : 'var(--text-2)', textDecoration: done ? 'line-through' : 'none', lineHeight: 1.5 }}>
-        {text}
-      </span>
-    </div>
-  )
-}
-
 // ─── Full detail view (sections A–F) ──────────────────────────────────────────
 function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalysis; onBack: () => void; projectId: string }) {
   const navigate = useNavigate()
@@ -191,9 +168,6 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
     ...(a.executive_summary?.key_success_factors?.map(f => `• ${f}`) || []),
     `\nSCORE DE CLONACIÓN: ${score}/100`,
     a.score?.summary,
-    `\nPLAN DE IMPLEMENTACIÓN`,
-    `SEMANA 1: ${a.implementation_plan?.week1?.title}`,
-    ...(a.implementation_plan?.week1?.tasks?.map(t => `☐ ${t}`) || []),
   ].join('\n')
 
   const downloadAnalysis = () => {
@@ -487,44 +461,6 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
         </p>
       </Section>
 
-      {/* Implementation plan */}
-      <div style={{ borderRadius: 14, border: '1px solid rgba(0,217,255,.3)', overflow: 'hidden', marginBottom: 12, background: 'rgba(0,217,255,.03)' }}>
-        <div style={{ padding: '14px 18px', background: 'rgba(0,217,255,.06)', borderBottom: '1px solid rgba(0,217,255,.15)' }}>
-          <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--accent)' }}>Tu Plan de Implementación</p>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>Checkea cada tarea cuando la completes</p>
-        </div>
-        <div style={{ padding: '16px 18px' }}>
-          {[
-            { key: 'week1', label: 'SEMANA 1', data: a.implementation_plan?.week1 },
-            { key: 'week2', label: 'SEMANA 2', data: a.implementation_plan?.week2 },
-            { key: 'week3', label: 'SEMANA 3', data: a.implementation_plan?.week3 },
-          ].map(({ key, label, data }) => data && (
-            <div key={key} style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--accent)', background: 'var(--accent-d)', padding: '3px 8px', borderRadius: 999 }}>{label}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{data.title}</span>
-                <span style={{ fontSize: 10, color: 'var(--text-3)' }}>~{data.hours}h</span>
-              </div>
-              {data.tasks?.map((task: string, i: number) => <CheckItem key={i} text={task} />)}
-            </div>
-          ))}
-
-          {a.implementation_plan?.month1_results && (
-            <div style={{ marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'rgba(16,185,129,.08)', border: '1px solid rgba(16,185,129,.2)' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#10B981', marginBottom: 8 }}>Resultados esperados MES 1</p>
-              {Object.entries(a.implementation_plan.month1_results).map(([key, val]) => {
-                const labels: Record<string, string> = { engagement_improvement: 'Engagement', followers_growth: 'Seguidores', leads_per_week: 'Leads / semana', estimated_revenue: 'Ingresos estimados' }
-                return (
-                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '3px 0' }}>
-                    <span style={{ color: 'var(--text-3)' }}>{labels[key] || key}</span>
-                    <span style={{ fontWeight: 600, color: '#10B981' }}>{val}</span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
