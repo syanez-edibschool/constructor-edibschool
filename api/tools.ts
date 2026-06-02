@@ -605,7 +605,7 @@ Crea una propuesta comercial profesional y persuasiva con:
 La propuesta debe ser PERSUASIVA: enfocada en valor/ROI, no en características técnicas. Incluye: Resumen ejecutivo, El problema, La solución, Entregables, Timeline, Inversión, Garantía, Próximos pasos.
 Devuelve SOLO JSON: { "content": "PROPUESTA COMERCIAL\\n\\n[texto completo bien estructurado con todas las secciones]" }`,
 
-    precios: `Actúa como un PRICING STRATEGIST senior especializado en agencias de IA, con experiencia cerrando primeros clientes y escalando MRR. Aplicas el framework: SETUP inicial + FIJO MENSUAL ASEQUIBLE + opción "PROPUESTA IRRESISTIBLE" para primeras ventas.
+    precios: `Actúa como un PRICING STRATEGIST senior especializado en agencias de IA, con experiencia cerrando primeros clientes y escalando MRR. Aplicas el framework: SETUP INICIAL ALTO (anclado al valor entregado, sin exagerar) + MENSUALIDAD BAJA O PROMEDIO + opción "PROPUESTA IRRESISTIBLE" para primeras ventas.
 ${ctx}
 
 PARÁMETROS:
@@ -617,14 +617,14 @@ PARÁMETROS:
 - Diferencial: ${toolAnswers.diferencial || 'especialización en nicho'}
 - Precio mínimo aceptable/mes: ${toolAnswers.minimo || '€300/mes'}
 
-OBJETIVO: Construir una estructura de precios donde el COBRO INICIAL (setup) genera flujo de caja inmediato y el FIJO MENSUAL es lo más asequible posible para que el cliente diga sí sin pensar (objeción "precio" derribada). Adicionalmente, crea UNA "PROPUESTA IRRESISTIBLE" — un precio agresivamente bajo SOLO para las primeras ventas que sea casi imposible decir que no, para conseguir casos de éxito.
+OBJETIVO: Construir una estructura de precios donde el COBRO INICIAL (setup) sea ALTO y anclado al valor real entregado (apuntando alto, pero SIN exagerar ni volverse irreal para el mercado), generando flujo de caja fuerte al firmar; y donde la MENSUALIDAD sea BAJA O PROMEDIO, para que el cliente diga sí sin pensar (objeción "precio" derribada por la cuota recurrente asequible). Adicionalmente, crea UNA "PROPUESTA IRRESISTIBLE" — un precio agresivamente bajo SOLO para las primeras ventas que sea casi imposible decir que no, para conseguir casos de éxito.
 
 DEBES generar EXACTAMENTE 3 paquetes (Starter, Growth, Enterprise) + 1 "OFERTA IRRESISTIBLE":
 
 CADA paquete debe tener:
-- "setup": cargo inicial único (instalación, onboarding, configuración) — genera caja al firmar
-- "monthly": cuota mensual fija INTENCIONALMENTE ASEQUIBLE (relativa al mercado del cliente)
-- Razonamiento del por qué este precio funciona psicológicamente
+- "setup": cargo inicial único ALTO, anclado al valor entregado (sin exagerar) — genera caja fuerte al firmar
+- "monthly": cuota mensual fija BAJA O PROMEDIO respecto al mercado del cliente, para facilitar el sí
+- Razonamiento del por qué este precio funciona psicológicamente (setup alto = ancla de valor; mensualidad baja = sin fricción)
 
 La OFERTA IRRESISTIBLE: 50-60% más barata que Starter, con condiciones claras ("solo para los primeros 5 clientes", "se devuelve si no hay resultado en X días", "doble garantía", etc.) — pensada como herramienta de cierre con leads tibios/fríos.
 

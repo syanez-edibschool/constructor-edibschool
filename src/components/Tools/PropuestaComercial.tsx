@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeftIcon, ArrowDownTrayIcon, ArrowPathIcon, DocumentTextIcon,
-  GlobeAltIcon, DevicePhoneMobileIcon, FunnelIcon, CpuChipIcon,
+  GlobeAltIcon, DevicePhoneMobileIcon, FunnelIcon, CpuChipIcon, SparklesIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
@@ -70,6 +70,27 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
   const [answers, setAnswers]     = useState<Record<string, string>>({})
   const [content, setContent]     = useState<string>('')
   const [savedAt, setSavedAt]     = useState<string | undefined>()
+  const [suggesting, setSuggesting] = useState<Record<string, boolean>>({})
+
+  const suggest = async (q: { id: string; label: string; type: string }) => {
+    if (suggesting[q.id]) return
+    setSuggesting(p => ({ ...p, [q.id]: true }))
+    try {
+      const { data } = await api.post('/suggest-answer', {
+        projectId,
+        toolId: 'propuesta',
+        questionId: q.id,
+        questionLabel: q.label,
+        questionType: q.type,
+        existingAnswers: { serviceId, serviceName: service?.label, ...answers },
+      })
+      if (data?.suggestion) setAnswers(p => ({ ...p, [q.id]: data.suggestion }))
+    } catch {
+      toast.error('No se pudo generar la sugerencia')
+    } finally {
+      setSuggesting(p => ({ ...p, [q.id]: false }))
+    }
+  }
 
   useEffect(() => {
     api.get(`/projects/${projectId}/tools/propuesta`)
@@ -200,10 +221,28 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
               transition={{ delay: i * 0.05 }}
               style={{ padding: '14px 16px', borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)' }}
             >
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>
-                <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 6, fontSize: 11, fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</span>
-                {q.label}
-              </label>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', flex: 1 }}>
+                  <span style={{ color: 'var(--accent)', fontFamily: 'monospace', marginRight: 6, fontSize: 11, fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</span>
+                  {q.label}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => suggest(q)}
+                  disabled={!!suggesting[q.id]}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999,
+                    background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))',
+                    border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600,
+                    cursor: suggesting[q.id] ? 'wait' : 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                  }}
+                >
+                  {suggesting[q.id]
+                    ? <span style={{ width: 12, height: 12, border: '2px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
+                    : <SparklesIcon style={{ width: 12, height: 12 }} />}
+                  {suggesting[q.id] ? 'Generando…' : 'Generar con IA'}
+                </button>
+              </div>
               {q.type === 'textarea' ? (
                 <textarea
                   value={answers[q.id] || ''}
