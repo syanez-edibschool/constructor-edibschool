@@ -4,11 +4,29 @@
 export function exportToPDF(title: string, content: string) {
   import('jspdf').then(({ jsPDF }) => {
     const doc = new jsPDF()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const marginX = 20
+    const marginTop = 20
+    const marginBottom = 20
+    const lineHeight = 7
+
+    // Título
     doc.setFontSize(18)
-    doc.text(title, 20, 20)
+    doc.text(doc.splitTextToSize(title, 170), marginX, marginTop)
+
+    // Cuerpo: paginar manualmente para NO perder contenido que pase de la página 1
     doc.setFontSize(12)
-    const lines = doc.splitTextToSize(content, 170)
-    doc.text(lines, 20, 35)
+    const lines: string[] = doc.splitTextToSize(content, 170)
+    let y = marginTop + 15
+    for (const line of lines) {
+      if (y > pageHeight - marginBottom) {
+        doc.addPage()
+        y = marginTop
+      }
+      doc.text(line, marginX, y)
+      y += lineHeight
+    }
+
     doc.save(title.toLowerCase().replace(/ /g, '-') + '.pdf')
   })
 }
