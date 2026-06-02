@@ -16,6 +16,7 @@ import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
 import { saveToHistory } from '../services/toolHistory'
 import HistoryPanel from '../components/Tools/HistoryPanel'
+import ContratoEditable from '../components/Tools/ContratoEditable'
 
 // Herramientas de contenido con pestaña de historial
 const HISTORY_TOOLS = new Set(['story', 'carruseles', 'imagenes', 'vsl', 'reels', 'emails'])
@@ -405,7 +406,7 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
     case 'emails':     return <EmailsOutput sequences={r.sequences as never} />
     case 'website':    return <MegaPromptBlock prompt={r.megaprompt as string || JSON.stringify(r, null, 2)} />
     case 'propuesta':  return <PropuestaComercial projectId={projectId} />
-    case 'contrato':   return <DocBlock content={r.content as string} filename="contrato.txt" />
+    case 'contrato':   return <ContratoEditable projectId={projectId} initialContent={r.content as string} />
     case 'chat-agent': return <DocBlock content={r.content as string} filename="agente-ia-blueprint.md" />
     case 'vsl': {
       const sections = r.sections as Array<{ label: string; timing: string; content: string }>
