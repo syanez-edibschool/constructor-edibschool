@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@supabase/supabase-js"
 import type { VercelRequest, VercelResponse } from "@vercel/node"
+import { reportError } from "./_sentry"
 
 // ─── Supabase client with user JWT (respects RLS) ──────────────────────────────
 function getDb(token: string) {
@@ -1069,6 +1070,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed', step })
   } catch (error: any) {
     console.error(`[tools/${toolId}] [step=${step}]`, error)
+    await reportError(error, { fn: 'tools', toolId, projectId, step })
     return res.status(500).json({
       error: error.message || 'Error al generar herramienta',
       step,

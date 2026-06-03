@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { reportError } from './_sentry'
 
 function getDb(token: string) {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ''
@@ -89,6 +90,7 @@ ${instruction}`
     return res.status(200).json({ suggestion })
   } catch (error: any) {
     console.error('[suggest-answer]', error)
+    await reportError(error, { fn: 'suggest-answer' })
     return res.status(500).json({ error: error.message || 'Error generando sugerencia' })
   }
 }
