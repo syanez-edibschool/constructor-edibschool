@@ -44,6 +44,19 @@ const TABS = [
   { id: 'competencia' as TabId, label: 'Competencia' },
 ]
 
+// Convierte cualquier error a TEXTO. Evita pasar un objeto (ej. el {code,message}
+// que devuelve Vercel ante un 500) a toast/React, que crashearía la pantalla.
+function asText(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (v && typeof v === 'object') {
+    const o = v as { message?: unknown; error?: unknown }
+    if (typeof o.message === 'string') return o.message
+    if (typeof o.error === 'string') return o.error
+    try { return JSON.stringify(v) } catch { return 'Error inesperado' }
+  }
+  return String(v ?? 'Error inesperado')
+}
+
 export default function ReviewNiche() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -71,7 +84,8 @@ export default function ReviewNiche() {
     try {
       const { data } = await api.post(`/projects/${id}/generate-nicho-avatar-competencia`)
       if (data.error) {
-        const errorMsg = data.details ? `${data.error}: ${data.details.join('; ')}` : data.error
+        const detailStr = Array.isArray(data.details) ? data.details.map(asText).join('; ') : (data.details ? asText(data.details) : '')
+        const errorMsg = detailStr ? `${asText(data.error)}: ${detailStr}` : asText(data.error)
         console.error('[generate] API error:', errorMsg)
         toast.error(errorMsg)
         return
@@ -81,11 +95,12 @@ export default function ReviewNiche() {
       setCompetencia(data.competencia)
       setLoadingProgress(100)
     } catch (err: any) {
-      const errorMsg = err.response?.data?.error || err.message || 'Error al generar análisis'
+      const errorMsg = asText(err.response?.data?.error ?? err.message ?? 'Error al generar análisis')
       const details = err.response?.data?.details
       console.error('[generate] Exception:', { error: errorMsg, details })
       if (details) {
-        toast.error(`${errorMsg}: ${Array.isArray(details) ? details.join('; ') : details}`)
+        const detailStr = Array.isArray(details) ? details.map(asText).join('; ') : asText(details)
+        toast.error(`${errorMsg}: ${detailStr}`)
       } else {
         toast.error(errorMsg)
       }
