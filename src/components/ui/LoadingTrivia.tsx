@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlassIcon,
-  CalendarDaysIcon,
   ListBulletIcon,
-  TableCellsIcon,
   BoltIcon,
   CheckCircleIcon,
   SparklesIcon,
@@ -14,32 +12,27 @@ const STEPS = [
   {
     Icon: MagnifyingGlassIcon,
     title: 'Analizando tu proyecto...',
-    desc: 'Revisamos tu nicho, avatar y competencia para personalizar el plan',
+    desc: 'Revisamos tu nicho, avatar y contexto para personalizar el resultado',
   },
   {
-    Icon: CalendarDaysIcon,
-    title: 'Construyendo estructura de 90 días...',
-    desc: 'Organizamos 13 semanas de acción clara y ejecutable',
+    Icon: SparklesIcon,
+    title: 'Generando con IA...',
+    desc: 'Creamos contenido a la medida de tu negocio',
   },
   {
     Icon: ListBulletIcon,
-    title: 'Asignando tareas por semana...',
-    desc: 'Cada tarea tiene su momento exacto para maximizar resultados',
-  },
-  {
-    Icon: TableCellsIcon,
-    title: 'Distribuyendo contenido en el calendario...',
-    desc: 'Posts, reels, emails y prospectos en el orden correcto',
+    title: 'Dando estructura...',
+    desc: 'Organizamos las ideas en un formato claro y accionable',
   },
   {
     Icon: BoltIcon,
-    title: 'Optimizando semana 1 para máximo impacto...',
-    desc: 'Los primeros 7 días son los más importantes del plan',
+    title: 'Afinando los detalles...',
+    desc: 'Ajustamos el tono, los ganchos y las llamadas a la acción',
   },
   {
     Icon: CheckCircleIcon,
-    title: 'Finalizando tu estrategia...',
-    desc: 'Verificando que cada fase esté conectada con la siguiente',
+    title: 'Casi listo...',
+    desc: 'Revisando que todo quede coherente y profesional',
   },
 ]
 
