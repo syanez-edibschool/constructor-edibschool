@@ -239,9 +239,24 @@ function ActionBar({ onCopy, onDownload, exportText, exportTitle }: { onCopy?: (
     )}
   </div>
 }
-function TextBlocks({ items, label }: { items: string[]; label: string }) {
-  const joined = items.map((it, i) => `## ${label} ${i + 1}\n${it}`).join('\n\n')
-  return <div>{items.map((item, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label} {i + 1}</span><CopyBtn text={item} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{item}</pre></Section>)}<ActionBar onCopy={() => copy(items.join('\n\n---\n\n'))} exportText={joined} exportTitle={label} /></div>
+// Convierte cualquier item (string u objeto) a texto legible. La IA a veces
+// devuelve objetos en vez de strings; sin esto React crashea al pintarlos (#31).
+function toText(v: unknown): string {
+  if (v == null) return ''
+  if (typeof v === 'string') return v
+  if (Array.isArray(v)) return v.map(toText).join('\n')
+  if (typeof v === 'object') {
+    return Object.entries(v as Record<string, unknown>)
+      .map(([k, val]) => `${k.replace(/_/g, ' ').toUpperCase()}:\n${toText(val)}`)
+      .join('\n\n')
+  }
+  return String(v)
+}
+
+function TextBlocks({ items, label }: { items: unknown[]; label: string }) {
+  const texts = items.map(toText)
+  const joined = texts.map((it, i) => `## ${label} ${i + 1}\n${it}`).join('\n\n')
+  return <div>{texts.map((item, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label} {i + 1}</span><CopyBtn text={item} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{item}</pre></Section>)}<ActionBar onCopy={() => copy(texts.join('\n\n---\n\n'))} exportText={joined} exportTitle={label} /></div>
 }
 function DocBlock({ content, filename }: { content: string; filename: string }) {
   const title = filename.replace(/\.[^.]+$/, '')
