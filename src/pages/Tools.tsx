@@ -657,8 +657,11 @@ export default function Tools() {
       setStates(p => ({ ...p, [activeTool]: { phase: 'done', answers, result, savedAt: new Date().toISOString() } }))
       // Guardar en historial (Story, Carruseles, Imágenes, VSL, Reels, Emails)
       if (id && HISTORY_TOOLS.has(activeTool)) saveToHistory(id, activeTool, result)
-    } catch {
-      toast.error('Error al generar. Inténtalo de nuevo.')
+    } catch (e) {
+      const isTimeout = (e as { code?: string })?.code === 'ECONNABORTED'
+      toast.error(isTimeout
+        ? 'Está tardando más de lo normal. Recarga en un momento (puede haberse guardado) o reinténtalo.'
+        : 'Error al generar. Inténtalo de nuevo.')
       setStates(p => ({ ...p, [activeTool]: { phase: 'questions', answers, result: null } }))
     }
   }

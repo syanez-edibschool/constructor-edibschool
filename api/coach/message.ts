@@ -100,7 +100,7 @@ ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
     }
     messages.push({ role: 'user', content: message })
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 })
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 800,

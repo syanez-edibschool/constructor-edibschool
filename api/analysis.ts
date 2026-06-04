@@ -54,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const token = authHeader.split(' ')[1]
   const db = getDb(token)
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 })
 
   try {
     // ── Fetch project answers for context ─────────────────────────────────────

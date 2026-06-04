@@ -3,7 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { reportError } from './_sentry'
 
 function getClient() {
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 })
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

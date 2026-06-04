@@ -1018,7 +1018,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       // ── Step 6: call Anthropic (con STREAMING para evitar 504 prematuros) ──────
       step = 'anthropic-call'
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 })
       const maxTokens = TOOL_MAX_TOKENS[toolId] ?? DEFAULT_MAX_TOKENS
       const model     = TOOL_MODEL[toolId] ?? DEFAULT_MODEL
       const SYSTEM = 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado. NO incluyes texto antes ni después. NO uses bloques de código markdown. REGLA CRÍTICA DE FORMATO: dentro de los valores de texto del JSON NUNCA uses comillas dobles ("). Para citar diálogos o frases usa SIEMPRE comillas tipográficas (« » o " ") o comillas simples (\'). Las comillas dobles se reservan EXCLUSIVAMENTE para delimitar las claves y valores del JSON. Esto es obligatorio para que el JSON sea válido.'
