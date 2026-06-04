@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { api } from '../services/api'
-import { getProject, updateProject } from '../services/projectsService'
+import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
 import { saveToHistory } from '../services/toolHistory'
 import HistoryPanel from '../components/Tools/HistoryPanel'
@@ -437,7 +437,7 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
 }
 
 // ─── Question form ─────────────────────────────────────────────────────────────
-function QuestionForm({ tool, onSubmit, loading, projectId, initialTopic }: { tool: ToolDef; onSubmit: (a: Record<string, string>) => void; loading?: boolean; projectId?: string; initialTopic?: string | null }) {
+function QuestionForm({ tool, onSubmit, loading, projectId, initialTopic, initialAnswers }: { tool: ToolDef; onSubmit: (a: Record<string, string>) => void; loading?: boolean; projectId?: string; initialTopic?: string | null; initialAnswers?: Record<string, string> }) {
   // Campo principal de tema/mensaje donde se prerellena el tema importado del calendario
   const topicField = tool.qs.find(q => q.type === 'textarea')?.id
     || tool.qs.find(q => ['tema', 'mensaje', 'beneficio'].includes(q.id))?.id
@@ -445,7 +445,8 @@ function QuestionForm({ tool, onSubmit, loading, projectId, initialTopic }: { to
   const [answers, setAnswers] = useState<Record<string, string>>(() => {
     const base = Object.fromEntries(tool.qs.map(q => [q.id, q.options?.[0] || '']))
     if (initialTopic && topicField) base[topicField] = initialTopic
-    return base
+    // Prefill con respuestas previas (ej. al "Regenerar" no se pierde lo escrito).
+    return { ...base, ...(initialAnswers || {}) }
   })
   const [suggesting, setSuggesting] = useState<Record<string, boolean>>({})
   const set      = (id: string, val: string) => setAnswers(p => ({ ...p, [id]: val }))
@@ -606,7 +607,6 @@ export default function Tools() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const isMobile = useIsMobile()
   const [projectName, setProjectName] = useState<string | undefined>()
-  const [projectProgress, setProjectProgress] = useState(0)
   const [showRegenModal, setShowRegenModal] = useState(false)
 
   const tool  = TOOLS.find(t => t.id === activeTool)
@@ -619,7 +619,6 @@ export default function Tools() {
       .then(p => {
         if (!p) return
         setProjectName(p.name)
-        setProjectProgress(p.progress || 0)
       })
       .catch(() => {})
   }, [id])
@@ -688,7 +687,8 @@ export default function Tools() {
   const confirmRegenerate = () => {
     if (!activeTool) return
     setShowRegenModal(false)
-    setStates(p => ({ ...p, [activeTool]: { phase: 'questions', answers: {}, result: null } }))
+    // Mantiene las respuestas anteriores para regenerar sin volver a escribir todo.
+    setStates(p => ({ ...p, [activeTool]: { phase: 'questions', answers: p[activeTool]?.answers || {}, result: null } }))
   }
 
   // Build tool states for sidebar
@@ -699,19 +699,10 @@ export default function Tools() {
   if (activeTool) sidebarToolStates[activeTool] = state?.phase === 'done' ? 'done' : state?.phase === 'generating' ? 'active' : 'active'
 
   const doneCount = Object.values(states).filter(s => s.phase === 'done').length
-  // Progreso real = herramientas completadas / total. Tomamos el máximo entre lo
-  // guardado en BD y lo hecho en esta sesión para que NUNCA baje y quede consistente
-  // con el "X/15 completadas" del header (antes el sidebar mostraba un % viejo fijo).
-  const sessionProgress = TOOLS.length ? Math.round((doneCount / TOOLS.length) * 100) : 0
-  const displayProgress = Math.max(projectProgress, sessionProgress)
-  const displayDone = Math.round((displayProgress / 100) * TOOLS.length)
-
-  // Persistir el progreso cuando la sesión supera lo guardado (solo sube, nunca baja).
-  useEffect(() => {
-    if (!id || sessionProgress <= projectProgress) return
-    setProjectProgress(sessionProgress)
-    updateProject(id, { progress: sessionProgress }).catch(() => {})
-  }, [id, sessionProgress, projectProgress])
+  // Progreso = herramientas completadas en esta sesión / total. El header y el sidebar
+  // usan el MISMO número, así siempre coinciden y reflejan lo realmente hecho (empieza
+  // en 0 en un proyecto nuevo, no hereda el % del onboarding).
+  const realProgress = TOOLS.length ? Math.round((doneCount / TOOLS.length) * 100) : 0
 
   const breadcrumb = [
     { label: 'Dashboard', href: '/dashboard' },
@@ -730,7 +721,7 @@ export default function Tools() {
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
         projectName={projectName}
-        projectProgress={displayProgress}
+        projectProgress={realProgress}
         toolStates={sidebarToolStates}
         activeToolId={activeTool || undefined}
         onToolSelect={checkAndLoad}
@@ -754,7 +745,7 @@ export default function Tools() {
           ) : undefined}
           right={
             <span style={{ fontSize: 12, color: 'var(--text-3)', paddingRight: 8 }} aria-live="polite">
-              {displayDone}/{TOOLS.length} completadas
+              {doneCount}/{TOOLS.length} completadas
             </span>
           }
         />
@@ -865,7 +856,7 @@ export default function Tools() {
             {/* ── Questions ── */}
             {activeTool && state?.phase === 'questions' && (
               <motion.div key={`q-${activeTool}`} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
-                {tool && <QuestionForm tool={tool} onSubmit={handleSubmit} projectId={id} initialTopic={calendarTopic} />}
+                {tool && <QuestionForm tool={tool} onSubmit={handleSubmit} projectId={id} initialTopic={calendarTopic} initialAnswers={state?.answers} />}
               </motion.div>
             )}
           </AnimatePresence>
