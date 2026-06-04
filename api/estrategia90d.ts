@@ -12,13 +12,45 @@ function getDb(token: string) {
   return createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
 }
 
+// Repara JSON truncado: cierra strings, arrays y objetos que quedaron abiertos
+// (cuando la respuesta de la IA se corta por el límite de tokens).
+function repairTruncatedJSON(input: string): string {
+  let str = input.trim()
+  const stack: string[] = []
+  let inStr = false
+  let escaped = false
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i]
+    if (inStr) {
+      if (escaped) escaped = false
+      else if (c === '\\') escaped = true
+      else if (c === '"') inStr = false
+      continue
+    }
+    if (c === '"') inStr = true
+    else if (c === '{') stack.push('}')
+    else if (c === '[') stack.push(']')
+    else if (c === '}' || c === ']') stack.pop()
+  }
+  if (inStr) str += '"'
+  // Quita coma colgante o clave incompleta al final
+  str = str.replace(/,\s*$/, '').replace(/,\s*"[^"]*$/, '').replace(/:\s*$/, ': null')
+  while (stack.length) str += stack.pop()
+  return str
+}
+
 function parseJson(raw: string): unknown {
   let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
   if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
     const match = cleaned.match(/[\[{][\s\S]*[\]}]/)
     if (match) cleaned = match[0]
   }
-  return JSON.parse(cleaned)
+  // 1º intento: parse directo. 2º intento: reparando JSON truncado.
+  try {
+    return JSON.parse(cleaned)
+  } catch {
+    return JSON.parse(repairTruncatedJSON(cleaned))
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -133,7 +165,7 @@ Distribuye las tareas con week 1-13 y day 1-7. Genera al menos 65 tareas en tota
 
     const phasesResp = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 6000,
+      max_tokens: 10000,
       messages: [{ role: 'user', content: phasesPrompt }],
     })
 
