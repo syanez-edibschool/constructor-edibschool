@@ -124,7 +124,7 @@ const TOOL_MAX_TOKENS: Record<string, number> = {
   'carruseles':   5000,
   'emails':       4000,
   'website':      6000,
-  'contrato':     4500,
+  'contrato':     8000,
   'casos':        4000,
   'tracker':      3000,
   'vsl':          3500,
