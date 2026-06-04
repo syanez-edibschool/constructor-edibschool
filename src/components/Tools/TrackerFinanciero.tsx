@@ -12,21 +12,26 @@ interface HistorialRow {
   profit: number
   margen: string
 }
-
-interface TrackerData {
-  ingresos: LineItem[]
-  egresos: LineItem[]
-  otros: OtrosData
-  historial: HistorialRow[]
-}
+type MonthData = { ingresos: LineItem[]; egresos: LineItem[]; otros: OtrosData }
 
 function sum(items: LineItem[]) {
-  return items.reduce((a, b) => a + (b.monto || 0), 0)
+  return (items || []).reduce((a, b) => a + (b.monto || 0), 0)
 }
 
 function fmt(v: number) {
   return '$' + v.toLocaleString('es-ES', { maximumFractionDigits: 0 })
 }
+
+const DEFAULT_INGRESOS: LineItem[] = [
+  { id: 1, descripcion: 'Servicios', monto: 0 },
+  { id: 2, descripcion: 'Otros', monto: 0 },
+]
+const DEFAULT_EGRESOS: LineItem[] = [
+  { id: 1, descripcion: 'Software', monto: 0 },
+  { id: 2, descripcion: 'Hosting', monto: 0 },
+  { id: 3, descripcion: 'Marketing', monto: 0 },
+]
+const DEFAULT_OTROS: OtrosData = { impuestos: 0, ahorros: 10, reinversion: 20 }
 
 function downloadTxt(ingresos: LineItem[], egresos: LineItem[], otros: OtrosData, mes: string) {
   const totalI = sum(ingresos)
@@ -64,21 +69,18 @@ interface TrackerFinancieroProps {
 
 export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps) {
   const [mes, setMes] = useState(() => new Date().toISOString().slice(0, 7))
-  const [ingresos, setIngresos] = useState<LineItem[]>([
-    { id: 1, descripcion: 'Servicios', monto: 0 },
-    { id: 2, descripcion: 'Otros', monto: 0 },
-  ])
-  const [egresos, setEgresos] = useState<LineItem[]>([
-    { id: 1, descripcion: 'Software', monto: 0 },
-    { id: 2, descripcion: 'Hosting', monto: 0 },
-    { id: 3, descripcion: 'Marketing', monto: 0 },
-  ])
-  const [otros, setOtros] = useState<OtrosData>({ impuestos: 0, ahorros: 10, reinversion: 20 })
-  const [historial, setHistorial] = useState<HistorialRow[]>([])
+  const [ingresos, setIngresos] = useState<LineItem[]>(DEFAULT_INGRESOS)
+  const [egresos, setEgresos] = useState<LineItem[]>(DEFAULT_EGRESOS)
+  const [otros, setOtros] = useState<OtrosData>(DEFAULT_OTROS)
+  // Datos de TODOS los meses (cada mes su propio set). Aísla por mes.
+  const [months, setMonths] = useState<Record<string, MonthData>>({})
+  const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // ── Carga inicial: trae todos los meses (con migración del formato viejo) ──
   useEffect(() => {
+    let cancel = false
     async function load() {
       const { data } = await supabase
         .from('project_tools')
@@ -86,36 +88,75 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
         .eq('project_id', projectId)
         .eq('tool_id', 'tracker')
         .maybeSingle()
-      if (data?.result_json) {
-        const d = data.result_json as unknown as TrackerData
-        if (Array.isArray(d.ingresos) && d.ingresos.length > 0) setIngresos(d.ingresos)
-        if (Array.isArray(d.egresos)  && d.egresos.length  > 0) setEgresos(d.egresos)
-        if (d.otros)    setOtros(d.otros)
-        if (Array.isArray(d.historial)) setHistorial(d.historial)
+      if (cancel) return
+      const d = (data?.result_json as Record<string, unknown>) || {}
+      let loadedMonths: Record<string, MonthData> = {}
+      if (d.months && typeof d.months === 'object') {
+        loadedMonths = d.months as Record<string, MonthData>
+      } else if (Array.isArray(d.ingresos) || Array.isArray(d.egresos)) {
+        // Formato viejo (un solo set global): lo migramos al mes actual.
+        loadedMonths = {
+          [mes]: {
+            ingresos: (d.ingresos as LineItem[]) || DEFAULT_INGRESOS,
+            egresos: (d.egresos as LineItem[]) || DEFAULT_EGRESOS,
+            otros: (d.otros as OtrosData) || DEFAULT_OTROS,
+          },
+        }
       }
+      setMonths(loadedMonths)
+      const cur = loadedMonths[mes]
+      if (cur) {
+        setIngresos(cur.ingresos?.length ? cur.ingresos : DEFAULT_INGRESOS)
+        setEgresos(cur.egresos?.length ? cur.egresos : DEFAULT_EGRESOS)
+        setOtros(cur.otros || DEFAULT_OTROS)
+      }
+      setLoaded(true)
     }
     load()
+    return () => { cancel = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
+
+  // ── Persistir (auto-guardado y guardado manual) ──
+  const persist = async (showFlag = false) => {
+    const merged = { ...months, [mes]: { ingresos, egresos, otros } }
+    setMonths(merged)
+    if (showFlag) setSaving(true)
+    await supabase.from('project_tools').upsert(
+      { project_id: projectId, tool_id: 'tracker', result_json: { months: merged } as unknown as Record<string, unknown>, updated_at: new Date().toISOString() },
+      { onConflict: 'project_id,tool_id' },
+    )
+    if (showFlag) {
+      setSaving(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    }
+  }
+
+  // Auto-guardado: 1s después del último cambio (evita perder datos al recargar).
+  useEffect(() => {
+    if (!loaded) return
+    const t = setTimeout(() => { void persist() }, 1000)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ingresos, egresos, otros, mes, loaded])
+
+  // Cambiar de mes: guarda el actual en memoria y carga los datos del nuevo mes.
+  const changeMonth = (newMes: string) => {
+    setMonths(prev => ({ ...prev, [mes]: { ingresos, egresos, otros } }))
+    const target = months[newMes]
+    setIngresos(target?.ingresos?.length ? target.ingresos : DEFAULT_INGRESOS)
+    setEgresos(target?.egresos?.length ? target.egresos : DEFAULT_EGRESOS)
+    setOtros(target?.otros || DEFAULT_OTROS)
+    setMes(newMes)
+  }
+
+  const handleSave = () => persist(true)
 
   const totalIngresos = sum(ingresos)
   const totalEgresos  = sum(egresos)
   const profit        = totalIngresos - totalEgresos
   const margen        = totalIngresos > 0 ? ((profit / totalIngresos) * 100).toFixed(2) : '0'
-
-  const handleSave = async () => {
-    setSaving(true)
-    const newRow: HistorialRow = { mes, totalIngresos, totalEgresos, profit, margen }
-    const newHistorial = [...historial.filter(h => h.mes !== mes), newRow].sort((a, b) => a.mes.localeCompare(b.mes))
-    const content: TrackerData = { ingresos, egresos, otros, historial: newHistorial }
-    await supabase.from('project_tools').upsert(
-      { project_id: projectId, tool_id: 'tracker', result_json: content as unknown as Record<string, unknown>, updated_at: new Date().toISOString() },
-      { onConflict: 'project_id,tool_id' },
-    )
-    setHistorial(newHistorial)
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
 
   const updateIngreso = (idx: number, field: 'descripcion' | 'monto', value: string | number) =>
     setIngresos(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item))
@@ -124,6 +165,16 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
 
   const ahorrosAmt    = profit * otros.ahorros / 100
   const reinversionAmt = profit * otros.reinversion / 100
+
+  // Historial = resumen de cada mes guardado (incluye el actual en vivo).
+  const historialRows: HistorialRow[] = Object.entries({ ...months, [mes]: { ingresos, egresos, otros } })
+    .map(([m, md]) => {
+      const ti = sum(md.ingresos), te = sum(md.egresos)
+      const p = ti - te
+      return { mes: m, totalIngresos: ti, totalEgresos: te, profit: p, margen: ti > 0 ? ((p / ti) * 100).toFixed(2) : '0' }
+    })
+    .filter(r => r.totalIngresos > 0 || r.totalEgresos > 0)
+    .sort((a, b) => a.mes.localeCompare(b.mes))
 
   const summaryCards = [
     { label: 'Ingresos', value: fmt(totalIngresos), color: '#10B981' },
@@ -138,13 +189,13 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>Tracker Financiero</h2>
-          <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Registra ingresos y gastos mensualmente</p>
+          <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Registra ingresos y gastos mensualmente · se guarda solo</p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             type="month"
             value={mes}
-            onChange={e => setMes(e.target.value)}
+            onChange={e => changeMonth(e.target.value)}
             style={{ padding: '7px 12px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--text)', fontSize: 13, outline: 'none' }}
           />
           <button
@@ -296,7 +347,7 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
       </motion.button>
 
       {/* Historial */}
-      {historial.length > 0 && (
+      {historialRows.length > 0 && (
         <div style={{ borderRadius: 14, border: '1px solid var(--border)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -314,8 +365,8 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
                 </tr>
               </thead>
               <tbody>
-                {[...historial].reverse().map((row, i) => (
-                  <tr key={i} style={{ borderBottom: '1px solid var(--border)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--accent-d)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+                {[...historialRows].reverse().map((row, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: row.mes === mes ? 'var(--accent-d)' : 'transparent' }}>
                     <td style={{ padding: '9px 12px', fontWeight: 600, color: 'var(--text)' }}>{row.mes}</td>
                     <td style={{ padding: '9px 12px', color: '#10B981', fontWeight: 600, textAlign: 'right' }}>{fmt(row.totalIngresos)}</td>
                     <td style={{ padding: '9px 12px', color: '#EF4444', fontWeight: 600, textAlign: 'right' }}>{fmt(row.totalEgresos)}</td>
