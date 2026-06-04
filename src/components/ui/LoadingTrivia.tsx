@@ -43,16 +43,29 @@ const STEPS = [
   },
 ]
 
-const FACT = 'Los negocios que planifican 90 días crecen 3x más rápido que los que improvisan semana a semana.'
+const FACTS = [
+  'Los negocios que planifican 90 días crecen 3x más rápido que los que improvisan semana a semana.',
+  'El 68% de los clientes elige una agencia por la rapidez de respuesta, no por el precio.',
+  'Publicar con un calendario constante multiplica por 2 el alcance frente a publicar "cuando se puede".',
+  'Una oferta clara y específica convierte hasta 4x mejor que una genérica.',
+  'El 80% de las ventas necesita 5 o más seguimientos, pero la mayoría se rinde al segundo.',
+  'Los carruseles educativos son el formato con más guardados en Instagram: ideales para autoridad.',
+  'Responder a un lead en menos de 5 minutos multiplica por 9 la probabilidad de cerrarlo.',
+  'Un nicho específico cobra hasta 3x más que un "hago de todo": la especialización paga.',
+  'El video corto (Reels) tiene el mayor alcance orgánico de todas las redes.',
+  'Automatizar el primer contacto libera ~10 horas a la semana para tareas que sí cierran ventas.',
+]
 
 interface LoadingTriviaProps {
   steps?: typeof STEPS
   fact?: string
 }
 
-export default function LoadingTrivia({ steps = STEPS, fact = FACT }: LoadingTriviaProps) {
+export default function LoadingTrivia({ steps = STEPS, fact }: LoadingTriviaProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [showFact, setShowFact] = useState(false)
+  // Dato al azar: se fija una vez por carga y varía entre generaciones.
+  const [chosenFact] = useState(() => fact || FACTS[Math.floor(Math.random() * FACTS.length)])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -185,7 +198,7 @@ export default function LoadingTrivia({ steps = STEPS, fact = FACT }: LoadingTri
                 Dato
               </p>
               <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                {fact}
+                {chosenFact}
               </p>
             </motion.div>
           )}

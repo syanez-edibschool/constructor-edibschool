@@ -70,7 +70,7 @@ const TOOLS: ToolDef[] = [
     ],
   },
   {
-    id: 'reels', Icon: DevicePhoneMobileIcon, title: 'Prompts Reels', short: 'Reels', cat: 'contenido',
+    id: 'reels', Icon: DevicePhoneMobileIcon, title: 'Guion Reels', short: 'Reels', cat: 'contenido',
     desc: '3 guiones de reels virales con hook, edición y caption.',
     qs: [
       { id: 'tipo',     label: '¿Tipo de reel?',                 type: 'select', options: ['Educativo/Tutorial','Transformación antes/después','Behind-the-scenes','Trending/Viral','Desmontando mitos'] },
