@@ -1,7 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@supabase/supabase-js"
 import type { VercelRequest, VercelResponse } from "@vercel/node"
-import { reportError } from "./_sentry"
 
 function getDb(token: string) {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ''
@@ -244,7 +243,6 @@ Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
     return res.status(400).json({ error: `Operación desconocida: ${operation}` })
   } catch (error: any) {
     console.error(`[analysis/${operation}]`, error)
-    await reportError(error, { fn: 'analysis', operation, projectId })
     return res.status(500).json({
       error: error.message || 'Error en análisis',
       operation,

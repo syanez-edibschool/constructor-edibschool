@@ -1,7 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { reportError } from './_sentry'
 
 function getClient() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 })
@@ -216,7 +215,6 @@ Reglas:
     return res.status(200).json({ success: true, content: JSON.stringify(combined) })
   } catch (error: any) {
     console.error('Estrategia 90D error:', error)
-    await reportError(error, { fn: 'estrategia90d' })
     return res.status(500).json({ error: error.message || 'Error generando estrategia' })
   }
 }

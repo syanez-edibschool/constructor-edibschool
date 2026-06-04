@@ -2,7 +2,6 @@ import Anthropic from '@anthropic-ai/sdk'
 import { ElevenLabsClient } from 'elevenlabs'
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { reportError } from '../_sentry'
 import FormData from 'form-data'
 import fs from 'fs'
 import path from 'path'
@@ -175,7 +174,6 @@ ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
     })
   } catch (error: any) {
     console.error('Coach voice error:', error)
-    await reportError(error, { fn: 'coach/voice' })
     return res.status(500).json({ error: error.message || 'Error en coach de voz' })
   }
 }

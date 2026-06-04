@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { reportError } from './_sentry'
 
 function getClient() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 })
@@ -119,7 +118,6 @@ Escribe ÚNICAMENTE el prompt final, listo para copiar y usar. Sin explicaciones
     return res.status(200).json({ success: true, content })
   } catch (error: any) {
     console.error('Prompt generator error:', error)
-    await reportError(error, { fn: 'prompt-generator' })
     return res.status(500).json({ error: error.message || 'Error generando prompt' })
   }
 }

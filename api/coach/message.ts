@@ -1,7 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { reportError } from '../_sentry'
 
 function getDb(token: string) {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ''
@@ -112,7 +111,6 @@ ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
     return res.status(200).json({ message: reply })
   } catch (error: any) {
     console.error('Coach error:', error)
-    await reportError(error, { fn: 'coach/message' })
     return res.status(500).json({ error: error.message || 'Error en coach' })
   }
 }
