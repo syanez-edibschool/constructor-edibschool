@@ -165,7 +165,7 @@ Distribuye las tareas con week 1-13 y day 1-7. Genera al menos 65 tareas en tota
 
     const phasesResp = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 10000,
+      max_tokens: 6000,
       messages: [{ role: 'user', content: phasesPrompt }],
     })
 
