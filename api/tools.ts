@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@supabase/supabase-js"
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { reportError } from "./_sentry"
+import { checkAndLogUsage } from "./_rateLimit"
 
 // ─── Supabase client with user JWT (respects RLS) ──────────────────────────────
 function getDb(token: string) {
@@ -953,6 +954,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── POST: generate ────────────────────────────────────────────────────────
     if (req.method === 'POST') {
+      // ── Límite por usuario (anti-abuso / control de costo). Fail-open. ──
+      step = 'rate-limit'
+      const usage = await checkAndLogUsage(db, toolId)
+      if (!usage.allowed) {
+        return res.status(429).json({
+          error: `Has alcanzado el límite de ${usage.limit} generaciones por hora. Espera un poco e inténtalo de nuevo.`,
+          step,
+        })
+      }
+
       step = 'parse-body'
       const toolAnswers: Record<string, string> = req.body?.toolAnswers || {}
 

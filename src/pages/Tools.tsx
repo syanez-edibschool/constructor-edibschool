@@ -658,10 +658,13 @@ export default function Tools() {
       // Guardar en historial (Story, Carruseles, Imágenes, VSL, Reels, Emails)
       if (id && HISTORY_TOOLS.has(activeTool)) saveToHistory(id, activeTool, result)
     } catch (e) {
-      const isTimeout = (e as { code?: string })?.code === 'ECONNABORTED'
-      toast.error(isTimeout
-        ? 'Está tardando más de lo normal. Recarga en un momento (puede haberse guardado) o reinténtalo.'
-        : 'Error al generar. Inténtalo de nuevo.')
+      const err = e as { code?: string; response?: { status?: number; data?: { error?: string } } }
+      const isTimeout = err?.code === 'ECONNABORTED'
+      const limitMsg = err?.response?.status === 429 ? err?.response?.data?.error : undefined
+      toast.error(limitMsg
+        || (isTimeout
+          ? 'Está tardando más de lo normal. Recarga en un momento (puede haberse guardado) o reinténtalo.'
+          : 'Error al generar. Inténtalo de nuevo.'))
       setStates(p => ({ ...p, [activeTool]: { phase: 'questions', answers, result: null } }))
     }
   }
