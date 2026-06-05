@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate, useParams } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import {
   CheckCircleIcon, ChevronDownIcon, ChevronUpIcon, SparklesIcon,
   CalendarDaysIcon, DocumentArrowDownIcon, ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import { supabase } from '../../services/supabase'
+import { api } from '../../services/api'
 import LoadingTrivia from '../ui/LoadingTrivia'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
 
@@ -14,12 +15,24 @@ interface Item { task: string; bullets?: string[] }
 interface Section { id: string; title: string; ai?: boolean; aiTool?: string; items: Item[]; entregable?: { intro: string; bullets: string[] } }
 interface Phase { id: string; title: string; color: string; sections: Section[] }
 
+// Convierte cualquier valor a texto (la IA o un error pueden venir como objeto).
+function asText(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (v == null) return ''
+  if (typeof v === 'object') {
+    const o = v as { content?: unknown }
+    if (typeof o.content === 'string') return o.content
+    try { return JSON.stringify(v) } catch { return String(v) }
+  }
+  return String(v)
+}
+
 const CHECKLIST: Phase[] = [
   {
     id: 'f2', title: 'FASE 2 — Construcción de Oferta', color: '#00D9FF',
     sections: [
       {
-        id: '2.1', title: '2.1 Definir tu Propuesta Única de Valor (PUV)', ai: true, aiTool: 'propuesta',
+        id: '2.1', title: '2.1 Definir tu Propuesta Única de Valor (PUV)', ai: true, aiTool: 'puv',
         items: [
           { task: 'Completar la fórmula: "Ayudo a [micronicho] a [resultado] mediante [solución IA], sin [objeción principal]."' },
           { task: 'Crear 3 versiones diferentes de tu propuesta.' },
@@ -30,7 +43,7 @@ const CHECKLIST: Phase[] = [
         entregable: { intro: 'Tener una Propuesta Única de Valor final que utilizarás en:', bullets: ['Instagram', 'Página web', 'Presentaciones', 'DMs', 'Llamadas comerciales'] },
       },
       {
-        id: '2.2', title: '2.2 Crear una Oferta Irresistible', ai: true, aiTool: 'precios',
+        id: '2.2', title: '2.2 Crear una Oferta Irresistible', ai: true, aiTool: 'oferta',
         items: [
           { task: 'Elegir una forma de reducir el riesgo para el cliente:', bullets: ['Auditoría gratuita', 'Demo personalizada', 'Prueba gratuita', 'Instalación inicial sin coste'] },
           { task: 'Definir exactamente qué recibirá el prospecto.' },
@@ -39,7 +52,7 @@ const CHECKLIST: Phase[] = [
         ],
       },
       {
-        id: '2.3', title: '2.3 Crear un Lead Magnet', ai: true, aiTool: 'carruseles',
+        id: '2.3', title: '2.3 Crear un Lead Magnet', ai: true, aiTool: 'leadmagnet',
         items: [
           { task: 'Identificar el principal dolor de tu nicho.' },
           { task: 'Elegir el formato:', bullets: ['Checklist', 'PDF', 'Mini auditoría', 'Vídeo personalizado'] },
@@ -218,9 +231,14 @@ function checklistToText(checked: Set<string>): string {
   return out.join('\n')
 }
 
+const Spinner = () => (
+  <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+)
+
 // ─── Sección (acordeón) ──────────────────────────────────────────────────────
-function SectionCard({ section, color, checked, onToggle, onAI }: {
-  section: Section; color: string; checked: Set<string>; onToggle: (id: string) => void; onAI: (tool: string) => void
+function SectionCard({ section, color, checked, onToggle, onAI, aiText, aiBusy, aiErr }: {
+  section: Section; color: string; checked: Set<string>; onToggle: (id: string) => void
+  onAI: () => void; aiText?: string; aiBusy?: boolean; aiErr?: string
 }) {
   const [open, setOpen] = useState(true)
   const done = section.items.filter((_, i) => checked.has(`${section.id}-${i}`)).length
@@ -231,12 +249,13 @@ function SectionCard({ section, color, checked, onToggle, onAI }: {
       <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 16px', background: 'var(--card-bg)', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
         <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{section.title}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-          {section.ai && section.aiTool && (
+          {section.ai && (
             <span
-              onClick={(e) => { e.stopPropagation(); onAI(section.aiTool!) }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, padding: '4px 9px', borderRadius: 999, background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', cursor: 'pointer' }}
+              onClick={(e) => { e.stopPropagation(); if (!aiBusy) onAI() }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', cursor: aiBusy ? 'wait' : 'pointer' }}
             >
-              <SparklesIcon style={{ width: 11, height: 11 }} /> Generar con IA
+              {aiBusy ? <Spinner /> : <SparklesIcon style={{ width: 11, height: 11 }} />}
+              {aiBusy ? 'Generando…' : 'Generar con IA'}
             </span>
           )}
           <span style={{ fontSize: 11, fontWeight: 700, color: pct === 100 ? '#10B981' : 'var(--text-3)' }}>{done}/{section.items.length}</span>
@@ -281,6 +300,25 @@ function SectionCard({ section, color, checked, onToggle, onAI }: {
                   </ul>
                 </div>
               )}
+              {/* Resultado generado con IA (inline) */}
+              {(aiErr || aiText) && (
+                <div style={{ marginTop: 10, padding: '12px 14px', borderRadius: 8, background: 'rgba(139,92,246,.07)', border: '1px solid rgba(139,92,246,.28)' }}>
+                  {aiErr ? (
+                    <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{aiErr} <button onClick={onAI} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline', fontSize: 12 }}>Reintentar</button></p>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '.08em' }}>✨ Generado con IA</span>
+                        <div style={{ display: 'flex', gap: 12 }}>
+                          <button onClick={() => { navigator.clipboard.writeText(aiText || ''); toast.success('Copiado') }} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>Copiar</button>
+                          <button onClick={onAI} disabled={aiBusy} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: aiBusy ? 'wait' : 'pointer', fontSize: 11, fontWeight: 600 }}>Regenerar</button>
+                        </div>
+                      </div>
+                      <pre style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>{aiText}</pre>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -291,11 +329,12 @@ function SectionCard({ section, color, checked, onToggle, onAI }: {
 
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function Estrategia90D({ projectId }: { projectId: string }) {
-  const navigate = useNavigate()
-  const { id: routeProjectId } = useParams<{ id: string }>()
   const [generated, setGenerated] = useState(false)
   const [loading, setLoading] = useState(false)
   const [checked, setChecked] = useState<Set<string>>(new Set())
+  const [aiText, setAiText] = useState<Record<string, string>>({})
+  const [aiBusy, setAiBusy] = useState<Record<string, boolean>>({})
+  const [aiErr, setAiErr] = useState<Record<string, string>>({})
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -308,10 +347,11 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
         .eq('tool_id', 'estrategia90d')
         .maybeSingle()
       if (cancel) return
-      const r = data?.result_json as { generated?: boolean; checked?: string[] } | null
+      const r = data?.result_json as { generated?: boolean; checked?: string[]; ai?: Record<string, string> } | null
       if (r?.generated) {
         setGenerated(true)
         setChecked(new Set(r.checked || []))
+        if (r.ai) setAiText(r.ai)
       }
       setLoaded(true)
     }
@@ -319,9 +359,9 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
     return () => { cancel = true }
   }, [projectId])
 
-  const persist = async (gen: boolean, checkedSet: Set<string>) => {
+  const persist = async (gen: boolean, checkedSet: Set<string>, ai: Record<string, string>) => {
     await supabase.from('project_tools').upsert(
-      { project_id: projectId, tool_id: 'estrategia90d', result_json: { generated: gen, checked: [...checkedSet] } as unknown as Record<string, unknown>, updated_at: new Date().toISOString() },
+      { project_id: projectId, tool_id: 'estrategia90d', result_json: { generated: gen, checked: [...checkedSet], ai } as unknown as Record<string, unknown>, updated_at: new Date().toISOString() },
       { onConflict: 'project_id,tool_id' },
     )
   }
@@ -332,7 +372,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
     setTimeout(() => {
       setLoading(false)
       setGenerated(true)
-      void persist(true, checked)
+      void persist(true, checked, aiText)
     }, 2200)
   }
 
@@ -340,25 +380,38 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
     setChecked(prev => {
       const next = new Set(prev)
       if (next.has(tid)) next.delete(tid); else next.add(tid)
-      void persist(true, next)
+      void persist(true, next, aiText)
       return next
     })
   }
 
-  const openAITool = (tool: string) => {
-    const pid = routeProjectId || projectId
-    navigate(`/proyecto/${pid}/tools/${tool}`)
+  // Genera el contenido del bloque (PUV / oferta / lead magnet) INLINE con IA.
+  const generateAI = async (s: Section) => {
+    if (!s.aiTool || aiBusy[s.id]) return
+    setAiBusy(p => ({ ...p, [s.id]: true }))
+    setAiErr(p => ({ ...p, [s.id]: '' }))
+    try {
+      const { data } = await api.post(`/projects/${projectId}/tools/${s.aiTool}`)
+      const content = asText(data?.result?.content ?? data?.result ?? data?.content)
+      const nextAi = { ...aiText, [s.id]: content }
+      setAiText(nextAi)
+      void persist(true, checked, nextAi)
+    } catch (e) {
+      const err = e as { code?: string; response?: { data?: { error?: unknown } } }
+      const apiMsg = typeof err?.response?.data?.error === 'string' ? err.response.data.error : null
+      setAiErr(p => ({ ...p, [s.id]: err?.code === 'ECONNABORTED' ? 'Tardó demasiado. Reinténtalo.' : (apiMsg || 'No se pudo generar. Reinténtalo.') }))
+    } finally {
+      setAiBusy(p => ({ ...p, [s.id]: false }))
+    }
   }
 
   const done = [...checked].filter(id => ALL_TASK_IDS.includes(id)).length
   const globalPct = TOTAL_TASKS > 0 ? Math.round((done / TOTAL_TASKS) * 100) : 0
 
-  // ── Loading (impresión de generación) ──
   if (loading) {
     return <div style={{ padding: '40px 24px' }}><LoadingTrivia /></div>
   }
 
-  // ── Estado inicial (botón Generar) ──
   if (!generated) {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 640, margin: '0 auto', padding: '40px 24px', textAlign: 'center' }}>
@@ -376,7 +429,6 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
     )
   }
 
-  // ── Checklist ──
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
@@ -392,7 +444,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
             <button onClick={() => exportToWord('Estrategia 90 Dias', checklistToText(checked))} title="Descargar Word" style={{ height: 34, padding: '0 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
               <DocumentArrowDownIcon style={{ width: 15, height: 15 }} /> Word
             </button>
-            <button onClick={() => { setChecked(new Set()); void persist(true, new Set()) }} title="Reiniciar marcas" style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <button onClick={() => { setChecked(new Set()); void persist(true, new Set(), aiText) }} title="Reiniciar marcas" style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ArrowPathIcon style={{ width: 15, height: 15, color: 'var(--text-2)' }} />
             </button>
           </div>
@@ -410,7 +462,10 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
               <h3 style={{ fontSize: 13, fontWeight: 800, color: phase.color, letterSpacing: '0.02em' }}>{phase.title}</h3>
             </div>
             {phase.sections.map(s => (
-              <SectionCard key={s.id} section={s} color={phase.color} checked={checked} onToggle={toggle} onAI={openAITool} />
+              <SectionCard
+                key={s.id} section={s} color={phase.color} checked={checked} onToggle={toggle}
+                onAI={() => generateAI(s)} aiText={aiText[s.id]} aiBusy={aiBusy[s.id]} aiErr={aiErr[s.id]}
+              />
             ))}
           </div>
         ))}

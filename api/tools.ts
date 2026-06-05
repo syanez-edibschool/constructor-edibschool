@@ -125,6 +125,9 @@ const TOOL_MAX_TOKENS: Record<string, number> = {
   'emails':       4000,
   'website':      6000,
   'contrato':     8000,
+  'puv':          2000,
+  'oferta':       2000,
+  'leadmagnet':   2500,
   'casos':        4000,
   'tracker':      3000,
   'vsl':          3500,
@@ -754,6 +757,42 @@ Crea un contrato de servicios profesional y protector con:
 
 Incluye: partes, objeto, alcance, duración, precio, forma de pago, entregables, derechos de IP, confidencialidad, limitación responsabilidad, terminación, resolución de disputas, firmas.
 Devuelve SOLO JSON: { "content": "CONTRATO DE PRESTACIÓN DE SERVICIOS\\n\\n[texto legal completo bien estructurado]" }`,
+
+    puv: `Eres un estratega de posicionamiento para agencias de IA.
+${ctx}
+
+Crea la PROPUESTA ÚNICA DE VALOR (PUV) del negocio, basada en el contexto (nicho, avatar, servicio).
+Usa la fórmula: «Ayudo a [micronicho] a [resultado concreto] mediante [solución IA], sin [objeción principal]».
+
+Entrega 3 bloques claros:
+1) PUV PRINCIPAL recomendada: una sola frase potente lista para usar.
+2) 3 VARIACIONES alternativas (distintos ángulos del mismo mensaje).
+3) VERSIÓN CORTA para bio de Instagram (máximo 12 palabras).
+
+Devuelve SOLO JSON: { "content": "texto en markdown con los 3 bloques, claro y listo para copiar" }`,
+
+    oferta: `Eres un experto en ofertas irresistibles para agencias de IA.
+${ctx}
+
+Crea una OFERTA IRRESISTIBLE para captar los primeros clientes, adaptada al nicho y avatar. Incluye, en bloques claros:
+1) REDUCTOR DE RIESGO (auditoría gratuita / demo personalizada / prueba gratis / instalación inicial sin coste): elige el más adecuado y explica por qué.
+2) QUÉ RECIBE EXACTAMENTE el prospecto (lista concreta).
+3) RESULTADO que experimentará.
+4) PITCH CORTO (2-3 frases) listo para usar en DMs y llamadas.
+
+Devuelve SOLO JSON: { "content": "texto en markdown, claro y accionable" }`,
+
+    leadmagnet: `Eres un experto en lead magnets de alta conversión.
+${ctx}
+
+Crea un LEAD MAGNET para este nicho, basado en su dolor principal. Incluye, en bloques claros:
+1) DOLOR PRINCIPAL que ataca.
+2) FORMATO recomendado (checklist / PDF / mini-auditoría / vídeo) y por qué ese.
+3) TÍTULO atractivo + 2 alternativas.
+4) ESQUEMA DEL CONTENIDO (los puntos que incluiría, en bullets).
+5) ENTREGA: idea concreta de cómo entregarlo automáticamente (formulario/flujo).
+
+Devuelve SOLO JSON: { "content": "texto en markdown, listo para ejecutar" }`,
 
     tracker: `Eres un CFO de agencias digitales especialista en modelado financiero y proyecciones.
 ${ctx}
