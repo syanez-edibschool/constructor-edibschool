@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion'
 
 const shapes = [
-  { color: 'rgba(0,217,255,0.12)', size: 400, x: '-10%', y: '-15%', delay: 0 },
-  { color: 'rgba(139,92,246,0.10)', size: 500, x: '65%', y: '50%', delay: 2 },
+  { color: 'rgba(131,87,246,0.12)', size: 400, x: '-10%', y: '-15%', delay: 0 },
+  { color: 'rgba(196,157,255,0.10)', size: 500, x: '65%', y: '50%', delay: 2 },
   { color: 'rgba(236,72,153,0.08)', size: 350, x: '30%', y: '70%', delay: 4 },
-  { color: 'rgba(0,217,255,0.07)', size: 300, x: '80%', y: '-5%', delay: 6 },
+  { color: 'rgba(131,87,246,0.07)', size: 300, x: '80%', y: '-5%', delay: 6 },
 ]
 
 export default function MorphingShapes() {

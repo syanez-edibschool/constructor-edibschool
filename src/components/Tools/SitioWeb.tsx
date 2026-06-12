@@ -25,14 +25,14 @@ const SITE_TYPES: Record<string, SiteTypeConfig> = {
     description: 'Copy completo para generar leads con WhatsApp/Calendly. Incluye PUV, dolores, deseos y proceso.',
     sections: ['PUV + CTA WhatsApp', 'Dolores del Avatar', 'Deseos y Aspiraciones', '¿Por qué yo?', 'Proceso de Trabajo', 'CTA Final'],
     icon: DocumentTextIcon,
-    color: '#00D9FF',
+    color: '#8357F6',
   },
   'landing-venta': {
     name: 'Landing · Venta Directa',
     description: 'Sales page para vender un servicio o producto con pricing, testimonios y risk reversal.',
     sections: ['Hero + USP', 'Problema + Solución', 'Beneficios (no features)', 'Autoridad', 'Pricing (3 paquetes)', 'Testimonios', 'CTA + Garantía'],
     icon: ShoppingCartIcon,
-    color: '#EC4899',
+    color: '#AF8AE6',
   },
   'blog-seo': {
     name: 'Blog · Estrategia SEO',
@@ -46,7 +46,7 @@ const SITE_TYPES: Record<string, SiteTypeConfig> = {
     description: 'Showcase de proyectos con metodología, métricas clave y formulario de contacto.',
     sections: ['Hero + Posicionamiento', '5 Proyectos (antes/después)', 'Metodología en pasos', 'Métricas Clave', 'Testimonios', 'CTA Contacto'],
     icon: BriefcaseIcon,
-    color: '#8B5CF6',
+    color: '#C49DFF',
   },
   'community': {
     name: 'Comunidad · Membership',
@@ -251,7 +251,7 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
                 type="button"
                 onClick={() => !suggesting.colors && suggest('colors')}
                 disabled={!!suggesting.colors}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600, cursor: suggesting.colors ? 'wait' : 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg, rgba(131,87,246,0.15), rgba(196,157,255,0.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600, cursor: suggesting.colors ? 'wait' : 'pointer' }}
               >
                 {suggesting.colors ? <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} /> : <SparklesIcon style={{ width: 12, height: 12 }} />}
                 {suggesting.colors ? 'Generando…' : 'Generar con IA'}
@@ -276,7 +276,7 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
                 type="button"
                 onClick={() => !suggesting.additional && suggest('additional')}
                 disabled={!!suggesting.additional}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600, cursor: suggesting.additional ? 'wait' : 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg, rgba(131,87,246,0.15), rgba(196,157,255,0.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600, cursor: suggesting.additional ? 'wait' : 'pointer' }}
               >
                 {suggesting.additional ? <span style={{ width: 12, height: 12, border: '1.5px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} /> : <SparklesIcon style={{ width: 12, height: 12 }} />}
                 {suggesting.additional ? 'Generando…' : 'Generar con IA'}

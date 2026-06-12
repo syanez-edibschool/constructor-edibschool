@@ -84,7 +84,7 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
     const ns: Spark[] = Array.from({ length: 12 }, (_, i) => ({
       id: Date.now() + i, x: cx, y: cy,
       vx: (Math.random() - .5) * 10, vy: (Math.random() - .5) * 10,
-      color: ['#00D9FF', '#8B5CF6', '#EC4899', '#fff'][Math.floor(Math.random() * 4)],
+      color: ['#8357F6', '#C49DFF', '#AF8AE6', '#fff'][Math.floor(Math.random() * 4)],
     }))
     setSparks(s => [...s, ...ns])
     setTimeout(() => setSparks(s => s.filter(sp => !ns.find(n => n.id === sp.id))), 900)
@@ -92,8 +92,8 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
 
   const pct = project.progress || 0
   const isComplete = project.status === 'completed'
-  const cardBg = isDark ? (hovered ? 'rgba(0,217,255,.07)' : 'rgba(255,255,255,.04)') : (hovered ? 'rgba(8,145,178,.05)' : 'var(--surface)')
-  const cardBorder = isDark ? (hovered ? 'rgba(0,217,255,.3)' : 'rgba(255,255,255,.07)') : (hovered ? 'rgba(8,145,178,.4)' : 'var(--border)')
+  const cardBg = isDark ? (hovered ? 'rgba(131,87,246,.07)' : 'rgba(255,255,255,.04)') : (hovered ? 'rgba(131,87,246,.05)' : 'var(--surface)')
+  const cardBorder = isDark ? (hovered ? 'rgba(131,87,246,.3)' : 'rgba(255,255,255,.07)') : (hovered ? 'rgba(131,87,246,.4)' : 'var(--border)')
 
   return (
     <motion.div
@@ -108,12 +108,12 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
       style={{ perspective: 1000, transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${hovered ? 1.03 : 1})`, transition: hovered ? 'transform .15s ease-out' : 'transform .4s ease-out' }}
       className="relative flex flex-col gap-3 rounded-2xl overflow-hidden cursor-pointer"
     >
-      {isDark && <div className="absolute -inset-px rounded-2xl pointer-events-none transition-opacity duration-300" style={{ opacity: hovered ? 1 : 0, background: `linear-gradient(135deg, ${col}, rgba(139,92,246,.6))`, filter: 'blur(1px)' }} />}
+      {isDark && <div className="absolute -inset-px rounded-2xl pointer-events-none transition-opacity duration-300" style={{ opacity: hovered ? 1 : 0, background: `linear-gradient(135deg, ${col}, rgba(196,157,255,.6))`, filter: 'blur(1px)' }} />}
       <div
         className="relative rounded-2xl h-full flex flex-col overflow-hidden"
-        style={{ gap: 12, padding: 20, background: cardBg, border: `1px solid ${cardBorder}`, backdropFilter: isDark ? 'blur(20px)' : 'none', boxShadow: hovered ? (isDark ? `0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(0,217,255,.12)` : `0 8px 30px var(--shadow)`) : (isDark ? '0 8px 32px rgba(0,0,0,.3)' : `0 2px 8px var(--shadow)`), transition: 'all .3s ease' }}
+        style={{ gap: 12, padding: 20, background: cardBg, border: `1px solid ${cardBorder}`, backdropFilter: isDark ? 'blur(20px)' : 'none', boxShadow: hovered ? (isDark ? `0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(131,87,246,.12)` : `0 8px 30px var(--shadow)`) : (isDark ? '0 8px 32px rgba(0,0,0,.3)' : `0 2px 8px var(--shadow)`), transition: 'all .3s ease' }}
       >
-        {isDark && hovered && <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ background: `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(0,217,255,.1) 0%, transparent 60%)` }} />}
+        {isDark && hovered && <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ background: `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(131,87,246,.1) 0%, transparent 60%)` }} />}
         {sparks.map(sp => (
           <motion.div key={sp.id} className="absolute w-1.5 h-1.5 rounded-full pointer-events-none" style={{ left: sp.x, top: sp.y, background: sp.color }} initial={{ scale: 1, opacity: 1 }} animate={{ x: sp.vx * 20, y: sp.vy * 20, opacity: 0, scale: 0 }} transition={{ duration: .75, ease: 'easeOut' }} />
         ))}
@@ -144,7 +144,7 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
 
         {/* Icon + Name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))', border: '1px solid rgba(0,217,255,.2)' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))', border: '1px solid rgba(131,87,246,.2)' }}>
             <BuildingOffice2Icon className="w-5 h-5" style={{ color: 'var(--accent)' }} />
           </div>
           <div style={{ flex: 1, paddingRight: 24 }}>
@@ -161,10 +161,10 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
             <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 3 }}>Nicho</p>
             {nicho ? (
               <>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#00D9FF', marginBottom: 2, lineHeight: 1.3, wordBreak: 'break-word' }}>
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#8357F6', marginBottom: 2, lineHeight: 1.3, wordBreak: 'break-word' }}>
                   {nicho.micronicho ? nicho.micronicho.substring(0, 80) + (nicho.micronicho.length > 80 ? '...' : '') : nicho.sector || '—'}
                 </p>
-                {nicho.tam && <p style={{ fontSize: 8, color: '#8B5CF6', fontWeight: 600 }}>TAM: {nicho.tam}</p>}
+                {nicho.tam && <p style={{ fontSize: 8, color: '#C49DFF', fontWeight: 600 }}>TAM: {nicho.tam}</p>}
                 {nicho.ticket && <p style={{ fontSize: 8, color: '#10B981', fontWeight: 600 }}>Ticket: {nicho.ticket}</p>}
               </>
             ) : (
@@ -175,9 +175,9 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
             <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 3 }}>Avatar</p>
             {avatar ? (
               <>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#00D9FF', marginBottom: 1 }}>{avatar.name || '—'}</p>
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#8357F6', marginBottom: 1 }}>{avatar.name || '—'}</p>
                 {avatar.age && <p style={{ fontSize: 8, color: 'var(--text-3)', marginBottom: 1 }}>{avatar.age}</p>}
-                {avatar.position && <p style={{ fontSize: 8, color: '#EC4899', fontWeight: 600 }}>{avatar.position.substring(0, 50)}...</p>}
+                {avatar.position && <p style={{ fontSize: 8, color: '#AF8AE6', fontWeight: 600 }}>{avatar.position.substring(0, 50)}...</p>}
               </>
             ) : (
               <p style={{ fontSize: 10, color: 'var(--text-3)', fontStyle: 'italic' }}>Sin definir</p>
@@ -197,7 +197,7 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
               transition={{ duration: 1, delay: index * .07 + .3, ease: 'easeOut' }}
-              style={{ background: `linear-gradient(90deg,#00D9FF,${col},#EC4899)`, backgroundSize: '200% 100%' }}
+              style={{ background: `linear-gradient(90deg,#8357F6,${col},#AF8AE6)`, backgroundSize: '200% 100%' }}
             />
           </div>
         </div>
@@ -206,20 +206,20 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className="relative flex h-2 w-2">
-              {!isComplete && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#00D9FF' }} />}
-              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: isComplete ? '#10B981' : '#00D9FF' }} />
+              {!isComplete && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: '#8357F6' }} />}
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: isComplete ? '#10B981' : '#8357F6' }} />
             </span>
-            <span style={{ fontSize: 10, color: isComplete ? '#10B981' : 'rgba(0,217,255,.8)' }}>{isComplete ? 'Completado' : 'En progreso'}</span>
+            <span style={{ fontSize: 10, color: isComplete ? '#10B981' : 'rgba(131,87,246,.8)' }}>{isComplete ? 'Completado' : 'En progreso'}</span>
           </div>
           <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{timeAgo(project.updated_at)}</span>
         </div>
 
         {/* CTA */}
         <motion.button
-          whileHover={{ y: -2, boxShadow: '0 8px 25px rgba(0,217,255,.35)' }}
+          whileHover={{ y: -2, boxShadow: '0 8px 25px rgba(131,87,246,.35)' }}
           whileTap={{ scale: .97 }}
           onClick={e => { e.stopPropagation(); onContinue() }}
-          style={{ width: '100%', padding: '10px 0', borderRadius: 12, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', background: 'linear-gradient(135deg,#00D9FF 0%,#8B5CF6 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, position: 'relative', overflow: 'hidden' }}
+          style={{ width: '100%', padding: '10px 0', borderRadius: 12, fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', background: 'linear-gradient(135deg,#8357F6 0%,#C49DFF 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, position: 'relative', overflow: 'hidden' }}
         >
           <motion.div className="absolute inset-0" style={{ background: 'linear-gradient(105deg,transparent 40%,rgba(255,255,255,.25) 50%,transparent 60%)', backgroundSize: '200% 100%' }} animate={{ backgroundPosition: ['200% 0', '-200% 0'] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }} />
           <span className="relative">Continuar</span>

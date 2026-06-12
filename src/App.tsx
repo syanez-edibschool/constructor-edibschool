@@ -39,15 +39,15 @@ export default function App() {
           style: {
             background: 'rgba(26,26,46,0.95)',
             color: '#fff',
-            border: '1px solid rgba(0,217,255,0.2)',
+            border: '1px solid rgba(131,87,246,0.2)',
             backdropFilter: 'blur(20px)',
             borderRadius: '12px',
           },
           success: {
-            iconTheme: { primary: '#00D9FF', secondary: '#0a0a0f' },
+            iconTheme: { primary: '#8357F6', secondary: '#0E0B30' },
           },
           error: {
-            iconTheme: { primary: '#EF4444', secondary: '#0a0a0f' },
+            iconTheme: { primary: '#EF4444', secondary: '#0E0B30' },
           },
         }}
       />

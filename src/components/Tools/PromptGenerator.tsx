@@ -23,11 +23,11 @@ interface AgentData {
 
 // ─── Platform data ─────────────────────────────────────────────────────────────
 const PLATFORMS: { id: Platform; label: string; abbr: string; color: string }[] = [
-  { id: 'ghl',        label: 'Go High Level',   abbr: 'GHL',  color: '#00D9FF' },
-  { id: 'manychat',   label: 'ManyChat',         abbr: 'MC',   color: '#8B5CF6' },
+  { id: 'ghl',        label: 'Go High Level',   abbr: 'GHL',  color: '#8357F6' },
+  { id: 'manychat',   label: 'ManyChat',         abbr: 'MC',   color: '#C49DFF' },
   { id: 'whatsapp',   label: 'WhatsApp',         abbr: 'WA',   color: '#25D366' },
   { id: 'voiceflow',  label: 'Voiceflow',        abbr: 'VF',   color: '#4F46E5' },
-  { id: 'botpress',   label: 'Botpress',         abbr: 'BP',   color: '#EC4899' },
+  { id: 'botpress',   label: 'Botpress',         abbr: 'BP',   color: '#AF8AE6' },
   { id: 'chatgpt',    label: 'ChatGPT / GPT',    abbr: 'GPT',  color: '#10B981' },
   { id: 'elevenlabs', label: 'ElevenLabs',       abbr: 'EL',   color: '#F97316' },
   { id: 'otro',       label: 'Otra plataforma',  abbr: '...',  color: '#6B7280' },
@@ -48,7 +48,7 @@ function Input({ value, onChange, placeholder }: { value: string; onChange: (v: 
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      onFocus={e => (e.currentTarget.style.borderColor = 'rgba(0,217,255,0.4)')}
+      onFocus={e => (e.currentTarget.style.borderColor = 'rgba(131,87,246,0.4)')}
       onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
     />
   )
@@ -62,7 +62,7 @@ function Textarea({ value, onChange, placeholder, rows = 3 }: { value: string; o
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      onFocus={e => (e.currentTarget.style.borderColor = 'rgba(0,217,255,0.4)')}
+      onFocus={e => (e.currentTarget.style.borderColor = 'rgba(131,87,246,0.4)')}
       onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
     />
   )
@@ -122,7 +122,7 @@ function FieldRow({
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             padding: '4px 10px', borderRadius: 999,
-            background: busy ? 'var(--surface)' : 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))',
+            background: busy ? 'var(--surface)' : 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))',
             border: '1px solid var(--border-h)',
             color: 'var(--accent)', fontSize: 11, fontWeight: 600,
             cursor: busy ? 'wait' : 'pointer', flexShrink: 0, transition: 'all .2s',
@@ -238,9 +238,9 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{
               fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 999,
-              background: isGhlText ? 'rgba(0,217,255,0.12)' : 'rgba(139,92,246,0.12)',
-              color: isGhlText ? '#00D9FF' : '#8B5CF6',
-              border: `1px solid ${isGhlText ? 'rgba(0,217,255,0.25)' : 'rgba(139,92,246,0.25)'}`,
+              background: isGhlText ? 'rgba(131,87,246,0.12)' : 'rgba(196,157,255,0.12)',
+              color: isGhlText ? '#8357F6' : '#C49DFF',
+              border: `1px solid ${isGhlText ? 'rgba(131,87,246,0.25)' : 'rgba(196,157,255,0.25)'}`,
               textTransform: 'uppercase', letterSpacing: '0.08em',
             }}>
               {formatBadge}
@@ -327,8 +327,8 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
           <FieldLabel n={2} label="¿El agente interactúa por texto o por voz?" />
           <div style={{ display: 'flex', gap: 10 }}>
             {[
-              { id: 'texto' as Interaction, label: 'Texto', Icon: ChatBubbleLeftRightIcon, color: '#00D9FF' },
-              { id: 'voz'   as Interaction, label: 'Voz',   Icon: MicrophoneIcon,          color: '#8B5CF6' },
+              { id: 'texto' as Interaction, label: 'Texto', Icon: ChatBubbleLeftRightIcon, color: '#8357F6' },
+              { id: 'voz'   as Interaction, label: 'Voz',   Icon: MicrophoneIcon,          color: '#C49DFF' },
             ].map(opt => (
               <button
                 key={opt.id}
@@ -351,7 +351,7 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
           {platform && interaction && (
             <motion.div
               initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-              style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: isGhlText ? 'rgba(0,217,255,0.06)' : 'rgba(139,92,246,0.06)', border: `1px solid ${isGhlText ? 'rgba(0,217,255,0.2)' : 'rgba(139,92,246,0.2)'}`, fontSize: 11, color: isGhlText ? '#00D9FF' : '#8B5CF6' }}
+              style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: isGhlText ? 'rgba(131,87,246,0.06)' : 'rgba(196,157,255,0.06)', border: `1px solid ${isGhlText ? 'rgba(131,87,246,0.2)' : 'rgba(196,157,255,0.2)'}`, fontSize: 11, color: isGhlText ? '#8357F6' : '#C49DFF' }}
             >
               {isGhlText ? 'Formato GHL: 3 secciones (PERSONALIDAD · OBJETIVO · INFORMACIÓN ADICIONAL)' : 'Formato Profesional: 8 secciones completas'}
             </motion.div>

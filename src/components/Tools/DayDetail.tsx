@@ -41,7 +41,7 @@ function TypeIcon({ type, style }: { type: string; style?: React.CSSProperties }
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  Carrusel: '#8B5CF6', Reel: '#EC4899', Story: '#F59E0B', Post: '#10B981', Video: '#3B82F6', Email: '#0891b2', Live: '#EF4444',
+  Carrusel: '#C49DFF', Reel: '#AF8AE6', Story: '#F59E0B', Post: '#10B981', Video: '#3B82F6', Email: '#0891b2', Live: '#EF4444',
 }
 
 export default function DayDetail({ day, weekIndex, dayIndex, onClose, onSave, onDelete }: DayDetailProps) {

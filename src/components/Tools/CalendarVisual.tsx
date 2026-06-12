@@ -47,7 +47,7 @@ function formatCellDate(date: Date): string {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  Carrusel: '#8B5CF6', Reel: '#EC4899', Story: '#F59E0B',
+  Carrusel: '#C49DFF', Reel: '#AF8AE6', Story: '#F59E0B',
   Post: '#10B981', Video: '#3B82F6', Email: '#0891b2', Live: '#EF4444',
 }
 
@@ -93,8 +93,8 @@ interface SelectedDay { day: CalendarDay; weekIndex: number; dayIndex: number }
 
 const CONTENT_FILTERS: Array<{ key: string; label: string; color: string }> = [
   { key: 'all',      label: 'Todos',      color: 'var(--accent)' },
-  { key: 'Reel',     label: 'Reels',      color: '#EC4899'       },
-  { key: 'Carrusel', label: 'Carruseles', color: '#8B5CF6'       },
+  { key: 'Reel',     label: 'Reels',      color: '#AF8AE6'       },
+  { key: 'Carrusel', label: 'Carruseles', color: '#C49DFF'       },
   { key: 'Story',    label: 'Stories',    color: '#F59E0B'       },
   { key: 'Post',     label: 'Posts',      color: '#10B981'       },
   { key: 'Video',    label: 'Video',      color: '#3B82F6'       },

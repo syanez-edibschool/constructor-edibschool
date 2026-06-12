@@ -88,14 +88,14 @@ export default function LoadingTrivia({ steps = STEPS, fact }: LoadingTriviaProp
             style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
               border: '2px solid transparent',
-              borderTopColor: '#00D9FF',
-              borderRightColor: '#8B5CF6',
+              borderTopColor: '#8357F6',
+              borderRightColor: '#C49DFF',
             }}
           />
           <div style={{
             position: 'absolute', inset: 6,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg,rgba(0,217,255,.1),rgba(139,92,246,.1))',
+            background: 'linear-gradient(135deg,rgba(131,87,246,.1),rgba(196,157,255,.1))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <SparklesIcon style={{ width: 18, height: 18, color: 'var(--accent)' }} />
@@ -125,7 +125,7 @@ export default function LoadingTrivia({ steps = STEPS, fact }: LoadingTriviaProp
             <motion.div
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
-              style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,#00D9FF,#8B5CF6)' }}
+              style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,#8357F6,#C49DFF)' }}
             />
           </div>
         </div>
@@ -142,8 +142,8 @@ export default function LoadingTrivia({ steps = STEPS, fact }: LoadingTriviaProp
           >
             <div style={{
               width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-              background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.12))',
-              border: '1px solid rgba(0,217,255,.25)',
+              background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.12))',
+              border: '1px solid rgba(131,87,246,.25)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Icon style={{ width: 20, height: 20, color: 'var(--accent)' }} />
@@ -166,7 +166,7 @@ export default function LoadingTrivia({ steps = STEPS, fact }: LoadingTriviaProp
               key={i}
               animate={{
                 width: i === currentStep ? 20 : 6,
-                background: i <= currentStep ? '#00D9FF' : 'var(--border)',
+                background: i <= currentStep ? '#8357F6' : 'var(--border)',
               }}
               transition={{ duration: 0.3 }}
               style={{ height: 6, borderRadius: 999 }}
@@ -183,8 +183,8 @@ export default function LoadingTrivia({ steps = STEPS, fact }: LoadingTriviaProp
               style={{
                 padding: '12px 14px',
                 borderRadius: 10,
-                background: 'rgba(0,217,255,.06)',
-                border: '1px solid rgba(0,217,255,.2)',
+                background: 'rgba(131,87,246,.06)',
+                border: '1px solid rgba(131,87,246,.2)',
               }}
             >
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 3, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>

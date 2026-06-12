@@ -12,8 +12,8 @@ export default function QuickActions({ onNewProject }: QuickActionsProps) {
   const [open, setOpen] = useState(false)
 
   const actions: Action[] = [
-    { label: 'Nuevo proyecto', Icon: FolderPlusIcon, color: '#00D9FF', onClick: () => { onNewProject(); setOpen(false) } },
-    { label: 'Plantillas',     Icon: SparklesIcon,   color: '#8B5CF6', onClick: () => setOpen(false) },
+    { label: 'Nuevo proyecto', Icon: FolderPlusIcon, color: '#8357F6', onClick: () => { onNewProject(); setOpen(false) } },
+    { label: 'Plantillas',     Icon: SparklesIcon,   color: '#C49DFF', onClick: () => setOpen(false) },
   ]
 
   return (
@@ -76,20 +76,20 @@ export default function QuickActions({ onNewProject }: QuickActionsProps) {
       {/* Main FAB */}
       <motion.button
         onClick={() => setOpen(o => !o)}
-        whileHover={{ scale: 1.08, boxShadow: '0 16px 40px rgba(0,217,255,.5), 0 0 50px rgba(139,92,246,.3)' }}
+        whileHover={{ scale: 1.08, boxShadow: '0 16px 40px rgba(131,87,246,.5), 0 0 50px rgba(196,157,255,.3)' }}
         whileTap={{ scale: 0.94 }}
         animate={{
           rotate: open ? 45 : 0,
           boxShadow: open
-            ? '0 8px 30px rgba(0,217,255,.5)'
-            : ['0 8px 30px rgba(0,217,255,.35)', '0 8px 38px rgba(139,92,246,.5)', '0 8px 30px rgba(0,217,255,.35)'],
+            ? '0 8px 30px rgba(131,87,246,.5)'
+            : ['0 8px 30px rgba(131,87,246,.35)', '0 8px 38px rgba(196,157,255,.5)', '0 8px 30px rgba(131,87,246,.35)'],
         }}
         transition={{ rotate: { duration: 0.2 }, boxShadow: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' } }}
         aria-label="Acciones rápidas"
         aria-expanded={open}
         style={{
           width: 56, height: 56, borderRadius: '50%',
-          background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)',
+          background: 'linear-gradient(135deg,#8357F6,#C49DFF)',
           border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           position: 'relative', zIndex: 1,

@@ -179,8 +179,8 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
   const summaryCards = [
     { label: 'Ingresos', value: fmt(totalIngresos), color: '#10B981' },
     { label: 'Egresos',  value: fmt(totalEgresos),  color: '#EF4444' },
-    { label: 'Profit',   value: fmt(profit),         color: '#00D9FF' },
-    { label: 'Margen',   value: `${margen}%`,        color: '#8B5CF6' },
+    { label: 'Profit',   value: fmt(profit),         color: '#8357F6' },
+    { label: 'Margen',   value: `${margen}%`,        color: '#C49DFF' },
   ]
 
   return (
@@ -333,11 +333,11 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
       <motion.button
         onClick={handleSave}
         disabled={saving}
-        whileHover={{ y: -2, boxShadow: '0 8px 25px rgba(0,217,255,.3)' }}
+        whileHover={{ y: -2, boxShadow: '0 8px 25px rgba(131,87,246,.3)' }}
         whileTap={{ scale: .97 }}
         style={{
           width: '100%', padding: '12px 0', borderRadius: 12,
-          background: saved ? '#10B981' : 'linear-gradient(135deg,#00D9FF,#8B5CF6)',
+          background: saved ? '#10B981' : 'linear-gradient(135deg,#8357F6,#C49DFF)',
           border: 'none', cursor: saving ? 'wait' : 'pointer',
           fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 24,
           transition: 'background .3s',
@@ -370,8 +370,8 @@ export default function TrackerFinanciero({ projectId }: TrackerFinancieroProps)
                     <td style={{ padding: '9px 12px', fontWeight: 600, color: 'var(--text)' }}>{row.mes}</td>
                     <td style={{ padding: '9px 12px', color: '#10B981', fontWeight: 600, textAlign: 'right' }}>{fmt(row.totalIngresos)}</td>
                     <td style={{ padding: '9px 12px', color: '#EF4444', fontWeight: 600, textAlign: 'right' }}>{fmt(row.totalEgresos)}</td>
-                    <td style={{ padding: '9px 12px', color: '#00D9FF', fontWeight: 600, textAlign: 'right' }}>{fmt(row.profit)}</td>
-                    <td style={{ padding: '9px 12px', color: '#8B5CF6', fontWeight: 700, textAlign: 'right' }}>{row.margen}%</td>
+                    <td style={{ padding: '9px 12px', color: '#8357F6', fontWeight: 600, textAlign: 'right' }}>{fmt(row.profit)}</td>
+                    <td style={{ padding: '9px 12px', color: '#C49DFF', fontWeight: 700, textAlign: 'right' }}>{row.margen}%</td>
                   </tr>
                 ))}
               </tbody>

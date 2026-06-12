@@ -122,7 +122,7 @@ interface StatsCardsProps {
 export default function StatsCards({ total, active, completed }: StatsCardsProps) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 'var(--sp-md)' }}>
-      <StatCard label="Total proyectos" value={total}     Icon={FolderIcon}       color="#00D9FF" spark={SPARKS[0]} change={total > 0 ? `+${total}` : undefined} />
+      <StatCard label="Total proyectos" value={total}     Icon={FolderIcon}       color="#8357F6" spark={SPARKS[0]} change={total > 0 ? `+${total}` : undefined} />
       <StatCard label="En progreso"     value={active}    Icon={BoltIcon}         color="#F59E0B" spark={SPARKS[1]} />
       <StatCard label="Completados"     value={completed} Icon={CheckCircleIcon}  color="#10B981" spark={SPARKS[2]} />
     </div>

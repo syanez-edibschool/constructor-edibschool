@@ -48,7 +48,7 @@ function ParticleCanvas({ refs }: { refs: React.MutableRefObject<CanvasRefs> }) 
     window.addEventListener('resize', resize)
 
     type RGB = [number, number, number]
-    const C: RGB[] = [[0,217,255],[0,217,255],[139,92,246],[236,72,153],[139,92,246]]
+    const C: RGB[] = [[131,87,246],[131,87,246],[196,157,255],[236,72,153],[196,157,255]]
 
     interface P {
       x: number; y: number; vx: number; vy: number
@@ -89,7 +89,7 @@ function ParticleCanvas({ refs }: { refs: React.MutableRefObject<CanvasRefs> }) 
             const y = baseY + Math.sin(x * 0.008 + t * 0.025 + i * 1.7) * 18 * intensity
             x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
           }
-          ctx.strokeStyle = `rgba(0,217,255,${0.025 * intensity})`
+          ctx.strokeStyle = `rgba(131,87,246,${0.025 * intensity})`
           ctx.lineWidth = 1
           ctx.stroke()
         }
@@ -201,11 +201,11 @@ const MORPHS = [
 ]
 
 const SHAPE_DEFS = [
-  { size: 520, x: '-10%', y: '-18%', color: '0,217,255', op: 0.14, delay: 0, dur: 9, morph: 0 },
-  { size: 580, x: '62%',  y: '45%',  color: '139,92,246', op: 0.12, delay: 2.5, dur: 11, morph: 1 },
+  { size: 520, x: '-10%', y: '-18%', color: '131,87,246', op: 0.14, delay: 0, dur: 9, morph: 0 },
+  { size: 580, x: '62%',  y: '45%',  color: '196,157,255', op: 0.12, delay: 2.5, dur: 11, morph: 1 },
   { size: 380, x: '20%',  y: '62%',  color: '236,72,153', op: 0.09, delay: 5, dur: 8, morph: 2 },
-  { size: 300, x: '78%',  y: '-6%',  color: '0,217,255', op: 0.08, delay: 3.5, dur: 10, morph: 3 },
-  { size: 250, x: '42%',  y: '82%',  color: '139,92,246', op: 0.07, delay: 1, dur: 7, morph: 4 },
+  { size: 300, x: '78%',  y: '-6%',  color: '131,87,246', op: 0.08, delay: 3.5, dur: 10, morph: 3 },
+  { size: 250, x: '42%',  y: '82%',  color: '196,157,255', op: 0.07, delay: 1, dur: 7, morph: 4 },
 ]
 
 function MorphingLayer({ intensity, offset }: { intensity: number; offset: number }) {
@@ -238,8 +238,8 @@ function GlowOrbs({ intensity, offset }: { intensity: number; offset: number }) 
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ transform: `translateY(${offset}px)` }}>
       {[
-        { w: 480+intensity*200, x: '4%', y: `${4 - intensity*12}%`, color:'0,217,255', dur: 5, delay: 0 },
-        { w: 560+intensity*160, x: 'auto', y: `${4 - intensity*10}%`, color:'139,92,246', dur: 7, delay: 1.5, right:'4%' },
+        { w: 480+intensity*200, x: '4%', y: `${4 - intensity*12}%`, color:'131,87,246', dur: 5, delay: 0 },
+        { w: 560+intensity*160, x: 'auto', y: `${4 - intensity*10}%`, color:'196,157,255', dur: 7, delay: 1.5, right:'4%' },
         { w: 320+intensity*100, x: '38%', y: `${38 + intensity*8}%`, color:'236,72,153', dur: 6, delay: 3 },
       ].map((o, i) => (
         <motion.div key={i} style={{
@@ -268,7 +268,7 @@ function CursorGlow({ mx, my }: { mx: number; my: number }) {
         left: `${mx * 100}%`, top: `${my * 100}%`,
         transform: 'translate(-50%, -50%)',
         width: 320, height: 320,
-        background: 'radial-gradient(circle, rgba(0,217,255,0.09) 0%, transparent 60%)',
+        background: 'radial-gradient(circle, rgba(131,87,246,0.09) 0%, transparent 60%)',
         filter: 'blur(18px)',
         transition: 'left 0.08s ease-out, top 0.08s ease-out',
         pointerEvents: 'none',
@@ -287,7 +287,7 @@ function GlitchOverlay() {
       initial={{ opacity: 0, x: 0 }}
       animate={{ opacity: [0, 0.9, 0, 0.6, 0, 0.8, 0], x: [-3, 3, -2, 4, 0, -1, 0], skewX: [0, 1, -1, 0] }}
       transition={{ duration: 0.12, ease: 'linear' }}
-      style={{ background: 'linear-gradient(135deg, rgba(0,217,255,0.04), rgba(236,72,153,0.04))', mixBlendMode: 'screen' }}
+      style={{ background: 'linear-gradient(135deg, rgba(131,87,246,0.04), rgba(236,72,153,0.04))', mixBlendMode: 'screen' }}
     />
   )
 }
@@ -301,7 +301,7 @@ function NeonInput({ label, type, placeholder, value, onChange, autoComplete }: 
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(0,217,255,0.5)' }}>{label}</label>
+      <label className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: 'rgba(131,87,246,0.5)' }}>{label}</label>
       <input
         type={type} placeholder={placeholder} value={value}
         onChange={e => onChange(e.target.value)} autoComplete={autoComplete}
@@ -330,7 +330,7 @@ function GradientButton({ children, loading }: { children: React.ReactNode; load
     setRipples(r => [...r, { id: rid, x: cx, y: cy }])
     setTimeout(() => setRipples(r => r.filter(rp => rp.id !== rid)), 700)
 
-    const COLS = ['#00D9FF','#8B5CF6','#EC4899','#ffffff','#00D9FF']
+    const COLS = ['#8357F6','#C49DFF','#AF8AE6','#ffffff','#8357F6']
     const ns: Spark[] = Array.from({ length: 18 }, (_, i) => ({
       id: rid + i, x: cx, y: cy,
       vx: (Math.random()-0.5)*9, vy: (Math.random()-0.5)*9,
@@ -343,11 +343,11 @@ function GradientButton({ children, loading }: { children: React.ReactNode; load
   return (
     <motion.button
       type="submit" disabled={loading} onClick={handleClick}
-      whileHover={{ y: -4, boxShadow: '0 20px 60px rgba(0,217,255,0.5), 0 8px 30px rgba(139,92,246,0.4)' }}
+      whileHover={{ y: -4, boxShadow: '0 20px 60px rgba(131,87,246,0.5), 0 8px 30px rgba(196,157,255,0.4)' }}
       whileTap={{ y: -1, scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 280, damping: 18 }}
       className="relative w-full overflow-hidden rounded-xl py-[15px] text-sm font-black tracking-[0.18em] uppercase text-white disabled:opacity-50"
-      style={{ background: 'linear-gradient(135deg, #00D9FF 0%, #8B5CF6 55%, #EC4899 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #8357F6 0%, #C49DFF 55%, #AF8AE6 100%)' }}
     >
       {/* Shimmer sweep */}
       <motion.div className="absolute inset-0 pointer-events-none"
@@ -391,10 +391,10 @@ function ScrollHint() {
       <p className="text-[10px] tracking-[0.25em] uppercase text-white/25">Scroll para explorar</p>
       <motion.div
         className="w-5 h-8 rounded-full flex items-start justify-center pt-1.5"
-        style={{ border: '1px solid rgba(0,217,255,0.25)' }}
+        style={{ border: '1px solid rgba(131,87,246,0.25)' }}
       >
         <motion.div className="w-1 h-2 rounded-full"
-          style={{ background: '#00D9FF' }}
+          style={{ background: '#8357F6' }}
           animate={{ y: [0, 10, 0], opacity: [1, 0, 1] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -512,7 +512,7 @@ export default function Login() {
         {/* Sticky viewport */}
         <div style={{
           position: 'sticky', top: 0, height: '100vh', overflow: 'hidden',
-          background: '#0a0a0f',
+          background: '#0E0B30',
         }}>
 
           {/* ── Layer 1: Particle canvas (parallax internal) ── */}
@@ -526,7 +526,7 @@ export default function Login() {
 
           {/* Grid texture */}
           <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.025]" style={{
-            backgroundImage: 'linear-gradient(rgba(0,217,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,217,255,1) 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(rgba(131,87,246,1) 1px, transparent 1px), linear-gradient(90deg, rgba(131,87,246,1) 1px, transparent 1px)',
             backgroundSize: '56px 56px',
           }} />
 
@@ -560,7 +560,7 @@ export default function Login() {
                   animate={{ opacity: [0.6, 1, 0.6] }}
                   transition={{ duration: 2.5, repeat: Infinity }}
                   style={{
-                    background: `linear-gradient(135deg, ${glowCol}, rgba(139,92,246,0.6), rgba(236,72,153,0.4))`,
+                    background: `linear-gradient(135deg, ${glowCol}, rgba(196,157,255,0.6), rgba(236,72,153,0.4))`,
                     filter: `blur(1px)`,
                     borderRadius: 28,
                   }}
@@ -571,11 +571,11 @@ export default function Login() {
                   background: 'rgba(255,255,255,0.05)',
                   backdropFilter: 'blur(28px)',
                   WebkitBackdropFilter: 'blur(28px)',
-                  border: `1px solid rgba(0,217,255,${0.15 + intensity * 0.25})`,
-                  boxShadow: `0 40px 100px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 ${60 + intensity*60}px rgba(0,217,255,${0.05 + intensity*0.1})`,
+                  border: `1px solid rgba(131,87,246,${0.15 + intensity * 0.25})`,
+                  boxShadow: `0 40px 100px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.07), 0 0 ${60 + intensity*60}px rgba(131,87,246,${0.05 + intensity*0.1})`,
                 }}>
                   {/* Top line */}
-                  <div className="h-[1.5px]" style={{ background: `linear-gradient(90deg, transparent, ${glowCol}, rgba(139,92,246,0.9), transparent)` }} />
+                  <div className="h-[1.5px]" style={{ background: `linear-gradient(90deg, transparent, ${glowCol}, rgba(196,157,255,0.9), transparent)` }} />
 
                   <div className="px-8 pt-9 pb-8">
                     {/* Logo */}
@@ -588,7 +588,7 @@ export default function Login() {
                         <motion.span
                           className="text-[36px] font-black"
                           style={{
-                            background: `linear-gradient(135deg, ${glowCol} 0%, #8B5CF6 50%, #EC4899 100%)`,
+                            background: `linear-gradient(135deg, ${glowCol} 0%, #C49DFF 50%, #AF8AE6 100%)`,
                             backgroundSize: '300% 100%',
                             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                           }}
@@ -628,7 +628,7 @@ export default function Login() {
 
                       {sent && (
                         <motion.p className="text-[11px] text-center leading-relaxed"
-                          style={{ color: 'rgba(0,217,255,0.7)' }}
+                          style={{ color: 'rgba(131,87,246,0.7)' }}
                           initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                           Revisa tu bandeja de entrada (y spam). Haz clic en el link para entrar.
                         </motion.p>
@@ -644,7 +644,7 @@ export default function Login() {
                   </div>
 
                   {/* Bottom line */}
-                  <div className="h-[1.5px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.6), rgba(0,217,255,0.6), transparent)' }} />
+                  <div className="h-[1.5px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(196,157,255,0.6), rgba(131,87,246,0.6), transparent)' }} />
                 </div>
               </motion.div>
             </div>
@@ -658,7 +658,7 @@ export default function Login() {
             { pos: 'bottom-5 right-5', b: 'border-b border-r', r: 'rounded-br' },
           ].map(({ pos, b, r }, i) => (
             <div key={i} className={`fixed ${pos} w-10 h-10 ${b} ${r} pointer-events-none z-10 opacity-20`}
-              style={{ borderColor: i % 2 === 0 ? 'rgba(0,217,255,0.6)' : 'rgba(139,92,246,0.6)' }} />
+              style={{ borderColor: i % 2 === 0 ? 'rgba(131,87,246,0.6)' : 'rgba(196,157,255,0.6)' }} />
           ))}
 
           {/* Scroll hint (fade out after first scroll) */}
@@ -667,7 +667,7 @@ export default function Login() {
           {/* Scroll progress bar (top) */}
           <div className="absolute top-0 left-0 h-[2px] pointer-events-none z-30" style={{
             width: `${sp * 100}%`,
-            background: `linear-gradient(90deg, #00D9FF, ${glowCol}, #EC4899)`,
+            background: `linear-gradient(90deg, #8357F6, ${glowCol}, #AF8AE6)`,
             boxShadow: `0 0 12px ${glowCol}`,
             transition: 'width 0.1s ease-out',
           }} />

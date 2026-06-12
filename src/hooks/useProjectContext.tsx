@@ -87,9 +87,9 @@ export function useProjectContext(projectId: string | null | undefined) {
 // Visible context summary for tool panels
 export function ContextBadges({ context }: { context: ProjectContext }) {
   const items = [
-    context.nicho     && { label: `Nicho: ${(context.nicho as any)?.micronicho || '✓'}`, color: '#00D9FF' },
-    context.avatar    && { label: `Avatar: ${(context.avatar as any)?.name || '✓'}`, color: '#8B5CF6' },
-    context.calendario && { label: `Calendario: ${(context.calendario as any)?.weeks?.length || '?'} semanas`, color: '#EC4899' },
+    context.nicho     && { label: `Nicho: ${(context.nicho as any)?.micronicho || '✓'}`, color: '#8357F6' },
+    context.avatar    && { label: `Avatar: ${(context.avatar as any)?.name || '✓'}`, color: '#C49DFF' },
+    context.calendario && { label: `Calendario: ${(context.calendario as any)?.weeks?.length || '?'} semanas`, color: '#AF8AE6' },
     context.copys?.length && { label: `Copys: ${context.copys.length}`, color: '#10B981' },
   ].filter(Boolean) as { label: string; color: string }[]
 

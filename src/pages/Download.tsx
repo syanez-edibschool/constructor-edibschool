@@ -50,7 +50,7 @@ export default function Download() {
   return (
     <div className="min-h-screen bg-dark flex flex-col items-center justify-center p-6">
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,217,255,0.06) 0%, transparent 70%)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(131,87,246,0.06) 0%, transparent 70%)' }} />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -59,7 +59,7 @@ export default function Download() {
       >
         <div className="text-center mb-10">
           <div className="mb-4 flex justify-center">
-            <ArchiveBoxArrowDownIcon style={{ width: 64, height: 64, color: 'rgba(0,217,255,0.8)' }} />
+            <ArchiveBoxArrowDownIcon style={{ width: 64, height: 64, color: 'rgba(131,87,246,0.8)' }} />
           </div>
           <h1 className="text-4xl font-black mb-3 gradient-text">Tu Agencia de IA</h1>
           <p className="text-white/50">Todo listo para lanzar. Descarga todos tus materiales en un click.</p>
@@ -71,7 +71,7 @@ export default function Download() {
           <div className="grid grid-cols-2 gap-3">
             {CONTENTS.map((item) => (
               <div key={item.label} className="flex items-center gap-3 text-sm">
-                <item.Icon style={{ width: 18, height: 18, color: 'rgba(0,217,255,0.7)', flexShrink: 0 }} />
+                <item.Icon style={{ width: 18, height: 18, color: 'rgba(131,87,246,0.7)', flexShrink: 0 }} />
                 <div>
                   <p className="font-mono text-cyan/80 text-xs">{item.label}</p>
                   <p className="text-white/40 text-xs">{item.desc}</p>

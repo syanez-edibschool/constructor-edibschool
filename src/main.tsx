@@ -21,7 +21,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Sentry.ErrorBoundary
       fallback={
-        <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', color: '#e5e7eb', background: '#0a0a0f', minHeight: '100vh' }}>
+        <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', color: '#e5e7eb', background: '#0E0B30', minHeight: '100vh' }}>
           <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Algo salió mal</h1>
           <p style={{ fontSize: 14, opacity: 0.7 }}>Recarga la página. Si el problema persiste, vuelve a intentarlo en unos minutos.</p>
         </div>

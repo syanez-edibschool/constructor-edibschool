@@ -74,7 +74,7 @@ function ParticleCanvas({ state }: { state: React.MutableRefObject<CanvasState> 
     resize(); window.addEventListener('resize', resize)
 
     type RGB = [number, number, number]
-    const C: RGB[] = [[0, 217, 255], [0, 217, 255], [139, 92, 246], [236, 72, 153], [139, 92, 246]]
+    const C: RGB[] = [[131, 87, 246], [131, 87, 246], [196, 157, 255], [236, 72, 153], [196, 157, 255]]
 
     interface P { x: number; y: number; vx: number; vy: number; r: number; opacity: number; color: RGB; phase: number; freq: number; trail: { x: number; y: number }[] }
     const particles: P[] = Array.from({ length: 55 }, (_, i) => {
@@ -134,10 +134,10 @@ const MORPHS = [
 ]
 function MorphingLayer({ scrollY }: { scrollY: number }) {
   const defs = [
-    { size: 500, left: '-8%',  top: '-12%', color: '0,217,255',   op: .12, delay: 0,   dur: 9,  m: 0 },
-    { size: 560, left: '65%',  top: '30%',  color: '139,92,246',  op: .10, delay: 2.5, dur: 11, m: 1 },
+    { size: 500, left: '-8%',  top: '-12%', color: '131,87,246',   op: .12, delay: 0,   dur: 9,  m: 0 },
+    { size: 560, left: '65%',  top: '30%',  color: '196,157,255',  op: .10, delay: 2.5, dur: 11, m: 1 },
     { size: 360, left: '18%',  top: '60%',  color: '236,72,153',  op: .08, delay: 5,   dur: 8,  m: 2 },
-    { size: 280, left: '80%',  top: '5%',   color: '0,217,255',   op: .07, delay: 3.5, dur: 10, m: 3 },
+    { size: 280, left: '80%',  top: '5%',   color: '131,87,246',   op: .07, delay: 3.5, dur: 10, m: 3 },
   ]
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 1, transform: `translateY(${scrollY * .15}px)` }}>
@@ -154,8 +154,8 @@ function GlowOrbs({ scrollY }: { scrollY: number }) {
   return (
     <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1, transform: `translateY(${scrollY * .25}px)` }}>
       {[
-        { w: 450, l: '3%',   t: '8%',  c: '0,217,255',   dur: 5, d: 0   },
-        { w: 520, l: 'auto', t: '15%', c: '139,92,246', r: '3%', dur: 7, d: 1.5 },
+        { w: 450, l: '3%',   t: '8%',  c: '131,87,246',   dur: 5, d: 0   },
+        { w: 520, l: 'auto', t: '15%', c: '196,157,255', r: '3%', dur: 7, d: 1.5 },
         { w: 300, l: '40%',  t: '50%', c: '236,72,153',  dur: 6, d: 3   },
       ].map((o, i) => (
         <motion.div key={i} style={{ position: 'absolute', width: o.w, height: o.w, left: o.l, top: o.t, right: (o as any).r, background: `radial-gradient(circle, rgba(${o.c},.09) 0%, transparent 65%)`, filter: 'blur(45px)' }}
@@ -169,7 +169,7 @@ function GlowOrbs({ scrollY }: { scrollY: number }) {
 function CursorGlow({ mx, my }: { mx: number; my: number }) {
   return (
     <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 2 }}>
-      <div style={{ position: 'absolute', left: `${mx * 100}%`, top: `${my * 100}%`, transform: 'translate(-50%,-50%)', width: 280, height: 280, background: 'radial-gradient(circle, rgba(0,217,255,.07) 0%, transparent 60%)', filter: 'blur(20px)', transition: 'left .08s ease-out, top .08s ease-out' }} />
+      <div style={{ position: 'absolute', left: `${mx * 100}%`, top: `${my * 100}%`, transform: 'translate(-50%,-50%)', width: 280, height: 280, background: 'radial-gradient(circle, rgba(131,87,246,.07) 0%, transparent 60%)', filter: 'blur(20px)', transition: 'left .08s ease-out, top .08s ease-out' }} />
     </div>
   )
 }
@@ -186,8 +186,8 @@ function NewProjectCard({ onClick, col, isDark }: { onClick: () => void; col: st
   return (
     <motion.div initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ duration: .5, ease: [.25, .46, .45, .94] }} whileHover={{ y: -8, scale: 1.03 }} onClick={onClick} onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)}
       className="rounded-2xl flex flex-col items-center justify-center gap-4 min-h-52 cursor-pointer"
-      style={{ background: hovered ? (isDark ? 'rgba(0,217,255,.09)' : 'rgba(8,145,178,.07)') : 'var(--card-bg)', border: `2px dashed ${hovered ? col : 'var(--border)'}`, boxShadow: hovered ? `0 20px 50px var(--shadow),0 0 30px rgba(0,217,255,.1)` : 'none', transition: 'all .3s ease' }}>
-      <motion.div animate={{ scale: hovered ? [1, 1.1, 1] : 1, rotate: hovered ? [0, 180, 360] : 0 }} transition={{ duration: .5 }} className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))', border: '1px solid rgba(0,217,255,.2)' }}>
+      style={{ background: hovered ? (isDark ? 'rgba(131,87,246,.09)' : 'rgba(131,87,246,.07)') : 'var(--card-bg)', border: `2px dashed ${hovered ? col : 'var(--border)'}`, boxShadow: hovered ? `0 20px 50px var(--shadow),0 0 30px rgba(131,87,246,.1)` : 'none', transition: 'all .3s ease' }}>
+      <motion.div animate={{ scale: hovered ? [1, 1.1, 1] : 1, rotate: hovered ? [0, 180, 360] : 0 }} transition={{ duration: .5 }} className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))', border: '1px solid rgba(131,87,246,.2)' }}>
         <PlusIcon className="w-7 h-7" style={{ color: 'var(--accent)' }} />
       </motion.div>
       <div className="text-center px-4">
@@ -212,8 +212,8 @@ function NewProjectModal({ open, onClose, onCreate }: { open: boolean; onClose: 
         <>
           <motion.div key="bg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(8px)' }} />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div key="modal" initial={{ opacity: 0, scale: .88, filter: 'blur(15px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: .88 }} transition={{ duration: .35, ease: [.34, 1.56, .64, 1] }} onClick={e => e.stopPropagation()} className="w-full max-w-md rounded-3xl overflow-hidden" style={{ background: 'var(--surface-s)', border: '1px solid rgba(0,217,255,.25)', boxShadow: '0 40px 100px rgba(0,0,0,.7)' }}>
-              <div className="h-px" style={{ background: 'linear-gradient(90deg,transparent,#00D9FF,rgba(139,92,246,.8),transparent)' }} />
+            <motion.div key="modal" initial={{ opacity: 0, scale: .88, filter: 'blur(15px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: .88 }} transition={{ duration: .35, ease: [.34, 1.56, .64, 1] }} onClick={e => e.stopPropagation()} className="w-full max-w-md rounded-3xl overflow-hidden" style={{ background: 'var(--surface-s)', border: '1px solid rgba(131,87,246,.25)', boxShadow: '0 40px 100px rgba(0,0,0,.7)' }}>
+              <div className="h-px" style={{ background: 'linear-gradient(90deg,transparent,#8357F6,rgba(196,157,255,.8),transparent)' }} />
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-black gradient-text">Nuevo Proyecto</h2>
@@ -221,16 +221,16 @@ function NewProjectModal({ open, onClose, onCreate }: { open: boolean; onClose: 
                 </div>
                 <div className="flex flex-col gap-4">
                   <div>
-                    <label className="text-[10px] font-bold tracking-[.2em] uppercase mb-1.5 block" style={{ color: 'rgba(0,217,255,.5)' }}>Nombre del proyecto</label>
+                    <label className="text-[10px] font-bold tracking-[.2em] uppercase mb-1.5 block" style={{ color: 'rgba(131,87,246,.5)' }}>Nombre del proyecto</label>
                     <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handle()} placeholder="Ej: Clínica Estética Premium" autoFocus className="input-form rounded-xl w-full" style={{ padding: '13px 16px', fontSize: 14, borderRadius: 12 }} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold tracking-[.2em] uppercase mb-1.5 block" style={{ color: 'rgba(0,217,255,.5)' }}>Descripción (opcional)</label>
+                    <label className="text-[10px] font-bold tracking-[.2em] uppercase mb-1.5 block" style={{ color: 'rgba(131,87,246,.5)' }}>Descripción (opcional)</label>
                     <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Describe el negocio..." className="input-form rounded-xl w-full" style={{ padding: '13px 16px', fontSize: 14, borderRadius: 12, resize: 'none' }} />
                   </div>
                   <div className="flex gap-3 mt-1">
                     <button onClick={onClose} className="btn-secondary flex-1 py-3 rounded-xl text-sm font-medium">Cancelar</button>
-                    <motion.button onClick={handle} disabled={loading} whileHover={{ y: -2, boxShadow: '0 10px 30px rgba(0,217,255,.4)' }} whileTap={{ scale: .97 }} className="btn-primary flex-1 py-3 rounded-xl text-sm disabled:opacity-50">
+                    <motion.button onClick={handle} disabled={loading} whileHover={{ y: -2, boxShadow: '0 10px 30px rgba(131,87,246,.4)' }} whileTap={{ scale: .97 }} className="btn-primary flex-1 py-3 rounded-xl text-sm disabled:opacity-50">
                       {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto block" /> : 'CREAR →'}
                     </motion.button>
                   </div>
@@ -325,16 +325,16 @@ export default function Dashboard() {
       {isDark && <GlowOrbs scrollY={scrollY} />}
       {isDark && <CursorGlow mx={mousePos.x} my={mousePos.y} />}
       {isDark && (
-        <div className="fixed inset-0 pointer-events-none opacity-[.022]" style={{ zIndex: 1, backgroundImage: 'linear-gradient(rgba(0,217,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,217,255,1) 1px,transparent 1px)', backgroundSize: '55px 55px' }} />
+        <div className="fixed inset-0 pointer-events-none opacity-[.022]" style={{ zIndex: 1, backgroundImage: 'linear-gradient(rgba(131,87,246,1) 1px,transparent 1px),linear-gradient(90deg,rgba(131,87,246,1) 1px,transparent 1px)', backgroundSize: '55px 55px' }} />
       )}
       {isDark && glitch && (
         <motion.div className="fixed inset-0 pointer-events-none" style={{ zIndex: 25 }} initial={{ opacity: 0 }} animate={{ opacity: [0, .8, 0, .5, 0], x: [-2, 3, -1, 2, 0] }} transition={{ duration: .1 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,217,255,.03)', mixBlendMode: 'screen' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(131,87,246,.03)', mixBlendMode: 'screen' }} />
         </motion.div>
       )}
 
       {/* ── Scroll progress bar ── */}
-      <div className="fixed top-0 left-0 h-[2px] pointer-events-none" style={{ zIndex: 100, width: `${sp * 100}%`, background: `linear-gradient(90deg,#00D9FF,${col},#EC4899)`, boxShadow: `0 0 10px ${col}`, transition: 'width .1s ease-out' }} />
+      <div className="fixed top-0 left-0 h-[2px] pointer-events-none" style={{ zIndex: 100, width: `${sp * 100}%`, background: `linear-gradient(90deg,#8357F6,${col},#AF8AE6)`, boxShadow: `0 0 10px ${col}`, transition: 'width .1s ease-out' }} />
 
       {/* ── Sidebar ── */}
       <Sidebar
@@ -367,7 +367,7 @@ export default function Dashboard() {
           right={
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ position: 'relative' }}>
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: `linear-gradient(135deg,${col},#8B5CF6)`, boxShadow: `0 0 10px ${col}60` }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style={{ background: `linear-gradient(135deg,${col},#C49DFF)`, boxShadow: `0 0 10px ${col}60` }}>
                   {(user?.user_metadata?.name || user?.email || 'U')[0].toUpperCase()}
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border-2" style={{ background: '#10B981', borderColor: 'var(--bg)' }} />

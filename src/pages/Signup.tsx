@@ -50,9 +50,9 @@ export default function Signup() {
       <MorphingShapes />
 
       <div className="fixed top-1/4 right-1/4 w-96 h-96 rounded-full opacity-10 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #8B5CF6 0%, transparent 70%)', filter: 'blur(80px)' }} />
+        style={{ background: 'radial-gradient(circle, #C49DFF 0%, transparent 70%)', filter: 'blur(80px)' }} />
       <div className="fixed bottom-1/3 left-1/3 w-80 h-80 rounded-full opacity-8 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #00D9FF 0%, transparent 70%)', filter: 'blur(80px)' }} />
+        style={{ background: 'radial-gradient(circle, #8357F6 0%, transparent 70%)', filter: 'blur(80px)' }} />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.9, filter: 'blur(20px)' }}

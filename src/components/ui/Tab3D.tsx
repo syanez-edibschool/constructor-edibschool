@@ -32,8 +32,8 @@ export default function Tab3D({ tabs, active, onChange }: Props) {
               layoutId="tab-indicator"
               className="absolute inset-0 rounded-lg"
               style={{
-                background: 'linear-gradient(135deg, rgba(0,217,255,0.15) 0%, rgba(139,92,246,0.15) 100%)',
-                border: '1px solid rgba(0,217,255,0.3)',
+                background: 'linear-gradient(135deg, rgba(131,87,246,0.15) 0%, rgba(196,157,255,0.15) 100%)',
+                border: '1px solid rgba(131,87,246,0.3)',
               }}
               transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
             />

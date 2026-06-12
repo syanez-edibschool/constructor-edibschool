@@ -17,8 +17,8 @@ export default function EmptyState({ onNew }: EmptyStateProps) {
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         style={{
           width: 88, height: 88, borderRadius: 28,
-          background: 'linear-gradient(135deg,rgba(0,217,255,.12),rgba(139,92,246,.12))',
-          border: '1px solid rgba(0,217,255,.18)',
+          background: 'linear-gradient(135deg,rgba(131,87,246,.12),rgba(196,157,255,.12))',
+          border: '1px solid rgba(131,87,246,.18)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >
@@ -36,7 +36,7 @@ export default function EmptyState({ onNew }: EmptyStateProps) {
 
       <motion.button
         onClick={onNew}
-        whileHover={{ y: -2, boxShadow: '0 10px 30px rgba(0,217,255,.4)' }}
+        whileHover={{ y: -2, boxShadow: '0 10px 30px rgba(131,87,246,.4)' }}
         whileTap={{ scale: 0.97 }}
         className="btn-primary"
         style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: 8 }}

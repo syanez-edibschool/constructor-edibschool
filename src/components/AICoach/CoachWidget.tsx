@@ -57,7 +57,7 @@ function MessageBubble({ msg }: { msg: Message }) {
       {!isUser && (
         <div style={{
           width: 28, height: 28, borderRadius: '50%', flexShrink: 0, marginRight: 8, marginTop: 2,
-          background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)',
+          background: 'linear-gradient(135deg,#8357F6,#C49DFF)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <SparklesIcon style={{ width: 14, height: 14, color: '#fff' }} />
@@ -88,7 +88,7 @@ function TypingIndicator() {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
       <div style={{
         width: 28, height: 28, borderRadius: '50%',
-        background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)',
+        background: 'linear-gradient(135deg,#8357F6,#C49DFF)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
       }}>
         <SparklesIcon style={{ width: 14, height: 14, color: '#fff' }} />
@@ -263,10 +263,10 @@ export default function CoachWidget() {
             style={{
               position: 'fixed', bottom: 24, right: 24, zIndex: 9000,
               width: 56, height: 56, borderRadius: '50%',
-              background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)',
+              background: 'linear-gradient(135deg,#8357F6,#C49DFF)',
               border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 32px rgba(0,217,255,.4), 0 0 0 0 rgba(0,217,255,.3)',
+              boxShadow: '0 8px 32px rgba(131,87,246,.4), 0 0 0 0 rgba(131,87,246,.3)',
               animation: hasNewMsg ? 'coachPulse 1.5s infinite' : 'none',
             }}
             title="AI Coach"
@@ -296,7 +296,7 @@ export default function CoachWidget() {
               width: 360, borderRadius: 20,
               background: 'var(--surface-s)',
               border: '1px solid var(--border-h)',
-              boxShadow: '0 24px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(0,217,255,.1)',
+              boxShadow: '0 24px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(131,87,246,.1)',
               display: 'flex', flexDirection: 'column',
               overflow: 'hidden',
               maxHeight: minimized ? 60 : 540,
@@ -306,13 +306,13 @@ export default function CoachWidget() {
             {/* Header */}
             <div style={{
               padding: '14px 16px', flexShrink: 0,
-              background: 'linear-gradient(135deg,rgba(0,217,255,.1),rgba(139,92,246,.08))',
+              background: 'linear-gradient(135deg,rgba(131,87,246,.1),rgba(196,157,255,.08))',
               borderBottom: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', gap: 10,
             }}>
               <div style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)',
+                background: 'linear-gradient(135deg,#8357F6,#C49DFF)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <SparklesIcon style={{ width: 18, height: 18, color: '#fff' }} />
@@ -437,9 +437,9 @@ export default function CoachWidget() {
       {/* Pulse animation keyframes */}
       <style>{`
         @keyframes coachPulse {
-          0% { box-shadow: 0 8px 32px rgba(0,217,255,.4), 0 0 0 0 rgba(0,217,255,.4); }
-          70% { box-shadow: 0 8px 32px rgba(0,217,255,.4), 0 0 0 12px rgba(0,217,255,0); }
-          100% { box-shadow: 0 8px 32px rgba(0,217,255,.4), 0 0 0 0 rgba(0,217,255,0); }
+          0% { box-shadow: 0 8px 32px rgba(131,87,246,.4), 0 0 0 0 rgba(131,87,246,.4); }
+          70% { box-shadow: 0 8px 32px rgba(131,87,246,.4), 0 0 0 12px rgba(131,87,246,0); }
+          100% { box-shadow: 0 8px 32px rgba(131,87,246,.4), 0 0 0 0 rgba(131,87,246,0); }
         }
       `}</style>
     </>

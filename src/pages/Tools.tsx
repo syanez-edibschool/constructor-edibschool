@@ -494,7 +494,7 @@ function QuestionForm({ tool, onSubmit, loading, projectId, initialTopic, initia
       </div>
 
       {initialTopic && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: 'rgba(0,217,255,0.08)', border: '1px solid rgba(0,217,255,0.25)', marginBottom: 'var(--sp-md)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: 'rgba(131,87,246,0.08)', border: '1px solid rgba(131,87,246,0.25)', marginBottom: 'var(--sp-md)' }}>
           <MapIcon style={{ width: 16, height: 16, color: 'var(--accent)', flexShrink: 0 }} />
           <p style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>
             Tarea importada desde Estrategia 90D: {initialTopic}
@@ -521,7 +521,7 @@ function QuestionForm({ tool, onSubmit, loading, projectId, initialTopic, initia
                     style={{
                       display: 'flex', alignItems: 'center', gap: 4,
                       padding: '4px 10px', borderRadius: 999,
-                      background: busy ? 'var(--surface-2)' : 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))',
+                      background: busy ? 'var(--surface-2)' : 'linear-gradient(135deg, rgba(131,87,246,0.15), rgba(196,157,255,0.15))',
                       border: '1px solid var(--border-h)',
                       color: 'var(--accent)', fontSize: 11, fontWeight: 600,
                       cursor: busy ? 'wait' : 'pointer', flexShrink: 0,

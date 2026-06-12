@@ -16,7 +16,7 @@ const SERVICE_TYPES: { id: string; label: string; Icon: IconComp; color: string;
     id: 'sitios-web',
     label: 'Sitios Web',
     Icon: GlobeAltIcon,
-    color: '#00D9FF',
+    color: '#8357F6',
     range: '€800–2.000',
     desc: 'Diseño y desarrollo de landing pages, portfolios y webs corporativas con IA',
   },
@@ -24,7 +24,7 @@ const SERVICE_TYPES: { id: string; label: string; Icon: IconComp; color: string;
     id: 'agencia-contenido',
     label: 'Agencia de Contenido',
     Icon: DevicePhoneMobileIcon,
-    color: '#EC4899',
+    color: '#AF8AE6',
     range: '€400–600/mes',
     desc: 'Gestión mensual de redes sociales, creación de contenido y estrategia editorial',
   },
@@ -40,7 +40,7 @@ const SERVICE_TYPES: { id: string; label: string; Icon: IconComp; color: string;
     id: 'agentes-ia',
     label: 'Agentes IA',
     Icon: CpuChipIcon,
-    color: '#8B5CF6',
+    color: '#C49DFF',
     range: '€1.000–5.000',
     desc: 'Implementación de agentes de IA para ventas, soporte y operaciones internas',
   },
@@ -232,7 +232,7 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
                   disabled={!!suggesting[q.id]}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999,
-                    background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))',
+                    background: 'linear-gradient(135deg, rgba(131,87,246,0.15), rgba(196,157,255,0.15))',
                     border: '1px solid var(--border-h)', color: 'var(--accent)', fontSize: 11, fontWeight: 600,
                     cursor: suggesting[q.id] ? 'wait' : 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
                   }}

@@ -9,8 +9,8 @@ const TOOLS = [
     title: 'Calendario de Contenido',
     desc: '8 piezas/semana, 4 semanas completas',
     time: '~3 min',
-    color: 'rgba(0,217,255,0.15)',
-    border: 'rgba(0,217,255,0.3)',
+    color: 'rgba(131,87,246,0.15)',
+    border: 'rgba(131,87,246,0.3)',
   },
   {
     id: 'vsl',
@@ -18,8 +18,8 @@ const TOOLS = [
     title: 'Prompts VSL',
     desc: 'Script completo de 2:45 min para ventas',
     time: '~2 min',
-    color: 'rgba(139,92,246,0.15)',
-    border: 'rgba(139,92,246,0.3)',
+    color: 'rgba(196,157,255,0.15)',
+    border: 'rgba(196,157,255,0.3)',
   },
   {
     id: 'reels',
@@ -36,8 +36,8 @@ const TOOLS = [
     title: 'Prompts Copy',
     desc: '5 ad copies listos para publicar',
     time: '~1 min',
-    color: 'rgba(0,217,255,0.15)',
-    border: 'rgba(0,217,255,0.3)',
+    color: 'rgba(131,87,246,0.15)',
+    border: 'rgba(131,87,246,0.3)',
   },
   {
     id: 'imagenes',
@@ -45,8 +45,8 @@ const TOOLS = [
     title: 'Prompts Imágenes',
     desc: '5 prompts detallados para DALL-E / Midjourney',
     time: '~1 min',
-    color: 'rgba(139,92,246,0.15)',
-    border: 'rgba(139,92,246,0.3)',
+    color: 'rgba(196,157,255,0.15)',
+    border: 'rgba(196,157,255,0.3)',
   },
   {
     id: 'carruseles',
@@ -63,8 +63,8 @@ const TOOLS = [
     title: 'Sitio Web en IA',
     desc: 'Landing page completa HTML + Tailwind CSS',
     time: '~3 min',
-    color: 'rgba(0,217,255,0.15)',
-    border: 'rgba(0,217,255,0.3)',
+    color: 'rgba(131,87,246,0.15)',
+    border: 'rgba(131,87,246,0.3)',
   },
   {
     id: 'propuesta',
@@ -72,8 +72,8 @@ const TOOLS = [
     title: 'Propuesta Comercial',
     desc: 'Documento profesional listo para enviar',
     time: '~2 min',
-    color: 'rgba(139,92,246,0.15)',
-    border: 'rgba(139,92,246,0.3)',
+    color: 'rgba(196,157,255,0.15)',
+    border: 'rgba(196,157,255,0.3)',
   },
   {
     id: 'precios',
@@ -90,8 +90,8 @@ const TOOLS = [
     title: 'Pitch Deck',
     desc: '8 slides de presentación de ventas',
     time: '~3 min',
-    color: 'rgba(0,217,255,0.15)',
-    border: 'rgba(0,217,255,0.3)',
+    color: 'rgba(131,87,246,0.15)',
+    border: 'rgba(131,87,246,0.3)',
   },
   {
     id: 'emails',
@@ -99,8 +99,8 @@ const TOOLS = [
     title: 'Email Automático',
     desc: '3 secuencias de email marketing',
     time: '~2 min',
-    color: 'rgba(139,92,246,0.15)',
-    border: 'rgba(139,92,246,0.3)',
+    color: 'rgba(196,157,255,0.15)',
+    border: 'rgba(196,157,255,0.3)',
   },
   {
     id: 'ofertas',
@@ -117,8 +117,8 @@ const TOOLS = [
     title: 'Contrato Cliente',
     desc: 'Contrato profesional editable',
     time: '~2 min',
-    color: 'rgba(0,217,255,0.15)',
-    border: 'rgba(0,217,255,0.3)',
+    color: 'rgba(131,87,246,0.15)',
+    border: 'rgba(131,87,246,0.3)',
   },
   {
     id: 'tracker',
@@ -135,8 +135,8 @@ const TOOLS = [
     title: 'Biblioteca Casos de Uso',
     desc: '50+ casos de uso reales por industria',
     time: 'Explorar',
-    color: 'rgba(139,92,246,0.15)',
-    border: 'rgba(139,92,246,0.3)',
+    color: 'rgba(196,157,255,0.15)',
+    border: 'rgba(196,157,255,0.3)',
   },
 ]
 
@@ -148,7 +148,7 @@ export default function ToolsMenu() {
   return (
     <div className="min-h-screen bg-dark">
       <div className="fixed top-0 left-0 w-full h-96 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139,92,246,0.07) 0%, transparent 100%)' }} />
+        style={{ background: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(196,157,255,0.07) 0%, transparent 100%)' }} />
 
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-white/6"
@@ -222,17 +222,17 @@ function Button3DLink({ children, onClick }: { children: React.ReactNode; onClic
       onClick={onClick}
       className="text-sm px-4 py-2 rounded-xl font-medium transition-all duration-200"
       style={{
-        background: 'rgba(0,217,255,0.1)',
-        border: '1px solid rgba(0,217,255,0.3)',
-        color: '#00D9FF',
+        background: 'rgba(131,87,246,0.1)',
+        border: '1px solid rgba(131,87,246,0.3)',
+        color: '#8357F6',
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget as HTMLButtonElement
-        el.style.background = 'rgba(0,217,255,0.2)'
+        el.style.background = 'rgba(131,87,246,0.2)'
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget as HTMLButtonElement
-        el.style.background = 'rgba(0,217,255,0.1)'
+        el.style.background = 'rgba(131,87,246,0.1)'
       }}
     >
       {children}

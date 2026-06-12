@@ -29,7 +29,7 @@ function asText(v: unknown): string {
 
 const CHECKLIST: Phase[] = [
   {
-    id: 'f2', title: 'FASE 2 — Construcción de Oferta', color: '#00D9FF',
+    id: 'f2', title: 'FASE 2 — Construcción de Oferta', color: '#8357F6',
     sections: [
       {
         id: '2.1', title: '2.1 Definir tu Propuesta Única de Valor (PUV)', ai: true, aiTool: 'puv',
@@ -64,7 +64,7 @@ const CHECKLIST: Phase[] = [
     ],
   },
   {
-    id: 'f3', title: 'FASE 3 — Infraestructura Digital', color: '#8B5CF6',
+    id: 'f3', title: 'FASE 3 — Infraestructura Digital', color: '#C49DFF',
     sections: [
       {
         id: '3.1', title: '3.1 Crear tu Funnel o Sitio Web',
@@ -116,7 +116,7 @@ const CHECKLIST: Phase[] = [
     ],
   },
   {
-    id: 'f4', title: 'FASE 4 — Instagram Estratégico', color: '#EC4899',
+    id: 'f4', title: 'FASE 4 — Instagram Estratégico', color: '#AF8AE6',
     sections: [
       {
         id: '4.1', title: '4.1 Optimizar el Perfil',
@@ -252,7 +252,7 @@ function SectionCard({ section, color, checked, onToggle, onAI, aiText, aiBusy, 
           {section.ai && (
             <span
               onClick={(e) => { e.stopPropagation(); if (!aiBusy) onAI() }}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', cursor: aiBusy ? 'wait' : 'pointer' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 999, background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))', border: '1px solid var(--border-h)', color: 'var(--accent)', cursor: aiBusy ? 'wait' : 'pointer' }}
             >
               {aiBusy ? <Spinner /> : <SparklesIcon style={{ width: 11, height: 11 }} />}
               {aiBusy ? 'Generando…' : 'Generar con IA'}
@@ -291,7 +291,7 @@ function SectionCard({ section, color, checked, onToggle, onAI, aiText, aiBusy, 
                 )
               })}
               {section.entregable && (
-                <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 8, background: 'rgba(0,217,255,.06)', border: '1px solid rgba(0,217,255,.2)' }}>
+                <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 8, background: 'rgba(131,87,246,.06)', border: '1px solid rgba(131,87,246,.2)' }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>📌 {section.entregable.intro}</p>
                   <ul style={{ margin: 0, paddingLeft: 18 }}>
                     {section.entregable.bullets.map((b, j) => (
@@ -302,7 +302,7 @@ function SectionCard({ section, color, checked, onToggle, onAI, aiText, aiBusy, 
               )}
               {/* Resultado generado con IA (inline) */}
               {(aiErr || aiText) && (
-                <div style={{ marginTop: 10, padding: '12px 14px', borderRadius: 8, background: 'rgba(139,92,246,.07)', border: '1px solid rgba(139,92,246,.28)' }}>
+                <div style={{ marginTop: 10, padding: '12px 14px', borderRadius: 8, background: 'rgba(196,157,255,.07)', border: '1px solid rgba(196,157,255,.28)' }}>
                   {aiErr ? (
                     <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{aiErr} <button onClick={onAI} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', textDecoration: 'underline', fontSize: 12 }}>Reintentar</button></p>
                   ) : (
@@ -415,7 +415,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
   if (!generated) {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 640, margin: '0 auto', padding: '40px 24px', textAlign: 'center' }}>
-        <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))', border: '1px solid rgba(0,217,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <div style={{ width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))', border: '1px solid rgba(131,87,246,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
           <CalendarDaysIcon style={{ width: 30, height: 30, color: 'var(--accent)' }} />
         </div>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Estrategia 90 Días</h2>
@@ -450,7 +450,7 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
           </div>
         </div>
         <div style={{ height: 6, borderRadius: 999, background: 'var(--border)', overflow: 'hidden' }}>
-          <motion.div initial={{ width: 0 }} animate={{ width: `${globalPct}%` }} transition={{ duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: 'linear-gradient(90deg,#00D9FF,#8B5CF6)', borderRadius: 999 }} />
+          <motion.div initial={{ width: 0 }} animate={{ width: `${globalPct}%` }} transition={{ duration: 0.8, ease: 'easeOut' }} style={{ height: '100%', background: 'linear-gradient(90deg,#8357F6,#C49DFF)', borderRadius: 999 }} />
         </div>
       </div>
 

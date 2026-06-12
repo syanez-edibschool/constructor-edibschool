@@ -22,11 +22,11 @@ interface PromptsImagenesProps {
 }
 
 const TIPO_COLORS: Record<string, string> = {
-  Producto: '#00D9FF',
+  Producto: '#8357F6',
   Escena: '#10B981',
   Resultado: '#F59E0B',
-  Persona: '#EC4899',
-  Datos: '#8B5CF6',
+  Persona: '#AF8AE6',
+  Datos: '#C49DFF',
   Emoción: '#EF4444',
   Lugar: '#0891b2',
 }

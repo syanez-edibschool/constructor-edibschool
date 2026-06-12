@@ -54,13 +54,13 @@ export default function UpdateBanner() {
         transform: 'translateX(-50%)',
         zIndex: 9999,
         background: 'rgba(10,10,15,0.96)',
-        border: '1px solid rgba(0,217,255,0.35)',
+        border: '1px solid rgba(131,87,246,0.35)',
         borderRadius: 14,
         padding: '14px 20px',
         display: 'flex',
         alignItems: 'center',
         gap: 14,
-        boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 20px rgba(0,217,255,0.1)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 20px rgba(131,87,246,0.1)',
         backdropFilter: 'blur(20px)',
         minWidth: 320,
         maxWidth: 500,
@@ -72,16 +72,16 @@ export default function UpdateBanner() {
           Nueva versión disponible
         </p>
         <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>
-          o presiona <kbd style={{ background: 'rgba(0,217,255,0.12)', border: '1px solid rgba(0,217,255,0.3)', borderRadius: 5, padding: '1px 5px', color: '#00D9FF', fontFamily: 'monospace', fontSize: 10 }}>{shortcut}</kbd>
+          o presiona <kbd style={{ background: 'rgba(131,87,246,0.12)', border: '1px solid rgba(131,87,246,0.3)', borderRadius: 5, padding: '1px 5px', color: '#8357F6', fontFamily: 'monospace', fontSize: 10 }}>{shortcut}</kbd>
         </p>
       </div>
       <button
         onClick={handleUpdate}
         style={{
-          background: 'rgba(0,217,255,0.15)',
-          border: '1px solid rgba(0,217,255,0.4)',
+          background: 'rgba(131,87,246,0.15)',
+          border: '1px solid rgba(131,87,246,0.4)',
           borderRadius: 8,
-          color: '#00D9FF',
+          color: '#8357F6',
           fontSize: 12,
           fontWeight: 600,
           padding: '7px 14px',

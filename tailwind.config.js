@@ -4,12 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        dark: '#0a0a0f',
+        dark: '#0E0B30',
         surface: '#1a1a2e',
         'surface-2': '#16213e',
-        cyan: { DEFAULT: '#00D9FF', dark: '#00b8d9' },
-        purple: { DEFAULT: '#8B5CF6', dark: '#7c3aed' },
-        pink: { DEFAULT: '#EC4899' },
+        cyan: { DEFAULT: '#8357F6', dark: '#6d3fd4' },
+        purple: { DEFAULT: '#C49DFF', dark: '#8357F6' },
+        pink: { DEFAULT: '#AF8AE6' },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -50,10 +50,10 @@ export default {
       },
       backdropBlur: { '25': '25px' },
       boxShadow: {
-        'neon-cyan': '0 0 20px rgba(0,217,255,0.4), 0 0 40px rgba(0,217,255,0.2)',
-        'neon-purple': '0 0 20px rgba(139,92,246,0.4), 0 0 40px rgba(139,92,246,0.2)',
+        'neon-cyan': '0 0 20px rgba(131,87,246,0.4), 0 0 40px rgba(131,87,246,0.2)',
+        'neon-purple': '0 0 20px rgba(196,157,255,0.4), 0 0 40px rgba(196,157,255,0.2)',
         'card': '0 8px 32px rgba(0,0,0,0.4)',
-        'card-hover': '0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0,217,255,0.15)',
+        'card-hover': '0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(131,87,246,0.15)',
       },
     },
   },

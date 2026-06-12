@@ -17,8 +17,8 @@ export default function LoadingSpinner3D({ size = 'md', label }: Props) {
           className="absolute inset-0 rounded-full"
           style={{
             border: `2px solid transparent`,
-            borderTopColor: '#00D9FF',
-            borderRightColor: '#8B5CF6',
+            borderTopColor: '#8357F6',
+            borderRightColor: '#C49DFF',
           }}
           animate={{ rotate: 360 }}
           transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
@@ -28,8 +28,8 @@ export default function LoadingSpinner3D({ size = 'md', label }: Props) {
           style={{
             inset: 4,
             border: `2px solid transparent`,
-            borderTopColor: '#EC4899',
-            borderLeftColor: '#00D9FF',
+            borderTopColor: '#AF8AE6',
+            borderLeftColor: '#8357F6',
           }}
           animate={{ rotate: -360 }}
           transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
@@ -38,7 +38,7 @@ export default function LoadingSpinner3D({ size = 'md', label }: Props) {
           className="absolute rounded-full"
           style={{
             inset: '30%',
-            background: 'radial-gradient(circle, rgba(0,217,255,0.4) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(131,87,246,0.4) 0%, transparent 70%)',
           }}
         />
       </div>

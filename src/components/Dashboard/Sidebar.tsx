@@ -55,7 +55,7 @@ const TOOL_STEPS: Record<string, number> = {
 
 const CATS = ['analisis', 'contenido', 'ventas', 'automatizacion', 'tracking']
 const CAT_LABELS: Record<string, string>  = { analisis: 'Análisis', contenido: 'Contenido', ventas: 'Ventas', automatizacion: 'Automatización', tracking: 'Tracking' }
-const CAT_COLORS: Record<string, string>  = { analisis: '#EC4899', contenido: '#00D9FF', ventas: '#F59E0B', automatizacion: '#8B5CF6', tracking: '#10B981' }
+const CAT_COLORS: Record<string, string>  = { analisis: '#AF8AE6', contenido: '#8357F6', ventas: '#F59E0B', automatizacion: '#C49DFF', tracking: '#10B981' }
 
 export interface SidebarProps {
   mode: 'dashboard' | 'project'
@@ -245,8 +245,8 @@ export default function Sidebar({
                 >
                   <div style={{
                     width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))',
-                    border: '1px solid rgba(0,217,255,.2)',
+                    background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))',
+                    border: '1px solid rgba(131,87,246,.2)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     <BuildingOffice2Icon style={{ width: 12, height: 12, color: 'var(--accent)' }} />
@@ -270,7 +270,7 @@ export default function Sidebar({
           {!collapsed && (
             <div style={{ borderBottom: '1px solid var(--border)', padding: '12px 14px', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,rgba(0,217,255,.15),rgba(139,92,246,.15))', border: '1px solid rgba(0,217,255,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))', border: '1px solid rgba(131,87,246,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <BuildingOffice2Icon style={{ width: 14, height: 14, color: 'var(--accent)' }} />
                 </div>
                 <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
@@ -285,7 +285,7 @@ export default function Sidebar({
                   initial={{ width: 0 }}
                   animate={{ width: `${projectProgress}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
-                  style={{ height: '100%', background: 'linear-gradient(90deg,#00D9FF,#8B5CF6)', borderRadius: 999 }}
+                  style={{ height: '100%', background: 'linear-gradient(90deg,#8357F6,#C49DFF)', borderRadius: 999 }}
                 />
               </div>
             </div>
@@ -382,14 +382,14 @@ export default function Sidebar({
         {collapsed ? (
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button onClick={onLogout} title="Cerrar sesión" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#8357F6,#C49DFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff' }}>
                 {userInitial}
               </div>
             </button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#00D9FF,#8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#8357F6,#C49DFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
               {userInitial}
             </div>
             <div style={{ flex: 1, overflow: 'hidden' }}>

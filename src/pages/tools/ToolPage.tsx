@@ -413,7 +413,7 @@ export default function ToolPage() {
   return (
     <div className="min-h-screen bg-dark">
       <div className="fixed top-0 left-0 w-full h-64 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 40% at 50% -10%, rgba(0,217,255,0.06) 0%, transparent 100%)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 40% at 50% -10%, rgba(131,87,246,0.06) 0%, transparent 100%)' }} />
 
       <header className="sticky top-0 z-20 border-b border-white/6"
         style={{ background: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(20px)' }}>

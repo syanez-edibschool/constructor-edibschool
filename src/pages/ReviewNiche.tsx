@@ -142,9 +142,9 @@ export default function ReviewNiche() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-8" style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff' }}>
+      <div className="flex flex-col items-center justify-center gap-8" style={{ minHeight: '100vh', background: '#0E0B30', color: '#fff' }}>
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,217,255,0.05) 0%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(131,87,246,0.05) 0%, transparent 70%)' }} />
         <LoadingSpinner3D size="lg" label="Generando análisis de nicho, avatar y competencia..." />
         <div className="w-72">
           <div className="h-2 rounded-full bg-white/5 overflow-hidden">
@@ -166,9 +166,9 @@ export default function ReviewNiche() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#0E0B30', color: '#fff' }}>
       <div className="fixed top-0 left-0 w-full h-64 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 40% at 50% -10%, rgba(139,92,246,0.08) 0%, transparent 100%)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 40% at 50% -10%, rgba(196,157,255,0.08) 0%, transparent 100%)' }} />
 
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-white/6"
@@ -237,8 +237,8 @@ export default function ReviewNiche() {
                 <div className="glass-dark rounded-2xl p-6 mb-6">
                   <div className="flex items-start gap-5 mb-5">
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg, rgba(0,217,255,0.15), rgba(139,92,246,0.15))' }}>
-                      <UserIcon style={{ width: 32, height: 32, color: 'rgba(0,217,255,0.8)' }} />
+                      style={{ background: 'linear-gradient(135deg, rgba(131,87,246,0.15), rgba(196,157,255,0.15))' }}>
+                      <UserIcon style={{ width: 32, height: 32, color: 'rgba(131,87,246,0.8)' }} />
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-white">{avatar.name}</h3>

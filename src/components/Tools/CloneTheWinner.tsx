@@ -141,7 +141,7 @@ function Section({ title, children, accent = 'var(--accent)' }: { title: string;
 
 function RecommendationBox({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 10, background: 'rgba(0,217,255,.07)', border: '1px solid rgba(0,217,255,.2)' }}>
+    <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 10, background: 'rgba(131,87,246,.07)', border: '1px solid rgba(131,87,246,.2)' }}>
       <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 6 }}>
         Recomendación para ti
       </p>
@@ -220,10 +220,10 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
       {/* Executive summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 8, marginBottom: 16 }}>
         {[
-          { label: 'Followers est.',  value: a.executive_summary?.estimated_followers,      color: '#00D9FF' },
+          { label: 'Followers est.',  value: a.executive_summary?.estimated_followers,      color: '#8357F6' },
           { label: 'Engagement',      value: a.executive_summary?.engagement_rate,           color: '#10B981' },
           { label: 'Posts / semana',  value: String(a.executive_summary?.posts_per_week),    color: '#F59E0B' },
-          { label: 'Revenue est.',    value: a.executive_summary?.estimated_revenue_monthly, color: '#8B5CF6' },
+          { label: 'Revenue est.',    value: a.executive_summary?.estimated_revenue_monthly, color: '#C49DFF' },
         ].map(c => (
           <div key={c.label} style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--card-bg)', border: `1px solid ${c.color}25` }}>
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 4 }}>{c.label}</p>
@@ -238,14 +238,14 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>Factores clave de éxito</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {a.executive_summary.key_success_factors.map((f, i) => (
-              <span key={i} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 999, background: 'rgba(0,217,255,.1)', color: 'var(--accent)', border: '1px solid rgba(0,217,255,.2)' }}>{f}</span>
+              <span key={i} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 999, background: 'rgba(131,87,246,.1)', color: 'var(--accent)', border: '1px solid rgba(131,87,246,.2)' }}>{f}</span>
             ))}
           </div>
         </div>
       )}
 
       {/* A. Content mix */}
-      <Section title="A. Mix de Contenido" accent="#00D9FF">
+      <Section title="A. Mix de Contenido" accent="#8357F6">
         <div style={{ marginBottom: 12 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', marginBottom: 8 }}>Su estrategia actual:</p>
           {a.content_mix?.map((item, i) => (
@@ -319,7 +319,7 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
       </Section>
 
       {/* C. Aesthetics */}
-      <Section title="C. Estética (Colores, Estilo)" accent="#EC4899">
+      <Section title="C. Estética (Colores, Estilo)" accent="#AF8AE6">
         <div style={{ marginBottom: 12 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', marginBottom: 6 }}>Su paleta:</p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -330,7 +330,7 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
           <p style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 6 }}><strong>Tipografía:</strong> {a.aesthetics?.typography_style}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {a.aesthetics?.photo_style?.map((s, i) => (
-              <span key={i} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999, background: 'rgba(236,72,153,.1)', color: '#EC4899', border: '1px solid rgba(236,72,153,.2)' }}>{s}</span>
+              <span key={i} style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999, background: 'rgba(236,72,153,.1)', color: '#AF8AE6', border: '1px solid rgba(236,72,153,.2)' }}>{s}</span>
             ))}
           </div>
         </div>
@@ -339,7 +339,7 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>Tu paleta adaptada:</p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
               {a.aesthetics.your_recommendation.palette?.map((c, i) => (
-                <span key={i} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 999, background: 'rgba(0,217,255,.1)', color: 'var(--accent)', border: '1px solid rgba(0,217,255,.2)' }}>{c}</span>
+                <span key={i} style={{ fontSize: 11, padding: '3px 10px', borderRadius: 999, background: 'rgba(131,87,246,.1)', color: 'var(--accent)', border: '1px solid rgba(131,87,246,.2)' }}>{c}</span>
               ))}
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-2)', marginBottom: 4 }}>{a.aesthetics.your_recommendation.style}</p>
@@ -349,13 +349,13 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
       </Section>
 
       {/* D. Copy analysis */}
-      <Section title="D. Análisis de Copy" accent="#8B5CF6">
-        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8B5CF6', marginBottom: 8 }}>Hooks que funcionan</p>
+      <Section title="D. Análisis de Copy" accent="#C49DFF">
+        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C49DFF', marginBottom: 8 }}>Hooks que funcionan</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
           {a.copy_analysis?.top_hooks?.slice(0, 5).map((h, i) => (
             <div key={i} style={{ padding: '10px 12px', borderRadius: 10, background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: h.why ? 5 : 0 }}>
-                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 999, background: 'rgba(139,92,246,.15)', color: '#8B5CF6', fontWeight: 700, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <span style={{ fontSize: 9, padding: '2px 8px', borderRadius: 999, background: 'rgba(196,157,255,.15)', color: '#C49DFF', fontWeight: 700, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {h.type || 'Hook'}
                 </span>
                 {h.count && <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>{h.count} posts</span>}
@@ -367,10 +367,10 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
         </div>
 
         {a.copy_analysis?.tone_of_voice && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(139,92,246,.08)', border: '1px solid rgba(139,92,246,.2)', marginBottom: 16 }}>
-            <MicrophoneIcon style={{ width: 18, height: 18, color: '#8B5CF6', flexShrink: 0 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, background: 'rgba(196,157,255,.08)', border: '1px solid rgba(196,157,255,.2)', marginBottom: 16 }}>
+            <MicrophoneIcon style={{ width: 18, height: 18, color: '#C49DFF', flexShrink: 0 }} />
             <div>
-              <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8B5CF6', marginBottom: 2 }}>Tono de voz</p>
+              <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C49DFF', marginBottom: 2 }}>Tono de voz</p>
               <p style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic' }}>{a.copy_analysis.tone_of_voice}</p>
             </div>
           </div>
@@ -378,12 +378,12 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
 
         {a.copy_analysis?.top_ctas?.length > 0 && (
           <>
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#8B5CF6', marginBottom: 8 }}>Estructura ganadora (CTAs)</p>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C49DFF', marginBottom: 8 }}>Estructura ganadora (CTAs)</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 6, marginBottom: 16 }}>
               {a.copy_analysis.top_ctas.slice(0, 4).map((c, i) => (
                 <div key={i} style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--card-bg)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 11, color: 'var(--text-2)', flex: 1 }}>{c.cta}</span>
-                  {c.usage_pct && <span style={{ fontSize: 11, fontWeight: 700, color: '#8B5CF6', flexShrink: 0 }}>{c.usage_pct}%</span>}
+                  {c.usage_pct && <span style={{ fontSize: 11, fontWeight: 700, color: '#C49DFF', flexShrink: 0 }}>{c.usage_pct}%</span>}
                 </div>
               ))}
             </div>
@@ -402,7 +402,7 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
               <>
                 <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 6 }}>Tus hooks adaptados</p>
                 {a.copy_analysis.your_hooks.slice(0, 3).map((h, i) => (
-                  <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid rgba(0,217,255,.1)' }}>
+                  <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid rgba(131,87,246,.1)' }}>
                     <p style={{ fontSize: 12, color: 'var(--accent)', fontStyle: 'italic', marginBottom: 2 }}>"{h.hook}"</p>
                     {h.why && <p style={{ fontSize: 11, color: 'var(--text-3)' }}>↳ {h.why}</p>}
                   </div>
@@ -453,7 +453,7 @@ function CloneDetail({ analysis: a, onBack, projectId }: { analysis: CloneAnalys
             <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{a.score?.summary}</p>
           </div>
         </div>
-        <ScoreBar label="Diferencia de mercado" value={a.score?.market_difference ?? 0} color="#00D9FF" />
+        <ScoreBar label="Diferencia de mercado" value={a.score?.market_difference ?? 0} color="#8357F6" />
         <ScoreBar label="Adaptabilidad a tu caso" value={a.score?.adaptability ?? 0} color="#10B981" />
         <ScoreBar label="Timeline realista" value={Math.max(0, 100 - (a.score?.timeline_months ?? 3) * 10)} color="#F59E0B" />
         <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8 }}>
@@ -500,10 +500,10 @@ function CompetitorCard({ analysis, rank, onSelect, isWinner }: {
       {/* Metrics */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
         {[
-          { label: 'Followers', value: analysis.executive_summary?.estimated_followers, color: '#00D9FF' },
+          { label: 'Followers', value: analysis.executive_summary?.estimated_followers, color: '#8357F6' },
           { label: 'Engagement', value: analysis.executive_summary?.engagement_rate, color: '#10B981' },
           { label: 'Posts/sem', value: String(analysis.executive_summary?.posts_per_week), color: '#F59E0B' },
-          { label: 'Revenue', value: analysis.executive_summary?.estimated_revenue_monthly, color: '#8B5CF6' },
+          { label: 'Revenue', value: analysis.executive_summary?.estimated_revenue_monthly, color: '#C49DFF' },
         ].map(m => (
           <div key={m.label} style={{ padding: '6px 10px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)' }}>
             <p style={{ fontSize: 9, color: 'var(--text-3)', marginBottom: 1 }}>{m.label}</p>
@@ -541,7 +541,7 @@ function ComparativeTable({ analyses, selectedIdx, onSelect }: {
   selectedIdx: number | null
   onSelect: (idx: number) => void
 }) {
-  const colors = ['#00D9FF', '#8B5CF6', '#F59E0B', '#EC4899', '#10B981']
+  const colors = ['#8357F6', '#C49DFF', '#F59E0B', '#AF8AE6', '#10B981']
 
   // Identificar el "mejor" por cada métrica numérica para resaltarlo
   const scoreMax = Math.max(...analyses.map(a => a.score?.overall ?? 0))

@@ -114,9 +114,9 @@ export default function Questions() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#0E0B30', color: '#fff' }}>
       <div className="fixed top-0 left-0 w-full h-64 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 40% at 50% -10%, rgba(0,217,255,0.07) 0%, transparent 100%)' }} />
+        style={{ background: 'radial-gradient(ellipse 60% 40% at 50% -10%, rgba(131,87,246,0.07) 0%, transparent 100%)' }} />
 
       {/* Sticky header */}
       <header className="sticky top-0 z-20 border-b border-white/6"
