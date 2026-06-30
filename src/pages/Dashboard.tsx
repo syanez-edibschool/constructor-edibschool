@@ -14,6 +14,7 @@ import StatsCards     from '../components/Dashboard/StatsCards'
 import ProjectGrid    from '../components/Dashboard/ProjectGrid'
 import EmptyState     from '../components/Dashboard/EmptyState'
 import ProjectCard    from '../components/Dashboard/ProjectCard'
+import EcosystemLinks  from '../components/Dashboard/EcosystemLinks'
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * Math.min(1, Math.max(0, t))
 
@@ -405,6 +406,12 @@ export default function Dashboard() {
               active={projects.filter(p => p.status !== 'completed').length}
               completed={projects.filter(p => p.status === 'completed').length}
             />
+          </div>
+
+          {/* Plataformas del ecosistema */}
+          <div style={{ marginBottom: 'var(--sp-xl)' }}>
+            <p style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 'var(--sp-md)' }}>Plataformas</p>
+            <EcosystemLinks variant="cards" />
           </div>
 
           {/* Divider */}
