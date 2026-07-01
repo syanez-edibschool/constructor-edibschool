@@ -113,6 +113,9 @@ const DEFAULT_MODEL = HAIKU
 const TOOL_MODEL: Record<string, string> = {
   'clone-winner': SONNET, // análisis estratégico profundo
   'website':      SONNET, // copy de conversión largo
+  'email-frio':     SONNET, // copy de outreach personalizado
+  'dm-instagram':   SONNET, // copy de outreach personalizado
+  'guion-llamadas': SONNET, // guion de ventas consultivo
   // Todo lo demás usa Haiku (DEFAULT_MODEL) — rápido
 }
 
@@ -137,6 +140,9 @@ const TOOL_MAX_TOKENS: Record<string, number> = {
   'precios':      4000,
   'propuesta':    4000,
   'chat-agent':   4500,
+  'email-frio':     4500,
+  'dm-instagram':   4000,
+  'guion-llamadas': 5500,
 }
 const DEFAULT_MAX_TOKENS = 4000
 
@@ -678,6 +684,75 @@ Crea una secuencia de emails completa con:
 
 Cada email: subject line (A/B: 2 opciones) + body completo (personalizable con variables). Progresión psicológica clara entre emails.
 Devuelve SOLO JSON: { "sequences": [{ "name": "nombre de la secuencia", "emails": [{ "subject": "asunto del email (A: opción A | B: opción B)", "body": "body completo del email con [NOMBRE], [EMPRESA] como variables" }] }] }`,
+
+    'email-frio': `Eres un SDR/copywriter de outbound B2B de élite (estilo Josh Braun + Jason Bay): escribes emails EN FRÍO ultra personalizados que consiguen respuestas, NUNCA spam.
+${ctx}
+
+DESTINATARIO Y OBJETIVO:
+- Prospecto: ${toolAnswers.prospecto || 'no especificado'}
+- Señal/observación real para abrir: ${toolAnswers.senal || 'usa una hipótesis creíble y específica del sector'}
+- Lo que ofrezco: ${toolAnswers.oferta || '(usa el contexto del proyecto)'}
+- Resultado concreto que entrego: ${toolAnswers.resultado || '(usa el contexto del proyecto)'}
+- Objetivo del email (CTA): ${toolAnswers.cta || 'Agendar llamada de 15 min'}
+- Tono: ${toolAnswers.tono || 'Directo y humano'}
+- Región del prospecto: ${toolAnswers.region || 'Latinoamérica'}
+
+REGLAS OBLIGATORIAS:
+1. PERSONALIZACIÓN REAL: la primera línea parte de la señal/observación del prospecto, jamás un saludo genérico. Prohibido «Espero que estés bien» o «Mi nombre es X y somos una empresa que...».
+2. Enfoque en el prospecto y su dolor, no en ti. Máximo 90-130 palabras. Frases cortas, cero jerga corporativa.
+3. UN solo CTA, suave y de bajo compromiso.
+4. ANTI-SPAM: evita palabras gatillo (gratis, garantizado, 100%, urgente, promoción), sin MAYÚSCULAS sostenidas, sin exceso de signos, evita links y adjuntos en el primer email.
+5. CUMPLIMIENTO según la región indicada: España/UE → GDPR (interés legítimo B2B, datos de fuentes públicas, indica cómo obtuviste el contacto y una vía de baja clara); EE.UU. → CAN-SPAM (remitente real, dirección física, opt-out visible); en TODOS incluye una línea de baja educada. Solo datos B2B públicos, jamás listas compradas.
+6. Usa variables {nombre} y {empresa} donde corresponda.
+
+Genera 3 VARIANTES con ángulos distintos (p. ej. dolor, resultado/caso, pregunta provocadora).
+Devuelve SOLO JSON:
+{ "variantes": [ { "angulo": "nombre del ángulo", "asunto_a": "asunto corto A (2-4 palabras)", "asunto_b": "asunto alternativo B", "preview": "preview text de 1 línea", "cuerpo": "email completo con {nombre}/{empresa}", "ps": "PD breve opcional", "por_que_funciona": "1-2 frases de la lógica" } ], "checklist_anti_spam": ["punto 1", "punto 2", "punto 3", "punto 4"], "cumplimiento": "nota concreta para la región indicada, con la línea de baja sugerida" }`,
+
+    'dm-instagram': `Eres un experto en social selling por Instagram DM: inicias conversaciones reales que llevan a llamadas, sin parecer bot ni vendedor desesperado.
+${ctx}
+
+DESTINATARIO Y OBJETIVO:
+- Prospecto (perfil/nicho/qué publica): ${toolAnswers.prospecto || 'no especificado'}
+- Señal de su perfil/contenido para personalizar: ${toolAnswers.senal || 'usa algo plausible de su contenido'}
+- Lo que ofrezco: ${toolAnswers.oferta || '(usa el contexto del proyecto)'}
+- Resultado concreto: ${toolAnswers.resultado || '(usa el contexto del proyecto)'}
+- Objetivo del primer contacto: ${toolAnswers.objetivo || 'Iniciar conversación'}
+- Tono: ${toolAnswers.tono || 'Cercano y natural'}
+
+REGLAS OBLIGATORIAS:
+1. El PRIMER mensaje NO vende: referencia genuina a algo suyo (post, reel, logro) y abre conversación. Máximo 2-3 frases, como le escribirías a un colega.
+2. SIN links, sin audios, sin pitch y sin plantilla evidente en el primer contacto (Instagram penaliza el spam; cuentas con links a desconocidos = shadowban).
+3. Progresión natural: apertura → rapport → transición suave → invitación de bajo compromiso. Solo mencionas la oferta cuando ya hubo respuesta.
+4. Nada de emojis excesivos ni saludos tipo «Hola guapo/a» ni mensajes masivos idénticos.
+5. Respeta privacidad: solo información pública de su perfil; máximo 2 seguimientos espaciados si no responde.
+
+Genera una SECUENCIA de 4-5 mensajes (apertura + rapport + transición + invitación + seguimiento).
+Devuelve SOLO JSON:
+{ "secuencia": [ { "paso": "Apertura (día 0)", "mensaje": "texto del DM", "objetivo": "qué busca este mensaje", "nota": "por qué funciona / qué evitar" } ], "reglas_anti_spam": ["punto 1", "punto 2", "punto 3"], "cumplimiento": "buenas prácticas de datos/privacidad y de los términos de Instagram" }`,
+
+    'guion-llamadas': `Eres un closer/SDR senior experto en llamadas de ventas consultivas (Sandler + SPIN + Chris Voss). Creas guiones que suenan naturales, generan confianza y avanzan a un sí, sin presión ni manipulación.
+${ctx}
+
+CONTEXTO DE LA LLAMADA:
+- Tipo de llamada: ${toolAnswers.tipo_llamada || 'Llamada agendada (discovery)'}
+- A quién llamo: ${toolAnswers.prospecto || 'no especificado'}
+- Dolor/problema que resuelvo: ${toolAnswers.dolor || '(usa el contexto del proyecto)'}
+- Lo que ofrezco: ${toolAnswers.oferta || '(usa el contexto del proyecto)'}
+- Resultado concreto + plazo: ${toolAnswers.resultado || '(usa el contexto del proyecto)'}
+- Objeción más común esperada: ${toolAnswers.objecion || 'precio / no es el momento'}
+- Objetivo de la llamada (CTA): ${toolAnswers.cta || 'Agendar demo/llamada larga'}
+- Región: ${toolAnswers.region || 'Latinoamérica'}
+
+REGLAS OBLIGATORIAS:
+1. Guion CONVERSACIONAL, no monólogo: preguntas abiertas, escucha activa, el prospecto habla más que tú.
+2. Estructura por fases con lo que dices + el objetivo + tips. Incluye preguntas de descubrimiento tipo SPIN.
+3. Manejo de objeciones con el método validar → preguntar → reencuadrar (sin discutir).
+4. Ético y anti-presión: sin escasez falsa ni manipulación. Si no encaja, cierre elegante.
+5. CUMPLIMIENTO: si la llamada se graba, indica pedir consentimiento al inicio (obligatorio en España/UE-GDPR y en varios estados de EE.UU.); respeta listas de no-llamar y contacto B2B legítimo.
+
+Devuelve SOLO JSON:
+{ "fases": [ { "fase": "Apertura", "objetivo": "...", "guion": "lo que dices, natural", "tips": ["tip 1", "tip 2"] }, { "fase": "Descubrimiento", "objetivo": "...", "guion": "...", "preguntas": ["pregunta 1", "pregunta 2", "pregunta 3"] }, { "fase": "Puente/Pitch", "objetivo": "...", "guion": "...", "tips": ["..."] }, { "fase": "Objeciones", "objetivo": "...", "objeciones": [ { "objecion": "...", "respuesta": "..." } ] }, { "fase": "Cierre", "objetivo": "...", "guion": "...", "tips": ["..."] } ], "que_no_decir": ["frase a evitar 1", "frase a evitar 2"], "cumplimiento": "nota de consentimiento de grabación y contacto según la región" }`,
 
     'chat-agent': `Actúa como un INGENIERO DE PROMPTS senior + arquitecto de Agentes Conversacionales con experiencia desplegando bots en WhatsApp, Instagram, web y multi-canal. Generas blueprints técnicos completos y system prompts production-ready.
 ${ctx}

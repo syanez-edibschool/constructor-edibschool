@@ -11,6 +11,7 @@ import {
   CheckCircleIcon, LockClosedIcon,
   PlusCircleIcon, BuildingOffice2Icon,
   XMarkIcon,
+  PaperAirplaneIcon, ChatBubbleLeftRightIcon, PhoneIcon,
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import EcosystemLinks from './EcosystemLinks'
@@ -36,6 +37,9 @@ const TOOLS: SidebarTool[] = [
   { id: 'precios',         Icon: BanknotesIcon,          short: 'Precios',         cat: 'ventas'         },
   { id: 'website',         Icon: GlobeAltIcon,           short: 'Sitio Web',       cat: 'ventas'         },
   { id: 'contrato',        Icon: DocumentCheckIcon,      short: 'Contrato',        cat: 'ventas'         },
+  { id: 'email-frio',      Icon: PaperAirplaneIcon,      short: 'Email Frío',      cat: 'ventas'         },
+  { id: 'dm-instagram',    Icon: ChatBubbleLeftRightIcon, short: 'MD Instagram',   cat: 'ventas'         },
+  { id: 'guion-llamadas',  Icon: PhoneIcon,              short: 'Guion Llamadas',  cat: 'ventas'         },
   // Automatización
   { id: 'prompt-generator', Icon: CpuChipIcon,           short: 'Prompts Agentes', cat: 'automatizacion' },
   { id: 'emails',           Icon: EnvelopeIcon,          short: 'Emails',          cat: 'automatizacion' },
@@ -52,6 +56,7 @@ const TOOL_STEPS: Record<string, number> = {
   'prompt-generator': 12,
   'emails': 13, 'contrato': 14,
   'tracker': 15,
+  'email-frio': 16, 'dm-instagram': 17, 'guion-llamadas': 18,
 }
 
 const CATS = ['analisis', 'contenido', 'ventas', 'automatizacion', 'tracking']

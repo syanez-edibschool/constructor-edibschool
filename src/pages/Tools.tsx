@@ -9,6 +9,7 @@ import {
   DocumentCheckIcon, ChartBarIcon, MapIcon,
   DocumentDuplicateIcon, CpuChipIcon,
   CheckIcon, ArrowPathIcon, SparklesIcon, DocumentArrowDownIcon, Bars3Icon,
+  PaperAirplaneIcon, ChatBubbleLeftRightIcon, PhoneIcon,
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { api } from '../services/api'
@@ -206,6 +207,45 @@ const TOOLS: ToolDef[] = [
     desc: 'Plan de acción completo de 90 días para lanzar y escalar tu agencia de IA.',
     qs: [],
   },
+  {
+    id: 'email-frio', Icon: PaperAirplaneIcon, title: 'Email en Frío', short: 'Email Frío', cat: 'ventas',
+    desc: '3 variantes de email en frío ultra personalizadas, anti-spam y con cumplimiento de datos.',
+    qs: [
+      { id: 'prospecto', label: '¿A quién le escribes? (nombre, empresa, cargo, industria)', type: 'textarea', placeholder: 'Ej: Laura Gómez, directora de marketing en una clínica dental de 8 empleados' },
+      { id: 'senal',     label: '¿Qué señal/observación REAL usarás para abrir? (personalización)', type: 'textarea', placeholder: 'Ej: acaban de abrir segunda sede / publicó que quiere más pacientes / su web no capta leads' },
+      { id: 'oferta',    label: '¿Qué ofreces exactamente?', type: 'text', placeholder: 'Ej: sistema de captación de pacientes con IA' },
+      { id: 'resultado', label: '¿Qué resultado concreto entregas?', type: 'text', placeholder: 'Ej: 20-30 citas nuevas al mes en 60 días' },
+      { id: 'cta',       label: '¿Objetivo del email?', type: 'select', options: ['Agendar llamada de 15 min','Que respondan al email','Enviar un caso/loom','Pedir permiso para enviar info'] },
+      { id: 'tono',      label: '¿Tono?', type: 'select', options: ['Directo y ejecutivo','Cercano y humano','Consultivo (aporta valor)','Curioso y provocador'] },
+      { id: 'region',    label: '¿Dónde está el prospecto? (cumplimiento)', type: 'select', options: ['Latinoamérica','España / UE (GDPR)','EE.UU. (CAN-SPAM)','Otro'] },
+    ],
+  },
+  {
+    id: 'dm-instagram', Icon: ChatBubbleLeftRightIcon, title: 'MD por Instagram (Frío)', short: 'MD Instagram', cat: 'ventas',
+    desc: 'Secuencia de mensajes directos que inician conversación real sin parecer spam.',
+    qs: [
+      { id: 'prospecto', label: '¿A quién le escribes? (perfil, nicho, qué publica)', type: 'textarea', placeholder: 'Ej: coach fitness con 12k seguidores que vende planes online' },
+      { id: 'senal',     label: '¿Qué viste en su perfil/contenido para personalizar?', type: 'textarea', placeholder: 'Ej: su último reel sobre la falta de tiempo de sus clientes' },
+      { id: 'oferta',    label: '¿Qué ofreces?', type: 'text', placeholder: 'Ej: automatización de captación y seguimiento con IA' },
+      { id: 'resultado', label: '¿Resultado concreto que entregas?', type: 'text', placeholder: 'Ej: duplicar clientes sin trabajar más horas' },
+      { id: 'objetivo',  label: '¿Objetivo del primer contacto?', type: 'select', options: ['Iniciar conversación (sin vender)','Agendar llamada','Enviar un caso/loom','Invitar a un recurso gratis'] },
+      { id: 'tono',      label: '¿Tono?', type: 'select', options: ['Cercano y natural','Admirador genuino','Directo pero respetuoso','De colega a colega'] },
+    ],
+  },
+  {
+    id: 'guion-llamadas', Icon: PhoneIcon, title: 'Guion de Llamadas', short: 'Guion Llamadas', cat: 'ventas',
+    desc: 'Guion de venta consultivo por fases: apertura, descubrimiento, objeciones y cierre.',
+    qs: [
+      { id: 'tipo_llamada', label: '¿Tipo de llamada?', type: 'select', options: ['Llamada en frío (cold call)','Llamada agendada (discovery)','Seguimiento post-DM/email'] },
+      { id: 'prospecto',    label: '¿A quién llamas? (cargo, empresa, industria)', type: 'textarea', placeholder: 'Ej: dueño de una agencia inmobiliaria de 5 agentes' },
+      { id: 'dolor',        label: '¿Dolor/problema principal que resuelves?', type: 'textarea', placeholder: 'Ej: pierden leads por no responder a tiempo' },
+      { id: 'oferta',       label: '¿Qué ofreces?', type: 'text', placeholder: 'Ej: asistente de IA que responde y agenda 24/7' },
+      { id: 'resultado',    label: '¿Resultado concreto + plazo?', type: 'text', placeholder: 'Ej: +30% de citas en 45 días' },
+      { id: 'objecion',     label: '¿Objeción más común que esperas?', type: 'text', placeholder: 'Ej: ya tenemos a alguien / es caro / no es el momento' },
+      { id: 'cta',          label: '¿Objetivo de la llamada?', type: 'select', options: ['Agendar demo/llamada larga','Cerrar la venta','Enviar propuesta','Conseguir siguiente reunión'] },
+      { id: 'region',       label: '¿Región? (cumplimiento de grabación)', type: 'select', options: ['Latinoamérica','España / UE','EE.UU.','Otro'] },
+    ],
+  },
 ]
 
 const CATS = [{ id: 'contenido', label: 'Contenido' }, { id: 'ventas', label: 'Ventas' }, { id: 'operaciones', label: 'Ops' }, { id: 'estrategia', label: 'Herramientas Estratégicas' }]
@@ -362,6 +402,75 @@ function CasesOutput({ cases }: { cases: Array<{ title: string; problem: string;
   return <div>{cases?.map((c, i) => <Section key={i}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{c.title}</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, fontSize: 12 }}><div><p style={{ color: '#EF4444', fontWeight: 600, marginBottom: 4 }}>Problema</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.problem}</p></div><div><p style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 4 }}>Solución IA</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.solution}</p></div><div><p style={{ color: '#10B981', fontWeight: 600, marginBottom: 4 }}>Resultado</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{c.result}</p></div></div></Section>)}</div>
 }
 
+function ColdEmailOutput({ variantes, checklist, cumplimiento }: {
+  variantes: Array<{ angulo: string; asunto_a: string; asunto_b: string; preview?: string; cuerpo: string; ps?: string; por_que_funciona?: string }>
+  checklist?: string[]; cumplimiento?: string
+}) {
+  const exportText = (variantes || []).map((v, i) => `## Variante ${i + 1}: ${v.angulo}\nAsunto A: ${v.asunto_a}\nAsunto B: ${v.asunto_b}\nPreview: ${v.preview || ''}\n\n${v.cuerpo}${v.ps ? `\n\n${v.ps}` : ''}`).join('\n\n———\n\n')
+  return <div>
+    {(variantes || []).map((v, i) => (
+      <Section key={i}>
+        <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 8, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{v.angulo}</p>
+        <p style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 2 }}>Asunto A</p>
+        <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>{v.asunto_a}</p>
+        <p style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 2 }}>Asunto B</p>
+        <p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>{v.asunto_b}</p>
+        {v.preview && <p style={{ fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic', marginBottom: 8 }}>Preview: {v.preview}</p>}
+        <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{v.cuerpo}</p>
+        {v.ps && <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap', marginTop: 8 }}>{v.ps}</p>}
+        {v.por_que_funciona && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8 }}>💡 {v.por_que_funciona}</p>}
+        <div style={{ marginTop: 10 }}><CopyBtn text={`Asunto: ${v.asunto_a}\n\n${v.cuerpo}${v.ps ? `\n\n${v.ps}` : ''}`} /></div>
+      </Section>
+    ))}
+    {checklist?.length ? <Section><p style={{ fontWeight: 700, color: '#10B981', marginBottom: 6 }}>✅ Checklist anti-spam</p>{checklist.map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {c}</p>)}</Section> : null}
+    {cumplimiento ? <Section><p style={{ fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>⚖️ Cumplimiento de datos</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{cumplimiento}</p></Section> : null}
+    <ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="Emails en Frío" />
+  </div>
+}
+
+function DMOutput({ secuencia, reglas, cumplimiento }: {
+  secuencia: Array<{ paso: string; mensaje: string; objetivo?: string; nota?: string }>
+  reglas?: string[]; cumplimiento?: string
+}) {
+  const exportText = (secuencia || []).map((s, i) => `${i + 1}. ${s.paso}\n${s.mensaje}`).join('\n\n')
+  return <div>
+    {(secuencia || []).map((s, i) => (
+      <Section key={i}>
+        <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 6, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{s.paso}</p>
+        <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{s.mensaje}</p>
+        {s.objetivo && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 6 }}>🎯 {s.objetivo}</p>}
+        {s.nota && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>💡 {s.nota}</p>}
+        <div style={{ marginTop: 10 }}><CopyBtn text={s.mensaje} /></div>
+      </Section>
+    ))}
+    {reglas?.length ? <Section><p style={{ fontWeight: 700, color: '#10B981', marginBottom: 6 }}>✅ Reglas anti-spam (Instagram)</p>{reglas.map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {c}</p>)}</Section> : null}
+    {cumplimiento ? <Section><p style={{ fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>⚖️ Privacidad y términos</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{cumplimiento}</p></Section> : null}
+    <ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="DMs Instagram" />
+  </div>
+}
+
+function CallScriptOutput({ fases, queNoDecir, cumplimiento }: {
+  fases: Array<{ fase: string; objetivo?: string; guion?: string; tips?: string[]; preguntas?: string[]; objeciones?: Array<{ objecion: string; respuesta: string }> }>
+  queNoDecir?: string[]; cumplimiento?: string
+}) {
+  const exportText = (fases || []).map(f => `## ${f.fase}\n${f.objetivo ? `Objetivo: ${f.objetivo}\n` : ''}${f.guion || ''}${f.preguntas?.length ? `\nPreguntas:\n- ${f.preguntas.join('\n- ')}` : ''}${f.objeciones?.length ? `\n${f.objeciones.map(o => `Objeción: ${o.objecion}\n→ ${o.respuesta}`).join('\n')}` : ''}`).join('\n\n')
+  return <div>
+    {(fases || []).map((f, i) => (
+      <Section key={i}>
+        <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 6, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{f.fase}</p>
+        {f.objetivo && <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 6 }}>🎯 {f.objetivo}</p>}
+        {f.guion && <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{f.guion}</p>}
+        {f.preguntas?.length ? <div style={{ marginTop: 8 }}>{f.preguntas.map((q, qi) => <p key={qi} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>❓ {q}</p>)}</div> : null}
+        {f.objeciones?.length ? <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>{f.objeciones.map((o, oi) => <div key={oi} style={{ borderLeft: '2px solid var(--accent)', paddingLeft: 10 }}><p style={{ fontSize: 12, color: '#EF4444', fontWeight: 600 }}>{o.objecion}</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>→ {o.respuesta}</p></div>)}</div> : null}
+        {f.tips?.length ? <div style={{ marginTop: 8 }}>{f.tips.map((t, ti) => <p key={ti} style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>💡 {t}</p>)}</div> : null}
+      </Section>
+    ))}
+    {queNoDecir?.length ? <Section><p style={{ fontWeight: 700, color: '#EF4444', marginBottom: 6 }}>🚫 Qué NO decir</p>{queNoDecir.map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {c}</p>)}</Section> : null}
+    {cumplimiento ? <Section><p style={{ fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>⚖️ Cumplimiento</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{cumplimiento}</p></Section> : null}
+    <ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="Guion de Llamadas" />
+  </div>
+}
+
 function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
   toolId: string; result: unknown; projectId: string; savedAt?: string; onRegenerate: () => void
 }) {
@@ -427,6 +536,9 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
       const sections = r.sections as Array<{ label: string; timing: string; content: string }>
       return <div>{sections?.map((s, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><div><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{s.label}</span><span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>{s.timing}</span></div><CopyBtn text={s.content} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.7, fontFamily: 'monospace' }}>{s.content}</pre></Section>)}<ActionBar onCopy={() => copy(sections?.map(s => `[${s.label}]\n${s.content}`).join('\n\n') || '')} onDownload={() => download(sections?.map(s => `[${s.label} - ${s.timing}]\n${s.content}`).join('\n\n') || '', 'vsl-script.txt')} exportText={sections?.map(s => `## ${s.label} (${s.timing})\n${s.content}`).join('\n\n') || ''} exportTitle="VSL Script" /></div>
     }
+    case 'email-frio':     return <ColdEmailOutput variantes={r.variantes as never} checklist={r.checklist_anti_spam as never} cumplimiento={r.cumplimiento as string} />
+    case 'dm-instagram':   return <DMOutput secuencia={r.secuencia as never} reglas={r.reglas_anti_spam as never} cumplimiento={r.cumplimiento as string} />
+    case 'guion-llamadas': return <CallScriptOutput fases={r.fases as never} queNoDecir={r.que_no_decir as never} cumplimiento={r.cumplimiento as string} />
     default: {
       const listKey = Object.keys(r).find(k => Array.isArray(r[k]))
       const items: string[] = listKey ? (r[listKey] as string[]) : []
