@@ -16,6 +16,10 @@ function openExt(url: string) { window.open(url, '_blank', 'noopener,noreferrer'
 function SideBtn({ Icon, label, accent, locked, onClick, collapsed }: {
   Icon: IconComp; label: string; accent: string; locked?: boolean; onClick: () => void; collapsed: boolean
 }) {
+  // accent debe ser hex (#RRGGBB) para poder tintar el fondo con alfa.
+  const bg = locked ? 'var(--card-bg)' : `${accent}1f`
+  const bgHover = `${accent}33`
+  const border = locked ? 'var(--border)' : `${accent}40`
   return (
     <button
       onClick={() => { if (!locked) onClick() }}
@@ -23,16 +27,18 @@ function SideBtn({ Icon, label, accent, locked, onClick, collapsed }: {
       title={locked ? LOCK_MSG : label}
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-        padding: collapsed ? '10px' : '9px 12px', borderRadius: 8, marginBottom: 2,
-        cursor: locked ? 'not-allowed' : 'pointer', border: '1px solid transparent',
-        background: 'transparent', color: locked ? 'var(--text-3)' : accent,
-        opacity: locked ? 0.5 : 1, fontSize: 13, fontWeight: 500,
-        justifyContent: collapsed ? 'center' : 'flex-start', transition: 'background 0.12s',
+        padding: collapsed ? '9px' : '9px 12px', borderRadius: 10, marginBottom: 6,
+        cursor: locked ? 'not-allowed' : 'pointer', border: `1px solid ${border}`,
+        background: bg, color: locked ? 'var(--text-3)' : 'var(--text)',
+        opacity: locked ? 0.55 : 1, fontSize: 13, fontWeight: 600,
+        justifyContent: collapsed ? 'center' : 'flex-start', transition: 'background 0.15s, border-color 0.15s',
       }}
-      onMouseEnter={e => { if (!locked) (e.currentTarget as HTMLElement).style.background = 'var(--accent-d)' }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+      onMouseEnter={e => { if (!locked) (e.currentTarget as HTMLElement).style.background = bgHover }}
+      onMouseLeave={e => { if (!locked) (e.currentTarget as HTMLElement).style.background = bg }}
     >
-      <Icon style={{ width: 18, height: 18, flexShrink: 0 }} />
+      <span style={{ width: 26, height: 26, borderRadius: 7, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: locked ? 'var(--border)' : `${accent}2b` }}>
+        <Icon style={{ width: 16, height: 16, color: locked ? 'var(--text-3)' : accent }} />
+      </span>
       {!collapsed && <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{label}</span>}
       {!collapsed && locked && <LockClosedIcon style={{ width: 13, height: 13, flexShrink: 0 }} />}
     </button>
@@ -88,7 +94,7 @@ export default function EcosystemLinks({ variant, collapsed = false }: {
     return (
       <>
         <SideBtn Icon={AcademicCapIcon} label="Seguimiento" accent="#10B981" collapsed={collapsed} onClick={() => openExt(SEGUIMIENTO_URL)} />
-        <SideBtn Icon={ChatBubbleLeftRightIcon} label="Tutorías 1:1" accent="var(--accent)" collapsed={collapsed} locked={tutLocked} onClick={() => openExt(TUTORIAS_URL)} />
+        <SideBtn Icon={ChatBubbleLeftRightIcon} label="Tutorías 1:1" accent="#8357F6" collapsed={collapsed} locked={tutLocked} onClick={() => openExt(TUTORIAS_URL)} />
       </>
     )
   }
