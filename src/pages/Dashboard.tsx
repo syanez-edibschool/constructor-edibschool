@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { getProjects, createProject, deleteProject, type Project } from '../services/projectsService'
-import { PlusIcon, Bars3Icon, PlayCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, Bars3Icon, PlayCircleIcon } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
 import { useIsMobile } from '../hooks/useIsMobile'
 
@@ -438,13 +438,6 @@ export default function Dashboard() {
                   )}
                 </div>
               </motion.div>
-
-              {/* Comenzar → abre el Acelerador (proyectos) */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button className="btn-primary" onClick={() => setView('acelerador')} style={{ fontSize: 15, padding: '14px 44px' }}>
-                  Comenzar <ArrowRightIcon style={{ width: 18, height: 18 }} />
-                </button>
-              </div>
             </>
           ) : (
             <>

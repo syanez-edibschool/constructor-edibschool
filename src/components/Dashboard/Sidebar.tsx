@@ -9,7 +9,7 @@ import {
   DocumentDuplicateIcon, CpuChipIcon,
   ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon,
   CheckCircleIcon, LockClosedIcon,
-  BuildingOffice2Icon,
+  BuildingOffice2Icon, HomeIcon,
   XMarkIcon,
   PaperAirplaneIcon, ChatBubbleLeftRightIcon, PhoneIcon,
 } from '@heroicons/react/24/outline'
@@ -227,6 +227,8 @@ export default function Sidebar({
       {/* ── DASHBOARD MODE ── */}
       {mode === 'dashboard' && (
         <div style={{ flex: 1, overflowY: 'auto', padding: '10px 8px', display: 'flex', flexDirection: 'column' }}>
+          <NavItem Icon={HomeIcon} label="Inicio" collapsed={collapsed} onClick={goHome} accent="var(--accent)" />
+          <Divider />
           <SectionLabel label="Herramientas" collapsed={collapsed} />
           <EcosystemLinks variant="sidebar" collapsed={collapsed} onAcelerador={goAcelerador} aceleradorActive={aceleradorActive} />
         </div>
