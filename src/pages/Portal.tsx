@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import type { ComponentType, SVGProps } from 'react'
 import {
   RocketLaunchIcon, AcademicCapIcon, ClipboardDocumentCheckIcon, BriefcaseIcon,
@@ -15,7 +17,8 @@ type IconComp = ComponentType<SVGProps<SVGSVGElement>>
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIG — Actualiza aquí los dominios reales y el video cuando los tengas.
 // ─────────────────────────────────────────────────────────────────────────────
-const VIDEO_EMBED_URL = '' // ej. 'https://www.youtube.com/embed/XXXX' — vacío = placeholder
+const VIDEO_EMBED_URL: string = '' // ej. 'https://www.youtube.com/embed/XXXX' o Vimeo — vacío = aún sin video
+const VIDEO_POSTER = '/portada-video.jpg' // imagen portada (con botón de play); ponla en /public
 
 interface Platform {
   id: string; name: string; desc: string
@@ -53,7 +56,14 @@ export default function Portal() {
   const { isDark, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
   const { seguimientoCompleto } = useSeguimientoStatus()
+  const [playing, setPlaying] = useState(false)
+  const [posterOk, setPosterOk] = useState(true)
   const logoSrc = isDark ? '/logo_blanco.png' : '/logo_negro.png'
+
+  const playVideo = () => {
+    if (VIDEO_EMBED_URL) setPlaying(true)
+    else toast('El video estará disponible muy pronto', { icon: '🎬' })
+  }
   const firstName = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || ''
 
   const isUnlocked = (p: Platform) => p.enabled && (!p.requiresSeguimiento || seguimientoCompleto)
@@ -94,19 +104,36 @@ export default function Portal() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.05 }}
           style={{ marginBottom: 40 }}>
           <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--card-bg)' }}>
-            {VIDEO_EMBED_URL ? (
+            {playing && VIDEO_EMBED_URL ? (
               <iframe
-                src={VIDEO_EMBED_URL}
-                title="Cómo funcionan las plataformas"
+                src={`${VIDEO_EMBED_URL}${VIDEO_EMBED_URL.includes('?') ? '&' : '?'}autoplay=1`}
+                title="Cómo funciona el Acelerador"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
               />
+            ) : posterOk ? (
+              <button
+                onClick={playVideo}
+                aria-label="Reproducir video: ¿Cómo funciona el Acelerador?"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, border: 0, background: 'none', cursor: 'pointer', display: 'block' }}
+              >
+                <img
+                  src={VIDEO_POSTER}
+                  alt="¿Cómo funciona el Acelerador? Dale Play"
+                  onError={() => setPosterOk(false)}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </button>
             ) : (
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--text-3)' }}>
+              <button
+                onClick={playVideo}
+                aria-label="Reproducir video"
+                style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--text-3)', background: 'none', border: 0, cursor: 'pointer', width: '100%' }}
+              >
                 <PlayCircleIcon style={{ width: 56, height: 56, color: 'var(--accent)' }} />
-                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>Video explicativo — próximamente</p>
-              </div>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>¿Cómo funciona el Acelerador? — Dale Play</span>
+              </button>
             )}
           </div>
         </motion.div>
