@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../hooks/useAuth'
+import { useSeguimientoStatus } from '../hooks/useSeguimientoStatus'
 
 type IconComp = ComponentType<SVGProps<SVGSVGElement>>
 
@@ -20,6 +21,8 @@ interface Platform {
   id: string; name: string; desc: string
   Icon: IconComp; accent: string
   url: string; internal?: boolean; enabled: boolean; badge?: string
+  // Mentores se desbloquea solo al completar el programa de Seguimiento.
+  requiresSeguimiento?: boolean
 }
 
 const PLATFORMS: Platform[] = [
@@ -31,7 +34,7 @@ const PLATFORMS: Platform[] = [
   {
     id: 'mentores', name: 'Mentores', desc: 'Agenda tu tutoría 1 a 1 con un mentor del equipo.',
     Icon: AcademicCapIcon, accent: '#C49DFF',
-    url: 'https://mentores.marketinghackers.com', enabled: true,
+    url: 'https://mentores.marketinghackers.com', enabled: true, requiresSeguimiento: true,
   },
   {
     id: 'seguimientos', name: 'Seguimientos', desc: 'Tu progreso, entregas y evaluaciones del programa.',
@@ -49,11 +52,14 @@ export default function Portal() {
   const navigate = useNavigate()
   const { isDark, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
+  const { seguimientoCompleto } = useSeguimientoStatus()
   const logoSrc = isDark ? '/logo_blanco.png' : '/logo_negro.png'
   const firstName = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || ''
 
+  const isUnlocked = (p: Platform) => p.enabled && (!p.requiresSeguimiento || seguimientoCompleto)
+
   const go = (p: Platform) => {
-    if (!p.enabled) return
+    if (!isUnlocked(p)) return
     if (p.internal) navigate(p.url)
     else window.open(p.url, '_blank', 'noopener,noreferrer')
   }
@@ -108,39 +114,43 @@ export default function Portal() {
         {/* Platforms */}
         <p style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 16 }}>Plataformas</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 'var(--sp-md)' }}>
-          {PLATFORMS.map((p, i) => (
+          {PLATFORMS.map((p, i) => {
+            const unlocked = isUnlocked(p)
+            const lockLabel = !p.enabled ? p.badge : 'Completa Seguimiento'
+            return (
             <motion.button
               key={p.id}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 + i * 0.06 }}
               onClick={() => go(p)}
-              disabled={!p.enabled}
-              title={p.enabled ? p.name : 'Muy pronto'}
+              disabled={!unlocked}
+              title={unlocked ? p.name : (lockLabel || p.name)}
               style={{
                 textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 10,
                 padding: 'var(--sp-lg)', borderRadius: 'var(--radius-md)',
                 background: 'var(--card-bg)', border: '1px solid var(--border)',
-                cursor: p.enabled ? 'pointer' : 'not-allowed', opacity: p.enabled ? 1 : 0.55,
+                cursor: unlocked ? 'pointer' : 'not-allowed', opacity: unlocked ? 1 : 0.55,
                 transition: 'border-color 0.2s, transform 0.2s',
               }}
-              onMouseEnter={e => { if (p.enabled) { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border-h)'; el.style.transform = 'translateY(-3px)' } }}
+              onMouseEnter={e => { if (unlocked) { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border-h)'; el.style.transform = 'translateY(-3px)' } }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--border)'; el.style.transform = 'translateY(0)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ width: 46, height: 46, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${p.accent}22`, border: `1px solid ${p.accent}44` }}>
                   <p.Icon style={{ width: 24, height: 24, color: p.accent }} />
                 </div>
-                {p.enabled
+                {unlocked
                   ? (p.internal
                       ? <ArrowRightIcon style={{ width: 18, height: 18, color: 'var(--text-3)' }} />
                       : <ArrowTopRightOnSquareIcon style={{ width: 18, height: 18, color: 'var(--text-3)' }} />)
-                  : <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: p.accent, background: `${p.accent}22`, borderRadius: 999, padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}><LockClosedIcon style={{ width: 11, height: 11 }} />{p.badge}</span>}
+                  : <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: p.accent, background: `${p.accent}22`, borderRadius: 999, padding: '3px 8px', display: 'inline-flex', alignItems: 'center', gap: 4 }}><LockClosedIcon style={{ width: 11, height: 11 }} />{lockLabel}</span>}
               </div>
               <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>{p.name}</p>
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.45 }}>{p.desc}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.45 }}>{unlocked || !p.enabled ? p.desc : 'Completa el programa de Seguimiento para desbloquear tu tutoría 1 a 1.'}</p>
             </motion.button>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>
