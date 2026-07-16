@@ -25,7 +25,7 @@ export default function Download() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `constructor-proyecto-${id}.zip`
+      a.download = `acelerador-proyecto-${id}.zip`
       a.click()
       URL.revokeObjectURL(url)
       toast.success('¡Descarga iniciada!')

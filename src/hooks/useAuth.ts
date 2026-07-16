@@ -40,7 +40,7 @@ export function useAuth() {
       email,
       options: {
         shouldCreateUser: false,
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/inicio`,
       },
     })
     if (error) {

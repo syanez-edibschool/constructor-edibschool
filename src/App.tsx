@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { useAuth } from './hooks/useAuth'
 import { ThemeProvider } from './context/ThemeContext'
 import Login from './pages/Login'
+import Portal from './pages/Portal'
 import Dashboard from './pages/Dashboard'
 import Questions from './pages/Questions'
 import ReviewNiche from './pages/ReviewNiche'
@@ -25,7 +26,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return null
-  if (user) return <Navigate to="/dashboard" replace />
+  if (user) return <Navigate to="/inicio" replace />
   return <>{children}</>
 }
 
@@ -52,10 +53,11 @@ export default function App() {
         }}
       />
       <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/inicio" replace />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         {/* Registro libre deshabilitado: el acceso es solo por invitación (WordPress + magic link) */}
         <Route path="/signup" element={<Navigate to="/login" replace />} />
+        <Route path="/inicio" element={<ProtectedRoute><Portal /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/proyecto/:id/questions" element={<ProtectedRoute><Questions /></ProtectedRoute>} />
         <Route path="/proyecto/:id/review-niche" element={<ProtectedRoute><ReviewNiche /></ProtectedRoute>} />
