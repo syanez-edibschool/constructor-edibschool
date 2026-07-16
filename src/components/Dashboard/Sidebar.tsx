@@ -9,7 +9,7 @@ import {
   DocumentDuplicateIcon, CpuChipIcon,
   ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon,
   CheckCircleIcon, LockClosedIcon,
-  PlusCircleIcon, BuildingOffice2Icon, HomeIcon,
+  BuildingOffice2Icon,
   XMarkIcon,
   PaperAirplaneIcon, ChatBubbleLeftRightIcon, PhoneIcon,
 } from '@heroicons/react/24/outline'
@@ -74,6 +74,9 @@ export interface SidebarProps {
   onNewProject?: () => void
   projects?: { id: string; name: string }[]
   onProjectSelect?: (id: string) => void
+  onAcelerador?: () => void      // abre la vista de proyectos (Acelerador)
+  aceleradorActive?: boolean
+  onHome?: () => void            // vuelve a la vista de inicio (video)
   // Project-mode info
   projectName?: string
   projectProgress?: number
@@ -137,8 +140,7 @@ function Divider() {
 export default function Sidebar({
   mode, collapsed: collapsedProp, onToggle,
   mobileOpen = false, onMobileClose,
-  onNewProject: onNewProjectProp,
-  projects = [], onProjectSelect: onProjectSelectProp,
+  onAcelerador, aceleradorActive, onHome,
   projectName, projectProgress = 0,
   toolStates = {}, activeToolId, onToolSelect: onToolSelectProp, onBack,
   user, onLogout,
@@ -150,8 +152,8 @@ export default function Sidebar({
   const collapsed = isMobile ? false : collapsedProp
   // En móvil, al elegir algo, cerramos el drawer automáticamente
   const onToolSelect = (id: string) => { onToolSelectProp?.(id); if (isMobile) onMobileClose?.() }
-  const onProjectSelect = (id: string) => { onProjectSelectProp?.(id); if (isMobile) onMobileClose?.() }
-  const onNewProject = () => { onNewProjectProp?.(); if (isMobile) onMobileClose?.() }
+  const goAcelerador = () => { onAcelerador?.(); if (isMobile) onMobileClose?.() }
+  const goHome = () => { onHome?.(); if (isMobile) onMobileClose?.() }
   const logoSrc = isDark ? '/logo_blanco.png' : '/logo_negro.png'
   const userName   = user?.user_metadata?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuario'
   const userInitial = (user?.user_metadata?.name || user?.email || 'U')[0].toUpperCase()
@@ -195,11 +197,12 @@ export default function Sidebar({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={{ duration: 0.18 }}
-              onClick={() => mode === 'project' ? (onBack?.(), navigate('/dashboard')) : undefined}
+              onClick={() => mode === 'project' ? (onBack?.(), navigate('/dashboard')) : goHome()}
               style={{
-                background: 'none', border: 'none', cursor: mode === 'project' ? 'pointer' : 'default',
+                background: 'none', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 6, flex: 1, padding: 0,
               }}
+              title={mode === 'dashboard' ? 'Ir al inicio' : undefined}
             >
               {mode === 'project' && <ArrowLeftIcon style={{ width: 14, height: 14, color: 'var(--text-3)', flexShrink: 0 }} />}
               <img src={logoSrc} alt="MKT Hackers" style={{ height: isDark ? 32 : 56, width: 'auto', objectFit: 'contain' }} />
@@ -223,54 +226,9 @@ export default function Sidebar({
 
       {/* ── DASHBOARD MODE ── */}
       {mode === 'dashboard' && (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 6px', display: 'flex', flexDirection: 'column' }}>
-          <NavItem Icon={HomeIcon} label="Inicio" collapsed={collapsed} onClick={() => navigate('/inicio')} accent="var(--accent)" />
-          <Divider />
-          <SectionLabel label="Plataformas" collapsed={collapsed} />
-          <EcosystemLinks variant="sidebar" collapsed={collapsed} />
-          <Divider />
-          <SectionLabel label="Acciones rápidas" collapsed={collapsed} />
-          <NavItem Icon={PlusCircleIcon} label="Crear proyecto" collapsed={collapsed} onClick={onNewProject} accent="var(--accent)" />
-
-          {projects.length > 0 && (
-            <>
-              <Divider />
-              <SectionLabel label="Tus proyectos" collapsed={collapsed} />
-              {projects.slice(0, 8).map(p => (
-                <button
-                  key={p.id}
-                  title={collapsed ? p.name : undefined}
-                  onClick={() => onProjectSelect?.(p.id)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 9,
-                    padding: collapsed ? '9px' : '8px 10px',
-                    borderRadius: 8, marginBottom: 2,
-                    cursor: 'pointer', border: '1px solid transparent',
-                    background: 'transparent', color: 'var(--text-2)',
-                    fontSize: 12, fontWeight: 500, textAlign: 'left',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                    transition: 'background 0.12s',
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--accent-d)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
-                >
-                  <div style={{
-                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    background: 'linear-gradient(135deg,rgba(131,87,246,.15),rgba(196,157,255,.15))',
-                    border: '1px solid rgba(131,87,246,.2)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <BuildingOffice2Icon style={{ width: 12, height: 12, color: 'var(--accent)' }} />
-                  </div>
-                  {!collapsed && (
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                      {p.name}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </>
-          )}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '10px 8px', display: 'flex', flexDirection: 'column' }}>
+          <SectionLabel label="Herramientas" collapsed={collapsed} />
+          <EcosystemLinks variant="sidebar" collapsed={collapsed} onAcelerador={goAcelerador} aceleradorActive={aceleradorActive} />
         </div>
       )}
 

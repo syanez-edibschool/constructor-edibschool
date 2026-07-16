@@ -1,6 +1,6 @@
 import type { ComponentType, SVGProps } from 'react'
 import {
-  AcademicCapIcon, ChatBubbleLeftRightIcon, BriefcaseIcon, LockClosedIcon, ArrowTopRightOnSquareIcon,
+  RocketLaunchIcon, AcademicCapIcon, ChatBubbleLeftRightIcon, BriefcaseIcon, LockClosedIcon, ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline'
 import { useSeguimientoStatus } from '../../hooks/useSeguimientoStatus'
 
@@ -13,12 +13,12 @@ const LOCK_MSG = 'Completa el programa de Seguimiento para desbloquear'
 
 function openExt(url: string) { window.open(url, '_blank', 'noopener,noreferrer') }
 
-function SideBtn({ Icon, label, accent, locked, onClick, collapsed, badge, lockMsg }: {
+function SideBtn({ Icon, label, accent, locked, onClick, collapsed, badge, lockMsg, active }: {
   Icon: IconComp; label: string; accent: string; locked?: boolean; onClick: () => void; collapsed: boolean
-  badge?: string; lockMsg?: string
+  badge?: string; lockMsg?: string; active?: boolean
 }) {
   // accent debe ser hex (#RRGGBB) para tintar el fondo con alfa.
-  const bg = locked ? `${accent}12` : `${accent}24`
+  const bg = locked ? `${accent}12` : (active ? `${accent}40` : `${accent}24`)
   const bgHover = `${accent}3a`
   return (
     <button
@@ -87,8 +87,8 @@ function PlatformCard({ Icon, title, desc, accent, locked, onClick }: {
  * - Seguimiento: siempre habilitado.
  * - Tutorías 1:1: habilitado solo cuando el alumno completó Seguimiento.
  */
-export default function EcosystemLinks({ variant, collapsed = false }: {
-  variant: 'sidebar' | 'cards'; collapsed?: boolean
+export default function EcosystemLinks({ variant, collapsed = false, onAcelerador, aceleradorActive }: {
+  variant: 'sidebar' | 'cards'; collapsed?: boolean; onAcelerador?: () => void; aceleradorActive?: boolean
 }) {
   const { seguimientoCompleto } = useSeguimientoStatus()
   const tutLocked = !seguimientoCompleto
@@ -96,8 +96,9 @@ export default function EcosystemLinks({ variant, collapsed = false }: {
   if (variant === 'sidebar') {
     return (
       <>
+        <SideBtn Icon={RocketLaunchIcon} label="Acelerador" accent="#8357F6" collapsed={collapsed} active={aceleradorActive} onClick={() => onAcelerador?.()} />
         <SideBtn Icon={AcademicCapIcon} label="Seguimiento" accent="#10B981" collapsed={collapsed} onClick={() => openExt(SEGUIMIENTO_URL)} />
-        <SideBtn Icon={ChatBubbleLeftRightIcon} label="Tutorías 1:1" accent="#8357F6" collapsed={collapsed} locked={tutLocked} lockMsg={LOCK_MSG} onClick={() => openExt(TUTORIAS_URL)} />
+        <SideBtn Icon={ChatBubbleLeftRightIcon} label="Tutorías 1:1" accent="#C49DFF" collapsed={collapsed} locked={tutLocked} lockMsg={LOCK_MSG} onClick={() => openExt(TUTORIAS_URL)} />
         <SideBtn Icon={BriefcaseIcon} label="Oportunidades" accent="#F59E0B" collapsed={collapsed} locked badge="Muy pronto" lockMsg="Bolsa de empleo MKT Hackers — muy pronto" onClick={() => {}} />
       </>
     )

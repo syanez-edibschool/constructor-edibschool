@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { getProjects, createProject, deleteProject, type Project } from '../services/projectsService'
-import { PlusIcon, Bars3Icon } from '@heroicons/react/24/outline'
+import { PlusIcon, Bars3Icon, PlayCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
 import { useIsMobile } from '../hooks/useIsMobile'
 
@@ -14,6 +14,10 @@ import StatsCards     from '../components/Dashboard/StatsCards'
 import ProjectGrid    from '../components/Dashboard/ProjectGrid'
 import EmptyState     from '../components/Dashboard/EmptyState'
 import ProjectCard    from '../components/Dashboard/ProjectCard'
+
+// Video de inicio (portada + play). Actualiza el enlace cuando lo tengas.
+const VIDEO_EMBED_URL: string = '' // ej. 'https://www.youtube.com/embed/XXXX' o Vimeo — vacío = aún sin video
+const VIDEO_POSTER = '/portada-video.png'
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * Math.min(1, Math.max(0, t))
 
@@ -260,6 +264,14 @@ export default function Dashboard() {
   const [scrollY, setScrollY]               = useState(0)
   const [mousePos, setMousePos]             = useState({ x: .5, y: .5 })
   const [headerSolid, setHeaderSolid]       = useState(false)
+  // Vista central: 'inicio' (video) por defecto | 'acelerador' (proyectos)
+  const [view, setView]                     = useState<'inicio' | 'acelerador'>('inicio')
+  const [playing, setPlaying]               = useState(false)
+  const [posterOk, setPosterOk]             = useState(true)
+  const playVideo = () => {
+    if (VIDEO_EMBED_URL) setPlaying(true)
+    else toast('El video estará disponible muy pronto', { icon: '🎬' })
+  }
 
   const canvasState  = useRef<CanvasState>({ mx: .5, my: .5, scrollY: 0, scrollVel: 0 })
   const lastScrollY  = useRef(0), lastScrollTime = useRef(Date.now())
@@ -343,9 +355,9 @@ export default function Dashboard() {
         onToggle={() => setSidebarCollapsed(c => !c)}
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
-        onNewProject={() => setShowModal(true)}
-        projects={projects.map(p => ({ id: p.id, name: p.name }))}
-        onProjectSelect={id => navigate(`/proyecto/${id}/tools`)}
+        onAcelerador={() => setView('acelerador')}
+        aceleradorActive={view === 'acelerador'}
+        onHome={() => setView('inicio')}
         user={user}
         onLogout={async () => { await logout(); navigate('/login') }}
       />
@@ -385,7 +397,7 @@ export default function Dashboard() {
           {/* Welcome */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .6 }} style={{ marginBottom: 'var(--sp-xl)' }}>
             <p style={{ fontSize: 'var(--fs-xs)', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 'var(--sp-sm)' }}>
-              Dashboard
+              {view === 'inicio' ? 'Inicio' : 'Acelerador'}
             </p>
             <h1 style={{ color: 'var(--text)', marginBottom: 'var(--sp-sm)', fontSize: 'var(--fs-2xl)' }}>
               Bienvenido,{' '}
@@ -394,51 +406,93 @@ export default function Dashboard() {
               </span>
             </h1>
             <p style={{ color: 'var(--text-2)', fontSize: 'var(--fs-base)' }}>
-              Gestiona tus agencias de IA en un solo lugar.
+              {view === 'inicio' ? 'Mira cómo funciona y entra al Acelerador cuando quieras.' : 'Gestiona tus agencias de IA en un solo lugar.'}
             </p>
           </motion.div>
 
-          {/* Stats */}
-          <div style={{ marginBottom: 'var(--sp-xl)' }}>
-            <StatsCards
-              total={projects.length}
-              active={projects.filter(p => p.status !== 'completed').length}
-              completed={projects.filter(p => p.status === 'completed').length}
-            />
-          </div>
+          {view === 'inicio' ? (
+            <>
+              {/* Video de inicio (incrustado) */}
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .45, delay: .05 }} style={{ marginBottom: 'var(--sp-lg)' }}>
+                <div style={{ position: 'relative', width: '100%', maxWidth: 960, margin: '0 auto', aspectRatio: '16 / 9', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--card-bg)', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+                  {playing && VIDEO_EMBED_URL ? (
+                    <iframe
+                      src={`${VIDEO_EMBED_URL}${VIDEO_EMBED_URL.includes('?') ? '&' : '?'}autoplay=1`}
+                      title="Cómo funciona el Acelerador"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                    />
+                  ) : posterOk ? (
+                    <button onClick={playVideo} aria-label="Reproducir video: ¿Cómo funciona el Acelerador?"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, border: 0, background: 'none', cursor: 'pointer', display: 'block' }}>
+                      <img src={VIDEO_POSTER} alt="¿Cómo funciona el Acelerador? Dale Play" onError={() => setPosterOk(false)}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    </button>
+                  ) : (
+                    <button onClick={playVideo} aria-label="Reproducir video"
+                      style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--text-3)', background: 'none', border: 0, cursor: 'pointer', width: '100%' }}>
+                      <PlayCircleIcon style={{ width: 64, height: 64, color: 'var(--accent)' }} />
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>¿Cómo funciona el Acelerador? — Dale Play</span>
+                    </button>
+                  )}
+                </div>
+              </motion.div>
 
-          {/* Divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-md)', marginBottom: 'var(--sp-lg)' }}>
-            <div style={{ height: 1, flex: 1, background: `linear-gradient(90deg,${col}40,transparent)` }} />
-            <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: col }}>Proyectos</span>
-            <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
-          </div>
+              {/* Comenzar → abre el Acelerador (proyectos) */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <button className="btn-primary" onClick={() => setView('acelerador')} style={{ fontSize: 15, padding: '14px 44px' }}>
+                  Comenzar <ArrowRightIcon style={{ width: 18, height: 18 }} />
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Stats */}
+              <div style={{ marginBottom: 'var(--sp-xl)' }}>
+                <StatsCards
+                  total={projects.length}
+                  active={projects.filter(p => p.status !== 'completed').length}
+                  completed={projects.filter(p => p.status === 'completed').length}
+                />
+              </div>
 
-          {/* Project grid */}
-          <ProjectGrid
-            projects={projects}
-            loading={loading}
-            renderEmpty={() => <EmptyState onNew={() => setShowModal(true)} />}
-            renderNewCard={() => (
-              <NewProjectCard onClick={() => setShowModal(true)} col={col} isDark={isDark} />
-            )}
-            renderCard={(project, index) => (
-              <ProjectCard
-                key={project.id}
-                project={{ ...project }}
-                index={index}
-                col={col}
-                isDark={isDark}
-                onContinue={() => {
-                  const step = project.current_step ?? 1
-                  if (step <= 1) navigate(`/proyecto/${project.id}/questions`)
-                  else if (step === 2) navigate(`/proyecto/${project.id}/review-niche`)
-                  else navigate(`/proyecto/${project.id}/tools`)
-                }}
-                onDelete={() => handleDelete(project.id, project.name)}
+              {/* Divider + crear */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-md)', marginBottom: 'var(--sp-lg)' }}>
+                <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: col }}>Proyectos</span>
+                <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
+                <button className="btn-primary" onClick={() => setShowModal(true)} style={{ fontSize: 12, padding: '8px 16px' }}>
+                  <PlusIcon style={{ width: 15, height: 15 }} /> Nuevo proyecto
+                </button>
+              </div>
+
+              {/* Project grid */}
+              <ProjectGrid
+                projects={projects}
+                loading={loading}
+                renderEmpty={() => <EmptyState onNew={() => setShowModal(true)} />}
+                renderNewCard={() => (
+                  <NewProjectCard onClick={() => setShowModal(true)} col={col} isDark={isDark} />
+                )}
+                renderCard={(project, index) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={{ ...project }}
+                    index={index}
+                    col={col}
+                    isDark={isDark}
+                    onContinue={() => {
+                      const step = project.current_step ?? 1
+                      if (step <= 1) navigate(`/proyecto/${project.id}/questions`)
+                      else if (step === 2) navigate(`/proyecto/${project.id}/review-niche`)
+                      else navigate(`/proyecto/${project.id}/tools`)
+                    }}
+                    onDelete={() => handleDelete(project.id, project.name)}
+                  />
+                )}
               />
-            )}
-          />
+            </>
+          )}
         </main>
       </div>
 
