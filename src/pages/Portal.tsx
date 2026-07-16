@@ -18,7 +18,7 @@ type IconComp = ComponentType<SVGProps<SVGSVGElement>>
 // CONFIG — Actualiza aquí los dominios reales y el video cuando los tengas.
 // ─────────────────────────────────────────────────────────────────────────────
 const VIDEO_EMBED_URL: string = '' // ej. 'https://www.youtube.com/embed/XXXX' o Vimeo — vacío = aún sin video
-const VIDEO_POSTER = '/portada-video.jpg' // imagen portada (con botón de play); ponla en /public
+const VIDEO_POSTER = '/portada-video.png' // imagen portada (con botón de play); ponla en /public
 
 interface Platform {
   id: string; name: string; desc: string
