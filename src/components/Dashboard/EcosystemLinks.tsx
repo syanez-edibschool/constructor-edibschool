@@ -1,6 +1,6 @@
 import type { ComponentType, SVGProps } from 'react'
 import {
-  AcademicCapIcon, ChatBubbleLeftRightIcon, LockClosedIcon, ArrowTopRightOnSquareIcon,
+  AcademicCapIcon, ChatBubbleLeftRightIcon, BriefcaseIcon, LockClosedIcon, ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline'
 import { useSeguimientoStatus } from '../../hooks/useSeguimientoStatus'
 
@@ -13,34 +13,37 @@ const LOCK_MSG = 'Completa el programa de Seguimiento para desbloquear'
 
 function openExt(url: string) { window.open(url, '_blank', 'noopener,noreferrer') }
 
-function SideBtn({ Icon, label, accent, locked, onClick, collapsed }: {
+function SideBtn({ Icon, label, accent, locked, onClick, collapsed, badge, lockMsg }: {
   Icon: IconComp; label: string; accent: string; locked?: boolean; onClick: () => void; collapsed: boolean
+  badge?: string; lockMsg?: string
 }) {
-  // accent debe ser hex (#RRGGBB) para poder tintar el fondo con alfa.
-  const bg = locked ? 'var(--card-bg)' : `${accent}1f`
-  const bgHover = `${accent}33`
-  const border = locked ? 'var(--border)' : `${accent}40`
+  // accent debe ser hex (#RRGGBB) para tintar el fondo con alfa.
+  const bg = locked ? `${accent}12` : `${accent}24`
+  const bgHover = `${accent}3a`
   return (
     <button
       onClick={() => { if (!locked) onClick() }}
       disabled={locked}
-      title={locked ? LOCK_MSG : label}
+      title={locked ? (lockMsg || label) : label}
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-        padding: collapsed ? '9px' : '9px 12px', borderRadius: 10, marginBottom: 6,
-        cursor: locked ? 'not-allowed' : 'pointer', border: `1px solid ${border}`,
-        background: bg, color: locked ? 'var(--text-3)' : 'var(--text)',
-        opacity: locked ? 0.55 : 1, fontSize: 13, fontWeight: 600,
-        justifyContent: collapsed ? 'center' : 'flex-start', transition: 'background 0.15s, border-color 0.15s',
+        padding: collapsed ? '10px 8px' : '11px 12px', borderRadius: 12, marginBottom: 8,
+        cursor: locked ? 'not-allowed' : 'pointer',
+        border: `1px solid ${accent}55`, borderLeft: `4px solid ${accent}`,
+        background: bg, color: locked ? 'var(--text-2)' : 'var(--text)',
+        opacity: locked ? 0.8 : 1, fontSize: 13.5, fontWeight: 700,
+        justifyContent: collapsed ? 'center' : 'flex-start', transition: 'background 0.15s, transform 0.15s',
       }}
-      onMouseEnter={e => { if (!locked) (e.currentTarget as HTMLElement).style.background = bgHover }}
-      onMouseLeave={e => { if (!locked) (e.currentTarget as HTMLElement).style.background = bg }}
+      onMouseEnter={e => { if (!locked) { const el = e.currentTarget as HTMLElement; el.style.background = bgHover; el.style.transform = 'translateX(2px)' } }}
+      onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = bg; el.style.transform = 'translateX(0)' }}
     >
-      <span style={{ width: 26, height: 26, borderRadius: 7, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: locked ? 'var(--border)' : `${accent}2b` }}>
-        <Icon style={{ width: 16, height: 16, color: locked ? 'var(--text-3)' : accent }} />
+      <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: `${accent}40` }}>
+        <Icon style={{ width: 17, height: 17, color: locked ? 'var(--text-2)' : accent }} />
       </span>
       {!collapsed && <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>{label}</span>}
-      {!collapsed && locked && <LockClosedIcon style={{ width: 13, height: 13, flexShrink: 0 }} />}
+      {!collapsed && locked && (badge
+        ? <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', color: accent, background: `${accent}30`, borderRadius: 999, padding: '2px 7px', flexShrink: 0 }}>{badge}</span>
+        : <LockClosedIcon style={{ width: 13, height: 13, flexShrink: 0 }} />)}
     </button>
   )
 }
@@ -94,7 +97,8 @@ export default function EcosystemLinks({ variant, collapsed = false }: {
     return (
       <>
         <SideBtn Icon={AcademicCapIcon} label="Seguimiento" accent="#10B981" collapsed={collapsed} onClick={() => openExt(SEGUIMIENTO_URL)} />
-        <SideBtn Icon={ChatBubbleLeftRightIcon} label="Tutorías 1:1" accent="#8357F6" collapsed={collapsed} locked={tutLocked} onClick={() => openExt(TUTORIAS_URL)} />
+        <SideBtn Icon={ChatBubbleLeftRightIcon} label="Tutorías 1:1" accent="#8357F6" collapsed={collapsed} locked={tutLocked} lockMsg={LOCK_MSG} onClick={() => openExt(TUTORIAS_URL)} />
+        <SideBtn Icon={BriefcaseIcon} label="Oportunidades" accent="#F59E0B" collapsed={collapsed} locked badge="Muy pronto" lockMsg="Bolsa de empleo MKT Hackers — muy pronto" onClick={() => {}} />
       </>
     )
   }
