@@ -9,12 +9,11 @@ import {
   DocumentDuplicateIcon, CpuChipIcon,
   ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon,
   CheckCircleIcon, LockClosedIcon,
-  PlusCircleIcon, BuildingOffice2Icon,
+  PlusCircleIcon, BuildingOffice2Icon, HomeIcon,
   XMarkIcon,
   PaperAirplaneIcon, ChatBubbleLeftRightIcon, PhoneIcon,
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../../hooks/useIsMobile'
-import EcosystemLinks from './EcosystemLinks'
 
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
 export type ToolState = 'done' | 'active' | 'locked' | 'idle'
@@ -224,12 +223,10 @@ export default function Sidebar({
       {/* ── DASHBOARD MODE ── */}
       {mode === 'dashboard' && (
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 6px', display: 'flex', flexDirection: 'column' }}>
+          <NavItem Icon={HomeIcon} label="Inicio" collapsed={collapsed} onClick={() => navigate('/inicio')} accent="var(--accent)" />
+          <Divider />
           <SectionLabel label="Acciones rápidas" collapsed={collapsed} />
           <NavItem Icon={PlusCircleIcon} label="Crear proyecto" collapsed={collapsed} onClick={onNewProject} accent="var(--accent)" />
-
-          <Divider />
-          <SectionLabel label="Plataformas" collapsed={collapsed} />
-          <EcosystemLinks variant="sidebar" collapsed={collapsed} />
 
           {projects.length > 0 && (
             <>
