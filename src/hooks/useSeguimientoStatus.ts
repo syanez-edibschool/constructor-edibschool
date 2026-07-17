@@ -13,23 +13,32 @@ export function useSeguimientoStatus() {
 
   useEffect(() => {
     let activo = true
-    supabase.auth.getSession().then(({ data }) => {
+    const check = async () => {
+      const { data } = await supabase.auth.getSession()
       const uid = data.session?.user?.id
       if (!uid) { if (activo) setLoading(false); return }
-      supabase
+      const { data: row } = await supabase
         .from('vw_preparacion_global')
         .select('lecciones_evaluadas, lecciones_total')
         .eq('alumno_id', uid)
         .maybeSingle()
-        .then(({ data: row }) => {
-          if (!activo) return
-          const total = Number(row?.lecciones_total ?? 0)
-          const evaluadas = Number(row?.lecciones_evaluadas ?? 0)
-          setSeguimientoCompleto(total > 0 && evaluadas >= total)
-          setLoading(false)
-        })
-    })
-    return () => { activo = false }
+      if (!activo) return
+      const total = Number(row?.lecciones_total ?? 0)
+      const evaluadas = Number(row?.lecciones_evaluadas ?? 0)
+      setSeguimientoCompleto(total > 0 && evaluadas >= total)
+      setLoading(false)
+    }
+    check()
+    // Re-evaluar al volver a la pestaña (si completó Seguimiento en otra pestaña,
+    // se desbloquea solo sin recargar).
+    const onVisible = () => { if (document.visibilityState === 'visible') check() }
+    window.addEventListener('focus', onVisible)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      activo = false
+      window.removeEventListener('focus', onVisible)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [])
 
   return { seguimientoCompleto, loading }
