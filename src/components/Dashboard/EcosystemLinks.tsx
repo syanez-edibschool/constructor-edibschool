@@ -7,8 +7,8 @@ import { useSeguimientoStatus } from '../../hooks/useSeguimientoStatus'
 type IconComp = ComponentType<SVGProps<SVGSVGElement>>
 
 // Apps del ecosistema (repos/deploys separados, misma Supabase).
-const SEGUIMIENTO_URL = 'https://plataforma-seguimiento.vercel.app'
-const TUTORIAS_URL = 'https://tutorias-edibschool.vercel.app'
+const SEGUIMIENTO_URL = 'https://seguimiento.mkthackers.com/login'
+const TUTORIAS_URL = 'https://mentorias.mkthackers.com'
 const LOCK_MSG = 'Completa el programa de Seguimiento para desbloquear'
 
 function openExt(url: string) { window.open(url, '_blank', 'noopener,noreferrer') }
