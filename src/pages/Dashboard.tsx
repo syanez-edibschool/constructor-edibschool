@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { getProjects, createProject, deleteProject, type Project } from '../services/projectsService'
-import { api } from '../services/api'
 import { PlusIcon, Bars3Icon, PlayCircleIcon } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -16,8 +15,9 @@ import ProjectGrid    from '../components/Dashboard/ProjectGrid'
 import EmptyState     from '../components/Dashboard/EmptyState'
 import ProjectCard    from '../components/Dashboard/ProjectCard'
 
-// Video de inicio (VdoCipher). El reproductor se carga con un OTP que pide el
-// backend (/api/video-otp); la portada es la imagen de /public.
+// Video de inicio: archivo local en /public. Portada = imagen de /public.
+// (Sin DRM: un archivo servido desde /public es público/descargable.)
+const VIDEO_SRC = '/video-inicio.mp4'
 const VIDEO_POSTER = '/portada-video.png'
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * Math.min(1, Math.max(0, t))
@@ -269,23 +269,7 @@ export default function Dashboard() {
   const [view, setView]                     = useState<'inicio' | 'acelerador'>('inicio')
   const [playing, setPlaying]               = useState(false)
   const [posterOk, setPosterOk]             = useState(true)
-  const [videoSrc, setVideoSrc]             = useState<string | null>(null)
-  const [loadingVideo, setLoadingVideo]     = useState(false)
-  const playVideo = async () => {
-    if (videoSrc) { setPlaying(true); return }
-    if (loadingVideo) return
-    setLoadingVideo(true)
-    try {
-      const { data } = await api.get('/video-otp')
-      if (!data?.otp || !data?.playbackInfo) throw new Error('sin OTP')
-      setVideoSrc(`https://player.vdocipher.com/v2/?otp=${encodeURIComponent(data.otp)}&playbackInfo=${encodeURIComponent(data.playbackInfo)}`)
-      setPlaying(true)
-    } catch {
-      toast.error('No se pudo cargar el video. Intenta de nuevo.')
-    } finally {
-      setLoadingVideo(false)
-    }
-  }
+  const playVideo = () => setPlaying(true)
 
   const canvasState  = useRef<CanvasState>({ mx: .5, my: .5, scrollY: 0, scrollVel: 0 })
   const lastScrollY  = useRef(0), lastScrollTime = useRef(Date.now())
@@ -429,28 +413,28 @@ export default function Dashboard() {
               {/* Video de inicio (incrustado) */}
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .45, delay: .05 }} style={{ marginBottom: 'var(--sp-lg)' }}>
                 <div style={{ position: 'relative', width: '100%', maxWidth: 960, margin: '0 auto', aspectRatio: '16 / 9', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--card-bg)', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
-                  {playing && videoSrc ? (
-                    <iframe
-                      src={videoSrc}
-                      title="Cómo funciona el Acelerador"
-                      allow="encrypted-media; fullscreen; autoplay"
-                      allowFullScreen
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+                  {playing ? (
+                    <video
+                      src={VIDEO_SRC}
+                      poster={VIDEO_POSTER}
+                      controls
+                      autoPlay
+                      controlsList="nodownload noplaybackrate"
+                      disablePictureInPicture
+                      onContextMenu={e => e.preventDefault()}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', background: '#000' }}
                     />
                   ) : posterOk ? (
-                    <button onClick={playVideo} disabled={loadingVideo} aria-label="Reproducir video: ¿Cómo funciona el Acelerador?"
-                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, border: 0, background: 'none', cursor: loadingVideo ? 'wait' : 'pointer', display: 'block' }}>
+                    <button onClick={playVideo} aria-label="Reproducir video: ¿Cómo funciona el Acelerador?"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, border: 0, background: 'none', cursor: 'pointer', display: 'block' }}>
                       <img src={VIDEO_POSTER} alt="¿Cómo funciona el Acelerador? Dale Play" onError={() => setPosterOk(false)}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      {loadingVideo && (
-                        <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,11,48,0.5)', color: '#fff', fontSize: 14, fontWeight: 600 }}>Cargando video…</span>
-                      )}
                     </button>
                   ) : (
-                    <button onClick={playVideo} disabled={loadingVideo} aria-label="Reproducir video"
-                      style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--text-3)', background: 'none', border: 0, cursor: loadingVideo ? 'wait' : 'pointer', width: '100%' }}>
+                    <button onClick={playVideo} aria-label="Reproducir video"
+                      style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'var(--text-3)', background: 'none', border: 0, cursor: 'pointer', width: '100%' }}>
                       <PlayCircleIcon style={{ width: 64, height: 64, color: 'var(--accent)' }} />
-                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>{loadingVideo ? 'Cargando video…' : '¿Cómo funciona el Acelerador? — Dale Play'}</span>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>¿Cómo funciona el Acelerador? — Dale Play</span>
                     </button>
                   )}
                 </div>
