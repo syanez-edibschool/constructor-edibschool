@@ -31,9 +31,9 @@ function useGlitch() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Canvas: particles + mouse attraction + trails + distortion waves
+// Canvas: particles + trails + distortion waves (sin seguimiento del cursor)
 // ─────────────────────────────────────────────────────────────────────────────
-interface CanvasRefs { scrollProgress: number; scrollVel: number; mx: number; my: number }
+interface CanvasRefs { scrollProgress: number; scrollVel: number }
 
 function ParticleCanvas({ refs }: { refs: React.MutableRefObject<CanvasRefs> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -70,7 +70,7 @@ function ParticleCanvas({ refs }: { refs: React.MutableRefObject<CanvasRefs> }) 
     let t = 0
     const draw = () => {
       t++
-      const { scrollProgress: sp, scrollVel: sv, mx, my } = refs.current
+      const { scrollProgress: sp, scrollVel: sv } = refs.current
       const intensity = sp < 0.5 ? sp * 2 : 2 - sp * 2   // 0→1→0 bell
       const speedMult = 1 + intensity * 3.5
       const motionBlur = Math.min(1, Math.abs(sv) * 6)
@@ -95,35 +95,13 @@ function ParticleCanvas({ refs }: { refs: React.MutableRefObject<CanvasRefs> }) 
         }
       }
 
-      // Mouse pixel position
-      const mxPx = mx * canvas.width
-      const myPx = my * canvas.height
-
       for (const p of particles) {
-        const dx = mxPx - p.x, dy = myPx - p.y
-        const dist = Math.sqrt(dx * dx + dy * dy) + 0.001
-        // Tractor beam: strong pull inside 350px, fades at edges
-        const attractRadius = 350
-        const attractStrength = Math.max(0, 1 - dist / attractRadius)
-        // Squared falloff so close ones accelerate much harder
-        const force = attractStrength * attractStrength * 1.8
-
-        // Radial (toward cursor) — fast snap
-        p.vx += (dx / dist) * force * 2.4
-        p.vy += (dy / dist) * force * 2.4
-
-        // Tangential (vortex swirl) — perpendicular force, weaker
-        const perpX = -dy / dist, perpY = dx / dist
-        p.vx += perpX * force * 0.35
-        p.vy += perpY * force * 0.35
-
-        // Ambient float (always present, gentle)
+        // Ambient float (único movimiento: ya no reacciona al cursor)
         p.vx += Math.sin(t * p.freq + p.phase) * 0.018
         p.vy += Math.cos(t * p.freq * 1.4 + p.phase) * 0.013
 
-        // Damping: higher friction so velocity doesn't explode
-        const damp = attractStrength > 0.1 ? 0.78 : 0.93
-        p.vx *= damp; p.vy *= damp
+        // Damping: friction so velocity doesn't explode
+        p.vx *= 0.93; p.vy *= 0.93
 
         // Scroll intensity multiplies movement
         p.x += p.vx * speedMult; p.y += p.vy * speedMult
@@ -134,29 +112,28 @@ function ParticleCanvas({ refs }: { refs: React.MutableRefObject<CanvasRefs> }) 
         if (p.y < -25) p.y = canvas.height + 25
         if (p.y > canvas.height + 25) p.y = -25
 
-        // Trail — always visible when moving fast, longer near cursor
+        // Trail — visible when moving fast
         const speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy)
         p.trail.push({ x: p.x, y: p.y })
-        const maxTrail = attractStrength > 0.3 ? 22 : 10
-        if (p.trail.length > maxTrail) p.trail.shift()
+        if (p.trail.length > 10) p.trail.shift()
 
         // Draw meteor trail (always, based on speed)
-        const trailOpacity = Math.min(1, speed * 0.4) * (0.15 + attractStrength * 0.5)
+        const trailOpacity = Math.min(1, speed * 0.4) * 0.15
         if (p.trail.length > 2 && trailOpacity > 0.02) {
           ctx.beginPath()
           ctx.moveTo(p.trail[0].x, p.trail[0].y)
           for (let i = 1; i < p.trail.length; i++) ctx.lineTo(p.trail[i].x, p.trail[i].y)
           const [r,g,b] = p.color
           ctx.strokeStyle = `rgba(${r},${g},${b},${trailOpacity})`
-          ctx.lineWidth = p.r * (0.6 + attractStrength * 0.8)
+          ctx.lineWidth = p.r * 0.6
           ctx.lineCap = 'round'
           ctx.stroke()
         }
 
-        // Halo + core — glow intensifies near cursor
+        // Halo + core
         const [r,g,b] = p.color
-        const glowBoost = 1 + intensity * 0.6 + attractStrength * 2.5
-        const haloRadius = p.r * (6 + attractStrength * 8)
+        const glowBoost = 1 + intensity * 0.6
+        const haloRadius = p.r * 6
         const halo = ctx.createRadialGradient(p.x,p.y,0, p.x,p.y, haloRadius)
         halo.addColorStop(0, `rgba(${r},${g},${b},${Math.min(0.95, p.opacity * glowBoost)})`)
         halo.addColorStop(0.3, `rgba(${r},${g},${b},${Math.min(0.4, p.opacity * glowBoost * 0.25)})`)
@@ -164,20 +141,11 @@ function ParticleCanvas({ refs }: { refs: React.MutableRefObject<CanvasRefs> }) 
         ctx.beginPath(); ctx.arc(p.x, p.y, haloRadius, 0, Math.PI*2)
         ctx.fillStyle = halo; ctx.fill()
 
-        // Core dot — brighter near cursor
-        const coreAlpha = Math.min(1, p.opacity * 3 + attractStrength * 2)
-        const coreR = p.r * (1 + attractStrength * 0.8)
-        ctx.beginPath(); ctx.arc(p.x, p.y, coreR, 0, Math.PI*2)
+        // Core dot
+        const coreAlpha = Math.min(1, p.opacity * 3)
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2)
         ctx.fillStyle = `rgba(${r},${g},${b},${coreAlpha})`
         ctx.fill()
-
-        // Extra bloom ring for large particles near cursor
-        if (p.r > 3 && attractStrength > 0.2) {
-          ctx.beginPath(); ctx.arc(p.x, p.y, coreR * 2.5, 0, Math.PI*2)
-          ctx.strokeStyle = `rgba(${r},${g},${b},${attractStrength * 0.3})`
-          ctx.lineWidth = 1
-          ctx.stroke()
-        }
       }
 
       raf = requestAnimationFrame(draw)
@@ -253,26 +221,6 @@ function GlowOrbs({ intensity, offset }: { intensity: number; offset: number }) 
           transition={{ duration: o.dur, repeat: Infinity, ease: 'easeInOut', delay: o.delay }}
         />
       ))}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Cursor glow
-// ─────────────────────────────────────────────────────────────────────────────
-function CursorGlow({ mx, my }: { mx: number; my: number }) {
-  return (
-    <div className="absolute inset-0 pointer-events-none z-10" aria-hidden>
-      <div style={{
-        position: 'absolute',
-        left: `${mx * 100}%`, top: `${my * 100}%`,
-        transform: 'translate(-50%, -50%)',
-        width: 320, height: 320,
-        background: 'radial-gradient(circle, rgba(131,87,246,0.09) 0%, transparent 60%)',
-        filter: 'blur(18px)',
-        transition: 'left 0.08s ease-out, top 0.08s ease-out',
-        pointerEvents: 'none',
-      }} />
     </div>
   )
 }
@@ -432,7 +380,7 @@ export default function Login() {
   const containerRef = useRef<HTMLDivElement>(null)
   const lastScrollTop = useRef(0)
   const lastScrollTime = useRef(Date.now())
-  const canvasRefs = useRef<CanvasRefs>({ scrollProgress: 0, scrollVel: 0, mx: 0.5, my: 0.5 })
+  const canvasRefs = useRef<CanvasRefs>({ scrollProgress: 0, scrollVel: 0 })
 
   // Mouse → Framer Motion springs for card tilt
   const rawMX = useMotionValue(0)
@@ -441,9 +389,6 @@ export default function Login() {
   const smMY = useSpring(rawMY, { stiffness: 55, damping: 14 })
   const rotateY = useTransform(smMX, [-1, 1], [-13, 13])
   const rotateX = useTransform(smMY, [-1, 1], [9, -9])
-
-  // Mouse raw state for cursor glow
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 })
 
   // Scroll handler
   const handleScroll = () => {
@@ -461,15 +406,11 @@ export default function Login() {
     setSp(newSp)
   }
 
-  // Mouse handler
+  // Mouse handler — solo inclina la tarjeta (motion values: no re-renderiza).
+  // El fondo ya no reacciona al cursor.
   const handleMouseMove = (e: React.MouseEvent) => {
-    const nx = e.clientX / window.innerWidth
-    const ny = e.clientY / window.innerHeight
-    rawMX.set(nx * 2 - 1)
-    rawMY.set(ny * 2 - 1)
-    setMousePos({ x: nx, y: ny })
-    canvasRefs.current.mx = nx
-    canvasRefs.current.my = ny
+    rawMX.set((e.clientX / window.innerWidth) * 2 - 1)
+    rawMY.set((e.clientY / window.innerHeight) * 2 - 1)
   }
 
   // Derived values
@@ -529,9 +470,6 @@ export default function Login() {
             backgroundImage: 'linear-gradient(rgba(131,87,246,1) 1px, transparent 1px), linear-gradient(90deg, rgba(131,87,246,1) 1px, transparent 1px)',
             backgroundSize: '56px 56px',
           }} />
-
-          {/* Cursor glow */}
-          <CursorGlow mx={mousePos.x} my={mousePos.y} />
 
           {/* Glitch overlay */}
           {glitching && <GlitchOverlay />}

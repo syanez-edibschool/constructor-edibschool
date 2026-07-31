@@ -67,8 +67,8 @@ function useCounter(target: number) {
   return { val, ref }
 }
 
-// ─── Particle canvas ──────────────────────────────────────────────────────────
-interface CanvasState { mx: number; my: number; scrollY: number; scrollVel: number }
+// ─── Particle canvas (sin seguimiento del cursor) ──────────────────────────────
+interface CanvasState { scrollY: number; scrollVel: number }
 
 function ParticleCanvas({ state }: { state: React.MutableRefObject<CanvasState> }) {
   const ref = useRef<HTMLCanvasElement>(null)
@@ -91,36 +91,34 @@ function ParticleCanvas({ state }: { state: React.MutableRefObject<CanvasState> 
     let t = 0
     const draw = () => {
       t++
-      const { mx, my, scrollVel } = state.current
+      const { scrollVel } = state.current
       const motionBlur = Math.min(1, Math.abs(scrollVel) * 5)
       ctx.fillStyle = `rgba(10,10,15,${lerp(.88, .18, motionBlur)})`
       ctx.fillRect(0, 0, canvas.width, canvas.height)
-      const mxPx = mx * canvas.width, myPx = my * canvas.height
       for (const p of particles) {
-        const dx = mxPx - p.x, dy = myPx - p.y, dist = Math.sqrt(dx * dx + dy * dy) + .001
-        const a = Math.max(0, 1 - dist / 320) ** 2 * 1.6
-        p.vx += (dx / dist) * a * 2.2 + (-dy / dist) * a * .3 + Math.sin(t * p.freq + p.phase) * .016
-        p.vy += (dy / dist) * a * 2.2 + (dx / dist) * a * .3 + Math.cos(t * p.freq * 1.4 + p.phase) * .012
-        const damp = a > .1 ? .8 : .93; p.vx *= damp; p.vy *= damp
+        // Deriva ambiental: las partículas ya no reaccionan al cursor
+        p.vx += Math.sin(t * p.freq + p.phase) * .016
+        p.vy += Math.cos(t * p.freq * 1.4 + p.phase) * .012
+        p.vx *= .93; p.vy *= .93
         p.x += p.vx; p.y += p.vy
         if (p.x < -20) p.x = canvas.width + 20; if (p.x > canvas.width + 20) p.x = -20
         if (p.y < -20) p.y = canvas.height + 20; if (p.y > canvas.height + 20) p.y = -20
         p.trail.push({ x: p.x, y: p.y })
-        const maxT = a > .3 ? 18 : 8; if (p.trail.length > maxT) p.trail.shift()
+        if (p.trail.length > 8) p.trail.shift()
         const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
-        const tOp = Math.min(1, spd * .5) * (0.12 + a * .5)
+        const tOp = Math.min(1, spd * .5) * .12
         if (p.trail.length > 2 && tOp > .02) {
           ctx.beginPath(); ctx.moveTo(p.trail[0].x, p.trail[0].y)
           for (let i = 1; i < p.trail.length; i++) ctx.lineTo(p.trail[i].x, p.trail[i].y)
           const [r, g, b] = p.color
           ctx.strokeStyle = `rgba(${r},${g},${b},${tOp})`; ctx.lineWidth = p.r * .7; ctx.lineCap = 'round'; ctx.stroke()
         }
-        const [r, g, b] = p.color; const boost = 1 + a * 2.5
-        const hr = p.r * (6 + a * 7); const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, hr)
-        halo.addColorStop(0, `rgba(${r},${g},${b},${Math.min(.9, p.opacity * boost)})`); halo.addColorStop(.3, `rgba(${r},${g},${b},${Math.min(.3, p.opacity * .2 * boost)})`); halo.addColorStop(1, `rgba(${r},${g},${b},0)`)
+        const [r, g, b] = p.color
+        const hr = p.r * 6; const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, hr)
+        halo.addColorStop(0, `rgba(${r},${g},${b},${Math.min(.9, p.opacity)})`); halo.addColorStop(.3, `rgba(${r},${g},${b},${Math.min(.3, p.opacity * .2)})`); halo.addColorStop(1, `rgba(${r},${g},${b},0)`)
         ctx.beginPath(); ctx.arc(p.x, p.y, hr, 0, Math.PI * 2); ctx.fillStyle = halo; ctx.fill()
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 + a * .8), 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1, p.opacity * 3 + a * 2)})`; ctx.fill()
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1, p.opacity * 3)})`; ctx.fill()
       }
       raf = requestAnimationFrame(draw)
     }
@@ -167,14 +165,6 @@ function GlowOrbs({ scrollY }: { scrollY: number }) {
           animate={{ scale: [1, 1.15, 1], opacity: [.55, .9, .55] }}
           transition={{ duration: o.dur, repeat: Infinity, ease: 'easeInOut', delay: o.d }} />
       ))}
-    </div>
-  )
-}
-
-function CursorGlow({ mx, my }: { mx: number; my: number }) {
-  return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 2 }}>
-      <div style={{ position: 'absolute', left: `${mx * 100}%`, top: `${my * 100}%`, transform: 'translate(-50%,-50%)', width: 280, height: 280, background: 'radial-gradient(circle, rgba(131,87,246,.07) 0%, transparent 60%)', filter: 'blur(20px)', transition: 'left .08s ease-out, top .08s ease-out' }} />
     </div>
   )
 }
@@ -263,7 +253,6 @@ export default function Dashboard() {
   const [mobileNavOpen, setMobileNavOpen]   = useState(false)
   const isMobile = useIsMobile()
   const [scrollY, setScrollY]               = useState(0)
-  const [mousePos, setMousePos]             = useState({ x: .5, y: .5 })
   const [headerSolid, setHeaderSolid]       = useState(false)
   // Vista central: 'inicio' (video) por defecto | 'acelerador' (proyectos)
   const [view, setView]                     = useState<'inicio' | 'acelerador'>('inicio')
@@ -271,7 +260,7 @@ export default function Dashboard() {
   const [posterOk, setPosterOk]             = useState(true)
   const playVideo = () => setPlaying(true)
 
-  const canvasState  = useRef<CanvasState>({ mx: .5, my: .5, scrollY: 0, scrollVel: 0 })
+  const canvasState  = useRef<CanvasState>({ scrollY: 0, scrollVel: 0 })
   const lastScrollY  = useRef(0), lastScrollTime = useRef(Date.now())
   const mainRef      = useRef<HTMLDivElement>(null)
 
@@ -287,17 +276,6 @@ export default function Dashboard() {
     }
     el.addEventListener('scroll', onScroll, { passive: true })
     return () => el.removeEventListener('scroll', onScroll)
-  }, [])
-
-  // Mouse tracking
-  useEffect(() => {
-    const onMouse = (e: MouseEvent) => {
-      const nx = e.clientX / window.innerWidth, ny = e.clientY / window.innerHeight
-      canvasState.current.mx = nx; canvasState.current.my = ny
-      setMousePos({ x: nx, y: ny })
-    }
-    window.addEventListener('mousemove', onMouse)
-    return () => window.removeEventListener('mousemove', onMouse)
   }, [])
 
   useEffect(() => { fetchProjects() }, [])
@@ -333,7 +311,6 @@ export default function Dashboard() {
       {isDark && <ParticleCanvas state={canvasState} />}
       {isDark && <MorphingLayer scrollY={scrollY} />}
       {isDark && <GlowOrbs scrollY={scrollY} />}
-      {isDark && <CursorGlow mx={mousePos.x} my={mousePos.y} />}
       {isDark && (
         <div className="fixed inset-0 pointer-events-none opacity-[.022]" style={{ zIndex: 1, backgroundImage: 'linear-gradient(rgba(131,87,246,1) 1px,transparent 1px),linear-gradient(90deg,rgba(131,87,246,1) 1px,transparent 1px)', backgroundSize: '55px 55px' }} />
       )}
