@@ -438,10 +438,10 @@ export default function Estrategia90D({ projectId }: { projectId: string }) {
             <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{done}/{TOTAL_TASKS} tareas · {globalPct}% completado</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => exportToPDF('Estrategia 90 Dias', checklistToText(checked))} title="Descargar PDF" style={{ height: 34, padding: '0 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
+            <button onClick={() => exportToPDF('Estrategia 90 Días', checklistToText(checked))} title="Descargar PDF" style={{ height: 34, padding: '0 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
               <DocumentArrowDownIcon style={{ width: 15, height: 15 }} /> PDF
             </button>
-            <button onClick={() => exportToWord('Estrategia 90 Dias', checklistToText(checked))} title="Descargar Word" style={{ height: 34, padding: '0 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
+            <button onClick={() => exportToWord('Estrategia 90 Días', checklistToText(checked))} title="Descargar Word" style={{ height: 34, padding: '0 12px', borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>
               <DocumentArrowDownIcon style={{ width: 15, height: 15 }} /> Word
             </button>
             <button onClick={() => { setChecked(new Set()); void persist(true, new Set(), aiText) }} title="Reiniciar marcas" style={{ width: 34, height: 34, borderRadius: 8, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

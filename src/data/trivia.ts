@@ -82,7 +82,7 @@ export const TRIVIA_QUESTIONS: TriviaQuestion[] = [
     question: '¿Cuántos competidores directos debería analizar?',
     options: ['1-2', '3-5', '10+', 'Todos los que existen'],
     correct: 1,
-    fact: '3-5 competidores top te dan el 80% de insights. Análisis paralización no.',
+    fact: '3-5 competidores top te dan el 80% de insights. La parálisis por análisis, no.',
   },
   {
     question: '¿Cuál es el mejor CTA para agencias?',

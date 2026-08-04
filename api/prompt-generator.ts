@@ -38,11 +38,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? `Eres un experto en IA conversacional especializado en Go High Level (GHL).
 Generas prompts de sistema EXACTAMENTE en el formato de 3 secciones que GHL requiere.
 Escribe directamente el prompt sin explicaciones ni introducciones.
-Usa lenguaje natural, claro y orientado a resultados.`
+Usa lenguaje natural, claro y orientado a resultados.
+Ortografía impecable: las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS. Respeta las tildes diacríticas y los signos ¿ ¡.`
       : `Eres un experto en diseño de agentes conversacionales de IA.
 Generas prompts de sistema profesionales con estructura completa para cualquier plataforma.
 Escribe directamente el prompt sin explicaciones ni introducciones.
-Cada sección debe ser detallada, accionable y adaptada al negocio específico.`
+Cada sección debe ser detallada, accionable y adaptada al negocio específico.
+Ortografía impecable: las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS. Respeta las tildes diacríticas y los signos ¿ ¡.`
 
     const formatInstructions = isGhlText
       ? `Genera el prompt de sistema para Go High Level EXACTAMENTE con este formato de 3 secciones:

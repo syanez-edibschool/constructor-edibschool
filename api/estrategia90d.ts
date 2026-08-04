@@ -121,6 +121,7 @@ REGLAS GLOBALES OBLIGATORIAS (aplican a TODAS las tareas, sin excepción):
 - NO menciones ningún nombre propio de persona ni de marca específica en ninguna tarea.
 - NO incluyas precios ni tarifas de servicios en ninguna parte. La ÚNICA cifra de dinero permitida es el presupuesto de campañas: 5 € al día de media.
 - NO menciones ningún software fuera de estos cuatro: Claude, ChatGPT, GoHighLevel y Notion. PROHIBIDO mencionar ManyChat, Calendly, Mailchimp, Zapier o cualquier otro.
+- Ortografía impecable: las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS (ANÁLISIS, DIAGNÓSTICO, ÉXITO, MÁS, QUÉ, CÓMO). Respeta las tildes diacríticas y los signos ¿ ¡.
 - NUNCA repitas una tarea ya mencionada en una fase anterior (ej: si ya dijiste "configurar CRM", no lo vuelvas a poner en fases posteriores).
 - El lead magnet se capta y se entrega SIEMPRE por CHAT/DM, NUNCA por email.
 - En lugar de "social proof" o "prueba social", usa SIEMPRE la palabra "demos".

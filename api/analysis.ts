@@ -27,7 +27,7 @@ async function generate(anthropic: Anthropic, prompt: string, opts?: { model?: s
   const res = await anthropic.messages.create({
     model: opts?.model ?? 'claude-haiku-4-5-20251001', // Haiku por defecto: 3-5x más rápido
     max_tokens: opts?.maxTokens ?? 2048,
-    system: 'Devuelves SOLO JSON válido y completo. NO incluyas texto antes ni después. NO uses bloques de código markdown.',
+    system: 'Devuelves SOLO JSON válido y completo. NO incluyas texto antes ni después. NO uses bloques de código markdown. Escribes en español con ortografía impecable: las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS (ANÁLISIS, DIAGNÓSTICO, ÉXITO, MÁS, QUÉ, CÓMO), y respetas las tildes diacríticas y los signos ¿ ¡.',
     messages: [{ role: 'user', content: prompt }],
   })
   return res.content[0].type === 'text' ? res.content[0].text : ''
@@ -88,7 +88,7 @@ Genera un análisis de nicho detallado en formato JSON:
 Basado en estas respuestas del emprendedor:
 ${ctx}
 
-Crea un avatar de cliente ideal VIVIDO y detallado en JSON:
+Crea un avatar de cliente ideal VÍVIDO y detallado en JSON:
 {
   "name": "nombre ficticio realista",
   "age": "rango de edad (ej: 38-45 años)",

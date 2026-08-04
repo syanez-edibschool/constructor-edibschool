@@ -78,7 +78,7 @@ ${instruction}`
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: questionType === 'textarea' ? 400 : 100,
-      system: 'Eres un experto en marketing digital y agencias de IA. Generas respuestas concretas, específicas al negocio del usuario (usa su nicho, avatar, competencia). NO uses markdown, asteriscos ni viñetas. Solo texto plano directo.',
+      system: 'Eres un experto en marketing digital y agencias de IA. Generas respuestas concretas, específicas al negocio del usuario (usa su nicho, avatar, competencia). NO uses markdown, asteriscos ni viñetas. Solo texto plano directo. Ortografía impecable: las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS, y respetas las tildes diacríticas y los signos ¿ ¡.',
       messages: [{ role: 'user', content: prompt }],
     })
 

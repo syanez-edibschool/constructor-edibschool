@@ -62,7 +62,7 @@ router.post('/:id/generate-nicho-avatar-competencia', async (req: AuthRequest, r
         Basado en estas respuestas del emprendedor:
         ${ctx}
 
-        Crea un avatar de cliente ideal VIVIDO y detallado en JSON:
+        Crea un avatar de cliente ideal VÍVIDO y detallado en JSON:
         {
           "name": "nombre ficticio realista",
           "age": "rango de edad (ej: 38-45 años)",

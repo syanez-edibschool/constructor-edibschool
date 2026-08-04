@@ -97,7 +97,7 @@ const TOOLS: ToolDef[] = [
     id: 'imagenes', Icon: PhotoIcon, title: 'Prompts Imágenes IA', short: 'Imágenes', cat: 'contenido',
     desc: '5+ prompts en inglés para DALL-E, Midjourney y Stable Diffusion. Tipos variados: producto, escena, resultado.',
     qs: [
-      { id: 'tipo_imagen', label: '¿Qué tipo de imágenes necesitas?',        type: 'select', options: ['Variado (producto + escena + resultado)','Solo producto/servicio','Solo personas/lifestyle','Solo escenas y ambientes','Datos y resultados visuals'] },
+      { id: 'tipo_imagen', label: '¿Qué tipo de imágenes necesitas?',        type: 'select', options: ['Variado (producto + escena + resultado)','Solo producto/servicio','Solo personas/lifestyle','Solo escenas y ambientes','Datos y resultados visuales'] },
       { id: 'tema',        label: '¿Tema / industria principal?',            type: 'text',   placeholder: 'Ej: fitness online, consultoría tech, agencia de IA' },
       { id: 'estilo',      label: '¿Estilo visual?',                         type: 'select', options: ['Profesional y limpio','Minimalista','Vibrante y energético','Futurista/Tech','Cálido y humano'] },
       { id: 'colores',     label: '¿Colores predominantes de tu marca?',     type: 'text',   placeholder: 'Ej: cyan, azul oscuro, blanco' },

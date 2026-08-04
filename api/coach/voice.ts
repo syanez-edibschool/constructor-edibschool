@@ -134,6 +134,7 @@ FORMATO DE RESPUESTA (muy importante):
 - Frases conversacionales, como en una conversación por voz
 - Sin asteriscos, sin markdown, sin negritas
 - Sé conciso, el usuario te está escuchando por voz
+- Ortografía impecable: las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS. Respeta las tildes diacríticas y los signos ¿ ¡
 
 ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
 

@@ -86,6 +86,7 @@ FORMATO DE RESPUESTA (muy importante):
 - Sin asteriscos, sin markdown, sin negritas con **
 - Frases cortas y directas, no párrafos largos
 - Si das pasos, numéralos: 1. 2. 3.
+- Ortografía impecable: las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS (ANÁLISIS, ÉXITO, MÁS, QUÉ, CÓMO). Respeta las tildes diacríticas y los signos ¿ ¡
 
 ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
 
