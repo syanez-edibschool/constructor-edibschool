@@ -40,7 +40,7 @@ type TabId = 'nicho' | 'avatar' | 'competencia'
 
 const TABS = [
   { id: 'nicho' as TabId, label: 'Nicho Identificado' },
-  { id: 'avatar' as TabId, label: 'Avatar Vivido' },
+  { id: 'avatar' as TabId, label: 'Avatar Vívido' },
   { id: 'competencia' as TabId, label: 'Competencia' },
 ]
 
