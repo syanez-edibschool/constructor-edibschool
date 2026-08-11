@@ -8,6 +8,7 @@ import Questions from './pages/Questions'
 import ReviewNiche from './pages/ReviewNiche'
 import Tools from './pages/Tools'
 import Download from './pages/Download'
+import Admin from './pages/Admin'
 import CoachWidget from './components/AICoach/CoachWidget'
 import UpdateBanner from './components/ui/UpdateBanner'
 
@@ -57,6 +58,9 @@ export default function App() {
         {/* Registro libre deshabilitado: el acceso es solo por invitación (WordPress + magic link) */}
         <Route path="/signup" element={<Navigate to="/login" replace />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        {/* Panel del equipo de soporte. Requiere sesión aquí y rol equipo/admin
+            en el backend: /api/admin-alumnos rechaza a quien no lo tenga. */}
+        <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         <Route path="/proyecto/:id/questions" element={<ProtectedRoute><Questions /></ProtectedRoute>} />
         <Route path="/proyecto/:id/review-niche" element={<ProtectedRoute><ReviewNiche /></ProtectedRoute>} />
         <Route path="/proyecto/:id/tools" element={<ProtectedRoute><Tools /></ProtectedRoute>} />
