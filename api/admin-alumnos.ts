@@ -50,6 +50,11 @@ interface EventoCorreo {
   ocurrido_en: string
 }
 
+interface Actividad {
+  ultima_actividad: string | null
+  visitas: number | null
+}
+
 interface AlumnoFicha {
   id: string
   email: string
@@ -60,6 +65,10 @@ interface AlumnoFicha {
   rol: string | null
   emailImposible: boolean
   ultimoEventoCorreo: EventoCorreo | null
+  // Actividad real. last_sign_in_at solo cambia al canjear un magic link, así
+  // que no dice si el alumno sigue usando la plataforma; esto sí.
+  ultimaActividad: string | null
+  visitas: number | null
 }
 
 // Una dirección que ningún proveedor puede entregar (punto suelto en el local).
@@ -67,7 +76,12 @@ function emailImposible(email: string): boolean {
   return !EMAIL_OK.test(email)
 }
 
-function ficha(u: UsuarioAuth, rol: string | null, evento: EventoCorreo | null): AlumnoFicha {
+function ficha(
+  u: UsuarioAuth,
+  rol: string | null,
+  evento: EventoCorreo | null,
+  actividad: Actividad | null,
+): AlumnoFicha {
   const email = (u.email || '').toLowerCase()
   return {
     id: u.id,
@@ -79,6 +93,8 @@ function ficha(u: UsuarioAuth, rol: string | null, evento: EventoCorreo | null):
     rol,
     emailImposible: email ? emailImposible(email) : true,
     ultimoEventoCorreo: evento,
+    ultimaActividad: actividad?.ultima_actividad || null,
+    visitas: typeof actividad?.visitas === 'number' ? actividad.visitas : null,
   }
 }
 
@@ -180,8 +196,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!ultimoEvento.has(clave)) ultimoEvento.set(clave, ev)
       }
 
+      // Actividad real (una sola consulta para todos).
+      const actividades = new Map<string, Actividad>()
+      const { data: filasAct } = await admin
+        .from('project_actividad')
+        .select('usuario_id, ultima_actividad, visitas')
+        .in('usuario_id', ids)
+      for (const f of filasAct || []) {
+        actividades.set(String(f.usuario_id), {
+          ultima_actividad: f.ultima_actividad ?? null,
+          visitas: typeof f.visitas === 'number' ? f.visitas : Number(f.visitas) || null,
+        })
+      }
+
       const alumnos = usuarios.map((u) =>
-        ficha(u, roles.get(u.id) || null, ultimoEvento.get((u.email || '').toLowerCase()) || null),
+        ficha(
+          u,
+          roles.get(u.id) || null,
+          ultimoEvento.get((u.email || '').toLowerCase()) || null,
+          actividades.get(u.id) || null,
+        ),
       )
       return res.status(200).json({ alumnos })
     }
@@ -211,10 +245,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .order('ocurrido_en', { ascending: false })
         .limit(50)
 
+      const { data: filaAct } = await admin
+        .from('project_actividad')
+        .select('ultima_actividad, visitas')
+        .eq('usuario_id', u.id)
+        .maybeSingle()
+
       const lista = (eventos || []) as EventoCorreo[]
       const rol = filaR && typeof filaR.rol === 'string' ? filaR.rol : null
+      const actividad: Actividad | null = filaAct
+        ? {
+            ultima_actividad: filaAct.ultima_actividad ?? null,
+            visitas: typeof filaAct.visitas === 'number' ? filaAct.visitas : Number(filaAct.visitas) || null,
+          }
+        : null
+
       return res.status(200).json({
-        alumno: ficha(u, rol, lista[0] || null),
+        alumno: ficha(u, rol, lista[0] || null, actividad),
         eventos: lista,
       })
     }

@@ -30,6 +30,8 @@ interface AlumnoFicha {
   rol: string | null
   emailImposible: boolean
   ultimoEventoCorreo: EventoCorreo | null
+  ultimaActividad: string | null
+  visitas: number | null
 }
 
 // Toda respuesta de red se coerciona a texto antes de renderizar: pintar un
@@ -48,6 +50,23 @@ function fecha(iso: string | null): string {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
+}
+
+// Para la actividad importa más «hace cuánto» que la fecha exacta.
+function haceCuanto(iso: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  const min = Math.floor((Date.now() - d.getTime()) / 60000)
+  if (min < 1) return 'ahora mismo'
+  if (min < 60) return `hace ${min} min`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `hace ${h} h`
+  const dias = Math.floor(h / 24)
+  if (dias === 1) return 'ayer'
+  if (dias < 30) return `hace ${dias} días`
+  const meses = Math.floor(dias / 30)
+  return meses === 1 ? 'hace 1 mes' : `hace ${meses} meses`
 }
 
 const ETIQUETA_EVENTO: Record<string, { texto: string; color: string }> = {
@@ -213,13 +232,14 @@ export default function Admin() {
           <section className="mb-6 rounded-2xl overflow-hidden"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(131,87,246,0.18)' }}>
             <div style={{ overflowX: 'auto' }}>
-              <table className="w-full text-sm" style={{ minWidth: 860 }}>
+              <table className="w-full text-sm" style={{ minWidth: 1000 }}>
                 <thead>
                   <tr className="text-left text-[11px] uppercase tracking-wider text-white/40">
                     <th className="px-4 py-3 font-semibold">Correo</th>
                     <th className="px-4 py-3 font-semibold">Nombre</th>
                     <th className="px-4 py-3 font-semibold">Alta</th>
                     <th className="px-4 py-3 font-semibold">Último acceso</th>
+                    <th className="px-4 py-3 font-semibold">Actividad real</th>
                     <th className="px-4 py-3 font-semibold">Último correo</th>
                     <th className="px-4 py-3 font-semibold"></th>
                   </tr>
@@ -246,6 +266,20 @@ export default function Admin() {
                         {a.ultimo_login
                           ? <span className="text-white/80">{fecha(a.ultimo_login)}</span>
                           : <span style={{ color: '#FBBF24' }}>nunca ha entrado</span>}
+                      </td>
+                      <td className="px-4 py-3">
+                        {a.ultimaActividad ? (
+                          <>
+                            <span className="text-white/80">{haceCuanto(a.ultimaActividad)}</span>
+                            {typeof a.visitas === 'number' && (
+                              <span className="block text-[11px] text-white/35">
+                                {a.visitas === 1 ? '1 tramo' : `${a.visitas} tramos`}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-white/30">sin datos</span>
+                        )}
                       </td>
                       <td className="px-4 py-3"><Estado evento={a.ultimoEventoCorreo} /></td>
                       <td className="px-4 py-3 text-right">
@@ -279,8 +313,13 @@ export default function Admin() {
                 <h2 className="text-base font-bold text-white">{txt(detalle.alumno.email)}</h2>
                 <p className="text-xs text-white/40 mt-0.5">
                   {detalle.alumno.ultimo_login
-                    ? `Ya entró alguna vez. Último acceso: ${fecha(detalle.alumno.ultimo_login)}`
+                    ? `Ya entró alguna vez. Último inicio de sesión: ${fecha(detalle.alumno.ultimo_login)}`
                     : 'Nunca ha iniciado sesión.'}
+                </p>
+                <p className="text-xs text-white/40 mt-0.5">
+                  {detalle.alumno.ultimaActividad
+                    ? `Última vez dentro de la plataforma: ${fecha(detalle.alumno.ultimaActividad)} (${haceCuanto(detalle.alumno.ultimaActividad)})`
+                    : 'Sin actividad registrada. Solo se mide desde que se activó el registro de actividad.'}
                 </p>
               </div>
               <button onClick={() => setDetalle(null)} className="text-xs text-white/40 hover:text-white/70">

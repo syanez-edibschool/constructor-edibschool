@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuth } from './hooks/useAuth'
+import { useRegistrarActividad } from './hooks/useActividad'
 import { ThemeProvider } from './context/ThemeContext'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -14,6 +15,9 @@ import UpdateBanner from './components/ui/UpdateBanner'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
+  // Marca actividad real (last_sign_in_at no sirve: no se actualiza al
+  // refrescar la sesión). Limitado a un registro cada 5 min.
+  useRegistrarActividad(user?.id)
   if (loading) return (
     <div className="min-h-screen bg-dark flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-cyan/30 border-t-cyan rounded-full animate-spin" />
