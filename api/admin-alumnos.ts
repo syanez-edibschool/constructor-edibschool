@@ -26,7 +26,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 //     `alumnos`, nadie puede entrar al panel para arreglarlo.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ROLES_PERMITIDOS = ['equipo', 'admin']
+// Quién puede usar el panel. Incluye `mentor` a propósito: los mentores también
+// atienden alumnos y necesitan comprobar accesos. La alternativa —ponerles rol
+// `equipo`— les daría además la vista de administración de Mentorías, que no les
+// corresponde: `alumnos.rol` es COMPARTIDO por las tres apps del ecosistema.
+const ROLES_PERMITIDOS = ['equipo', 'admin', 'mentor']
 
 // Validación ESTRICTA. La del resto del proyecto (/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
 // acepta `algo.@gmail.com`: un punto final en la parte local es una dirección

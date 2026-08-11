@@ -189,8 +189,10 @@ export default function Admin() {
         <div className="max-w-md text-center">
           <h1 className="text-xl font-bold text-white mb-2">Panel restringido</h1>
           <p className="text-sm text-white/50">
-            Este panel es solo para el equipo. Si necesitas acceso, pide que te asignen
-            el rol <strong className="text-white/80">equipo</strong>.
+            Este panel es solo para el equipo y los mentores. Si necesitas acceso, pide
+            que te asignen el rol <strong className="text-white/80">equipo</strong>,{' '}
+            <strong className="text-white/80">mentor</strong> o{' '}
+            <strong className="text-white/80">admin</strong>.
           </p>
         </div>
       </div>
