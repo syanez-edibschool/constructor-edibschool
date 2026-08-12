@@ -7,7 +7,23 @@
 // (hay objetos legítimos: meses del tracker, casos, paquetes de precios), así
 // que la defensa correcta está aquí: en el punto de renderizado.
 //
-// Regla del proyecto: TODO dato que venga de la IA se pinta con toText().
+// Regla del proyecto: TODO dato que venga de la IA se pinta con toText(), y
+// TODA lista que venga de la IA se recorre con toList().
+// La otra mitad del mismo problema: donde se pidió una lista, la IA a veces
+// devuelve un objeto (o un único elemento suelto). Entonces `x.map(...)` revienta
+// con «X.map is not a function» — el `?.` NO protege de esto, porque el valor no
+// es null: simplemente no es un array. toList() siempre devuelve algo recorrible.
+export function toList<T>(v: T[] | null | undefined): T[]
+export function toList<T = unknown>(v: unknown): T[]
+export function toList<T>(v: unknown): T[] {
+  if (Array.isArray(v)) return v as T[]
+  if (v == null) return []
+  // Un objeto donde se esperaba una lista suele ser un mapa de elementos
+  // ({"lunes": {...}, "martes": {...}}): sus valores SON la lista.
+  if (typeof v === 'object') return Object.values(v as Record<string, T>)
+  return [v as T]
+}
+
 export function toText(v: unknown): string {
   if (v == null) return ''
   if (typeof v === 'string') return v

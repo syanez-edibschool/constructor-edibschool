@@ -12,7 +12,7 @@ import {
   PaperAirplaneIcon, ChatBubbleLeftRightIcon, PhoneIcon,
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { toText } from '../lib/aiText'
+import { toText, toList } from '../lib/aiText'
 import { api } from '../services/api'
 import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
@@ -302,12 +302,12 @@ function TrackerOutput({ data }: { data: { summary: Record<string, number>; mont
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
           <thead><tr style={{ background: 'var(--accent-d)', borderBottom: '1px solid var(--border)' }}>{['Mes','Clientes','MRR','Gastos','Profit','Margen%'].map(h => <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: 'var(--text-2)', letterSpacing: '0.04em' }}>{h}</th>)}</tr></thead>
-          <tbody>{data.months?.map((m, i) => <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--accent-d)' }}><td style={{ padding: '9px 14px', fontWeight: 600, color: 'var(--text)' }}>{String(m.mes || '')}</td><td style={{ padding: '9px 14px', color: 'var(--text-2)' }}>{String(m.clientes || '')}</td><td style={{ padding: '9px 14px', color: 'var(--accent)', fontFamily: 'monospace' }}>€{Number(m.mrr || 0).toLocaleString()}</td><td style={{ padding: '9px 14px', color: '#EF4444', fontFamily: 'monospace' }}>€{Number(m.gastos || 0).toLocaleString()}</td><td style={{ padding: '9px 14px', color: '#10B981', fontFamily: 'monospace' }}>€{Number(m.profit || 0).toLocaleString()}</td><td style={{ padding: '9px 14px' }}><span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: Number(m.margen || 0) >= 40 ? '#10B98120' : '#EF444420', color: Number(m.margen || 0) >= 40 ? '#10B981' : '#EF4444' }}>{String(m.margen)}%</span></td></tr>)}</tbody>
+          <tbody>{toList(data.months).map((m, i) => <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? 'transparent' : 'var(--accent-d)' }}><td style={{ padding: '9px 14px', fontWeight: 600, color: 'var(--text)' }}>{String(m.mes || '')}</td><td style={{ padding: '9px 14px', color: 'var(--text-2)' }}>{String(m.clientes || '')}</td><td style={{ padding: '9px 14px', color: 'var(--accent)', fontFamily: 'monospace' }}>€{Number(m.mrr || 0).toLocaleString()}</td><td style={{ padding: '9px 14px', color: '#EF4444', fontFamily: 'monospace' }}>€{Number(m.gastos || 0).toLocaleString()}</td><td style={{ padding: '9px 14px', color: '#10B981', fontFamily: 'monospace' }}>€{Number(m.profit || 0).toLocaleString()}</td><td style={{ padding: '9px 14px' }}><span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: Number(m.margen || 0) >= 40 ? '#10B98120' : '#EF444420', color: Number(m.margen || 0) >= 40 ? '#10B981' : '#EF4444' }}>{String(m.margen)}%</span></td></tr>)}</tbody>
         </table>
       </div>
     </div>
-    {data.alertas?.length > 0 && <div style={{ background: '#F59E0B10', border: '1px solid #F59E0B30', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}><p style={{ fontSize: 12, fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>Alertas</p>{data.alertas.map((a, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>• {toText(a)}</p>)}</div>}
-    {data.recomendaciones?.length > 0 && <div style={{ background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 10, padding: '12px 16px' }}><p style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 6 }}>Recomendaciones</p>{data.recomendaciones.map((r, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>• {toText(r)}</p>)}</div>}
+    {data.alertas?.length > 0 && <div style={{ background: '#F59E0B10', border: '1px solid #F59E0B30', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}><p style={{ fontSize: 12, fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>Alertas</p>{toList(data.alertas).map((a, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>• {toText(a)}</p>)}</div>}
+    {data.recomendaciones?.length > 0 && <div style={{ background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 10, padding: '12px 16px' }}><p style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 6 }}>Recomendaciones</p>{toList(data.recomendaciones).map((r, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>• {toText(r)}</p>)}</div>}
   </div>
 }
 
@@ -316,7 +316,7 @@ interface IrresistibleOffer { name: string; setup?: string; monthly?: string; pr
 function PricingOutput({ packages, irresistible_offer, strategy_notes }: { packages: PricingPackage[]; irresistible_offer?: IrresistibleOffer; strategy_notes?: string[] }) {
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12 }}>
-      {packages?.map((pkg, i) => <div key={i} style={{ background: 'var(--surface)', border: `1px solid ${i === 1 ? 'var(--border-h)' : 'var(--border)'}`, borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {toList(packages).map((pkg, i) => <div key={i} style={{ background: 'var(--surface)', border: `1px solid ${i === 1 ? 'var(--border-h)' : 'var(--border)'}`, borderRadius: 14, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {i === 1 && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent)', background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 20, padding: '3px 10px', width: 'fit-content' }}>MÁS POPULAR</span>}
         <p style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{toText(pkg.name)}</p>
         {(pkg.setup || pkg.monthly) ? (
@@ -328,7 +328,7 @@ function PricingOutput({ packages, irresistible_offer, strategy_notes }: { packa
           <p style={{ fontSize: 24, fontWeight: 800, background: 'linear-gradient(135deg,var(--accent),var(--purple))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{toText(pkg.price)}</p>
         )}
         <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{toText(pkg.description)}</p>
-        <div style={{ flex: 1 }}>{pkg.features?.map((f, j) => <p key={j} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 6, marginBottom: 4 }}><CheckIcon style={{ width: 14, flexShrink: 0, color: 'var(--accent)', marginTop: 1 }} />{toText(f)}</p>)}</div>
+        <div style={{ flex: 1 }}>{toList(pkg.features).map((f, j) => <p key={j} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 6, marginBottom: 4 }}><CheckIcon style={{ width: 14, flexShrink: 0, color: 'var(--accent)', marginTop: 1 }} />{toText(f)}</p>)}</div>
         {pkg.psychology && <p style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--accent)', borderTop: '1px dashed var(--border)', paddingTop: 8 }}>💡 {toText(pkg.psychology)}</p>}
         <p style={{ fontSize: 11, color: 'var(--text-3)', borderTop: '1px solid var(--border)', paddingTop: 10 }}>{toText(pkg.ideal)}</p>
       </div>)}
@@ -348,13 +348,13 @@ function PricingOutput({ packages, irresistible_offer, strategy_notes }: { packa
         {irresistible_offer.conditions && irresistible_offer.conditions.length > 0 && (
           <div>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>Condiciones</p>
-            {irresistible_offer.conditions.map((c, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>• {toText(c)}</p>)}
+            {toList(irresistible_offer.conditions).map((c, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 3 }}>• {toText(c)}</p>)}
           </div>
         )}
         {irresistible_offer.features && irresistible_offer.features.length > 0 && (
           <div>
             <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.05em' }}>Incluye</p>
-            {irresistible_offer.features.map((f, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 6, marginBottom: 3 }}><CheckIcon style={{ width: 14, color: '#F59E0B', flexShrink: 0, marginTop: 1 }} />{toText(f)}</p>)}
+            {toList(irresistible_offer.features).map((f, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 6, marginBottom: 3 }}><CheckIcon style={{ width: 14, color: '#F59E0B', flexShrink: 0, marginTop: 1 }} />{toText(f)}</p>)}
           </div>
         )}
         {irresistible_offer.why_it_works && <p style={{ fontSize: 12, fontStyle: 'italic', color: 'var(--text-2)', background: 'var(--surface)', padding: 10, borderRadius: 8 }}>🧠 {toText(irresistible_offer.why_it_works)}</p>}
@@ -370,32 +370,32 @@ function PricingOutput({ packages, irresistible_offer, strategy_notes }: { packa
     {strategy_notes && strategy_notes.length > 0 && (
       <div style={{ background: 'var(--accent-d)', border: '1px solid var(--border-h)', borderRadius: 10, padding: 16 }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginBottom: 8 }}>Notas estratégicas</p>
-        {strategy_notes.map((n, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>• {toText(n)}</p>)}
+        {toList(strategy_notes).map((n, i) => <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>• {toText(n)}</p>)}
       </div>
     )}
   </div>
 }
 
 function SlidesOutput({ slides }: { slides: Array<{ number: number; title: string; content: string; notes: string }> }) {
-  return <div>{slides?.map((s, i) => <Section key={i}><div style={{ display: 'flex', gap: 12, marginBottom: 8 }}><span style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{toText(s.number)}</span><p style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4 }}>{toText(s.title)}</p></div><p style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 8 }}>{toText(s.content)}</p>{s.notes && <p style={{ fontSize: 11, color: 'var(--text-3)', borderTop: '1px solid var(--border)', paddingTop: 8 }}>Presentador: {toText(s.notes)}</p>}</Section>)}<ActionBar onDownload={() => download(slides?.map(s => `SLIDE ${s.number}: ${s.title}\n\n${s.content}\n\nPresentador: ${s.notes}`).join('\n\n---\n\n') || '', 'pitch-deck.txt')} exportText={slides?.map(s => `## SLIDE ${s.number}: ${s.title}\n${s.content}\nPresentador: ${s.notes}`).join('\n\n') || ''} exportTitle="Pitch Deck" /></div>
+  return <div>{toList(slides).map((s, i) => <Section key={i}><div style={{ display: 'flex', gap: 12, marginBottom: 8 }}><span style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{toText(s.number)}</span><p style={{ fontWeight: 700, color: 'var(--text)', lineHeight: 1.4 }}>{toText(s.title)}</p></div><p style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginBottom: 8 }}>{toText(s.content)}</p>{s.notes && <p style={{ fontSize: 11, color: 'var(--text-3)', borderTop: '1px solid var(--border)', paddingTop: 8 }}>Presentador: {toText(s.notes)}</p>}</Section>)}<ActionBar onDownload={() => download(toList(slides).map(s => `SLIDE ${s.number}: ${s.title}\n\n${s.content}\n\nPresentador: ${s.notes}`).join('\n\n---\n\n') || '', 'pitch-deck.txt')} exportText={toList(slides).map(s => `## SLIDE ${s.number}: ${s.title}\n${s.content}\nPresentador: ${s.notes}`).join('\n\n') || ''} exportTitle="Pitch Deck" /></div>
 }
 
 function EmailsOutput({ sequences }: { sequences: Array<{ name: string; emails: Array<{ subject: string; body: string }> }> }) {
-  const exportText = sequences?.map(seq => `## ${seq.name}\n${seq.emails?.map((e, i) => `Email ${i + 1} — Asunto: ${e.subject}\n${e.body}`).join('\n\n')}`).join('\n\n') || ''
-  return <div>{sequences?.map((seq, si) => <div key={si} style={{ marginBottom: 24 }}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{si + 1}</span>{toText(seq.name)}</p>{seq.emails?.map((email, ei) => <Section key={ei}><p style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4 }}>Email {ei + 1} — Asunto:</p><p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{toText(email.subject)}</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{toText(email.body)}</p><div style={{ marginTop: 10 }}><CopyBtn text={`Asunto: ${email.subject}\n\n${email.body}`} /></div></Section>)}</div>)}<ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="Secuencia de Emails" /></div>
+  const exportText = toList(sequences).map(seq => `## ${seq.name}\n${toList(seq.emails).map((e, i) => `Email ${i + 1} — Asunto: ${e.subject}\n${e.body}`).join('\n\n')}`).join('\n\n') || ''
+  return <div>{toList(sequences).map((seq, si) => <div key={si} style={{ marginBottom: 24 }}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{si + 1}</span>{toText(seq.name)}</p>{toList(seq.emails).map((email, ei) => <Section key={ei}><p style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4 }}>Email {ei + 1} — Asunto:</p><p style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{toText(email.subject)}</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{toText(email.body)}</p><div style={{ marginTop: 10 }}><CopyBtn text={`Asunto: ${email.subject}\n\n${email.body}`} /></div></Section>)}</div>)}<ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="Secuencia de Emails" /></div>
 }
 
 function CasesOutput({ cases }: { cases: Array<{ title: string; problem: string; solution: string; result: string }> }) {
-  return <div>{cases?.map((c, i) => <Section key={i}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{toText(c.title)}</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, fontSize: 12 }}><div><p style={{ color: '#EF4444', fontWeight: 600, marginBottom: 4 }}>Problema</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{toText(c.problem)}</p></div><div><p style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 4 }}>Solución IA</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{toText(c.solution)}</p></div><div><p style={{ color: '#10B981', fontWeight: 600, marginBottom: 4 }}>Resultado</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{toText(c.result)}</p></div></div></Section>)}</div>
+  return <div>{toList(cases).map((c, i) => <Section key={i}><p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{toText(c.title)}</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 12, fontSize: 12 }}><div><p style={{ color: '#EF4444', fontWeight: 600, marginBottom: 4 }}>Problema</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{toText(c.problem)}</p></div><div><p style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: 4 }}>Solución IA</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{toText(c.solution)}</p></div><div><p style={{ color: '#10B981', fontWeight: 600, marginBottom: 4 }}>Resultado</p><p style={{ color: 'var(--text-2)', lineHeight: 1.5 }}>{toText(c.result)}</p></div></div></Section>)}</div>
 }
 
 function ColdEmailOutput({ variantes, checklist, cumplimiento }: {
   variantes: Array<{ angulo: string; asunto_a: string; asunto_b: string; preview?: string; cuerpo: string; ps?: string; por_que_funciona?: string }>
   checklist?: string[]; cumplimiento?: string
 }) {
-  const exportText = (variantes || []).map((v, i) => `## Variante ${i + 1}: ${v.angulo}\nAsunto A: ${v.asunto_a}\nAsunto B: ${v.asunto_b}\nPreview: ${v.preview || ''}\n\n${v.cuerpo}${v.ps ? `\n\n${v.ps}` : ''}`).join('\n\n———\n\n')
+  const exportText = toList(variantes).map((v, i) => `## Variante ${i + 1}: ${v.angulo}\nAsunto A: ${v.asunto_a}\nAsunto B: ${v.asunto_b}\nPreview: ${v.preview || ''}\n\n${v.cuerpo}${v.ps ? `\n\n${v.ps}` : ''}`).join('\n\n———\n\n')
   return <div>
-    {(variantes || []).map((v, i) => (
+    {toList(variantes).map((v, i) => (
       <Section key={i}>
         <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 8, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{toText(v.angulo)}</p>
         <p style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 2 }}>Asunto A</p>
@@ -409,7 +409,7 @@ function ColdEmailOutput({ variantes, checklist, cumplimiento }: {
         <div style={{ marginTop: 10 }}><CopyBtn text={`Asunto: ${v.asunto_a}\n\n${v.cuerpo}${v.ps ? `\n\n${v.ps}` : ''}`} /></div>
       </Section>
     ))}
-    {checklist?.length ? <Section><p style={{ fontWeight: 700, color: '#10B981', marginBottom: 6 }}>✅ Checklist anti-spam</p>{checklist.map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {toText(c)}</p>)}</Section> : null}
+    {checklist?.length ? <Section><p style={{ fontWeight: 700, color: '#10B981', marginBottom: 6 }}>✅ Checklist anti-spam</p>{toList(checklist).map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {toText(c)}</p>)}</Section> : null}
     {cumplimiento ? <Section><p style={{ fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>⚖️ Cumplimiento de datos</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{toText(cumplimiento)}</p></Section> : null}
     <ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="Emails en Frío" />
   </div>
@@ -419,9 +419,9 @@ function DMOutput({ secuencia, reglas, cumplimiento }: {
   secuencia: Array<{ paso: string; mensaje: string; objetivo?: string; nota?: string }>
   reglas?: string[]; cumplimiento?: string
 }) {
-  const exportText = (secuencia || []).map((s, i) => `${i + 1}. ${s.paso}\n${s.mensaje}`).join('\n\n')
+  const exportText = toList(secuencia).map((s, i) => `${i + 1}. ${s.paso}\n${s.mensaje}`).join('\n\n')
   return <div>
-    {(secuencia || []).map((s, i) => (
+    {toList(secuencia).map((s, i) => (
       <Section key={i}>
         <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 6, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{toText(s.paso)}</p>
         <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{toText(s.mensaje)}</p>
@@ -430,7 +430,7 @@ function DMOutput({ secuencia, reglas, cumplimiento }: {
         <div style={{ marginTop: 10 }}><CopyBtn text={toText(s.mensaje)} /></div>
       </Section>
     ))}
-    {reglas?.length ? <Section><p style={{ fontWeight: 700, color: '#10B981', marginBottom: 6 }}>✅ Reglas anti-spam (Instagram)</p>{reglas.map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {toText(c)}</p>)}</Section> : null}
+    {reglas?.length ? <Section><p style={{ fontWeight: 700, color: '#10B981', marginBottom: 6 }}>✅ Reglas anti-spam (Instagram)</p>{toList(reglas).map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {toText(c)}</p>)}</Section> : null}
     {cumplimiento ? <Section><p style={{ fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>⚖️ Privacidad y términos</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{toText(cumplimiento)}</p></Section> : null}
     <ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="DMs Instagram" />
   </div>
@@ -440,19 +440,19 @@ function CallScriptOutput({ fases, queNoDecir, cumplimiento }: {
   fases: Array<{ fase: string; objetivo?: string; guion?: string; tips?: string[]; preguntas?: string[]; objeciones?: Array<{ objecion: string; respuesta: string }> }>
   queNoDecir?: string[]; cumplimiento?: string
 }) {
-  const exportText = (fases || []).map(f => `## ${f.fase}\n${f.objetivo ? `Objetivo: ${f.objetivo}\n` : ''}${f.guion || ''}${f.preguntas?.length ? `\nPreguntas:\n- ${f.preguntas.join('\n- ')}` : ''}${f.objeciones?.length ? `\n${f.objeciones.map(o => `Objeción: ${o.objecion}\n→ ${o.respuesta}`).join('\n')}` : ''}`).join('\n\n')
+  const exportText = toList(fases).map(f => `## ${f.fase}\n${f.objetivo ? `Objetivo: ${f.objetivo}\n` : ''}${f.guion || ''}${f.preguntas?.length ? `\nPreguntas:\n- ${f.preguntas.join('\n- ')}` : ''}${f.objeciones?.length ? `\n${toList(f.objeciones).map(o => `Objeción: ${o.objecion}\n→ ${o.respuesta}`).join('\n')}` : ''}`).join('\n\n')
   return <div>
-    {(fases || []).map((f, i) => (
+    {toList(fases).map((f, i) => (
       <Section key={i}>
         <p style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 6, display: 'flex', gap: 8 }}><span style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--accent-d)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</span>{toText(f.fase)}</p>
         {f.objetivo && <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 6 }}>🎯 {toText(f.objetivo)}</p>}
         {f.guion && <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{toText(f.guion)}</p>}
-        {f.preguntas?.length ? <div style={{ marginTop: 8 }}>{f.preguntas.map((q, qi) => <p key={qi} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>❓ {toText(q)}</p>)}</div> : null}
-        {f.objeciones?.length ? <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>{f.objeciones.map((o, oi) => <div key={oi} style={{ borderLeft: '2px solid var(--accent)', paddingLeft: 10 }}><p style={{ fontSize: 12, color: '#EF4444', fontWeight: 600 }}>{toText(o.objecion)}</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>→ {toText(o.respuesta)}</p></div>)}</div> : null}
-        {f.tips?.length ? <div style={{ marginTop: 8 }}>{f.tips.map((t, ti) => <p key={ti} style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>💡 {toText(t)}</p>)}</div> : null}
+        {f.preguntas?.length ? <div style={{ marginTop: 8 }}>{toList(f.preguntas).map((q, qi) => <p key={qi} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>❓ {toText(q)}</p>)}</div> : null}
+        {f.objeciones?.length ? <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>{toList(f.objeciones).map((o, oi) => <div key={oi} style={{ borderLeft: '2px solid var(--accent)', paddingLeft: 10 }}><p style={{ fontSize: 12, color: '#EF4444', fontWeight: 600 }}>{toText(o.objecion)}</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>→ {toText(o.respuesta)}</p></div>)}</div> : null}
+        {f.tips?.length ? <div style={{ marginTop: 8 }}>{toList(f.tips).map((t, ti) => <p key={ti} style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>💡 {toText(t)}</p>)}</div> : null}
       </Section>
     ))}
-    {queNoDecir?.length ? <Section><p style={{ fontWeight: 700, color: '#EF4444', marginBottom: 6 }}>🚫 Qué NO decir</p>{queNoDecir.map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {toText(c)}</p>)}</Section> : null}
+    {queNoDecir?.length ? <Section><p style={{ fontWeight: 700, color: '#EF4444', marginBottom: 6 }}>🚫 Qué NO decir</p>{toList(queNoDecir).map((c, i) => <p key={i} style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>• {toText(c)}</p>)}</Section> : null}
     {cumplimiento ? <Section><p style={{ fontWeight: 700, color: '#F59E0B', marginBottom: 6 }}>⚖️ Cumplimiento</p><p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{toText(cumplimiento)}</p></Section> : null}
     <ActionBar onCopy={() => copy(exportText)} exportText={exportText} exportTitle="Guion de Llamadas" />
   </div>
@@ -521,7 +521,7 @@ function RenderOutput({ toolId, result, projectId, savedAt, onRegenerate }: {
     case 'chat-agent': return <DocBlock content={r.content as string} filename="agente-ia-blueprint.md" />
     case 'vsl': {
       const sections = r.sections as Array<{ label: string; timing: string; content: string }>
-      return <div>{sections?.map((s, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><div><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{toText(s.label)}</span><span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>{toText(s.timing)}</span></div><CopyBtn text={toText(s.content)} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.7, fontFamily: 'monospace' }}>{toText(s.content)}</pre></Section>)}<ActionBar onCopy={() => copy(sections?.map(s => `[${s.label}]\n${s.content}`).join('\n\n') || '')} onDownload={() => download(sections?.map(s => `[${s.label} - ${s.timing}]\n${s.content}`).join('\n\n') || '', 'vsl-script.txt')} exportText={sections?.map(s => `## ${s.label} (${s.timing})\n${s.content}`).join('\n\n') || ''} exportTitle="VSL Script" /></div>
+      return <div>{toList(sections).map((s, i) => <Section key={i}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><div><span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)' }}>{toText(s.label)}</span><span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 8 }}>{toText(s.timing)}</span></div><CopyBtn text={toText(s.content)} /></div><pre style={{ fontSize: 13, color: 'var(--text-2)', whiteSpace: 'pre-wrap', lineHeight: 1.7, fontFamily: 'monospace' }}>{toText(s.content)}</pre></Section>)}<ActionBar onCopy={() => copy(toList(sections).map(s => `[${s.label}]\n${s.content}`).join('\n\n') || '')} onDownload={() => download(toList(sections).map(s => `[${s.label} - ${s.timing}]\n${s.content}`).join('\n\n') || '', 'vsl-script.txt')} exportText={toList(sections).map(s => `## ${s.label} (${s.timing})\n${s.content}`).join('\n\n') || ''} exportTitle="VSL Script" /></div>
     }
     case 'email-frio':     return <ColdEmailOutput variantes={r.variantes as never} checklist={r.checklist_anti_spam as never} cumplimiento={r.cumplimiento as string} />
     case 'dm-instagram':   return <DMOutput secuencia={r.secuencia as never} reglas={r.reglas_anti_spam as never} cumplimiento={r.cumplimiento as string} />

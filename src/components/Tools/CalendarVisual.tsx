@@ -8,7 +8,7 @@ import {
 import toast from 'react-hot-toast'
 import DayDetail, { type CalendarDay } from './DayDetail'
 import { supabase } from '../../services/supabase'
-import { toText } from '../../lib/aiText'
+import { toText, toList } from '../../lib/aiText'
 
 export interface CalendarWeek {
   week: number
@@ -75,9 +75,9 @@ function getDayIndex(dayName: string): number {
 
 function downloadCalendar(weeks: CalendarWeek[]) {
   const lines: string[] = ['CALENDARIO DE CONTENIDO — 4 SEMANAS\n']
-  for (const w of weeks) {
+  for (const w of toList<CalendarWeek>(weeks)) {
     lines.push(`\n=== SEMANA ${w.week} ===`)
-    for (const d of w.days) {
+    for (const d of toList<CalendarDay>(w?.days)) {
       lines.push(`\n${toText(d.day)} ${toText(d.timing)}`)
       lines.push(`Tipo: ${toText(d.type)}${d.platform ? ` | ${toText(d.platform)}` : ''}`)
       lines.push(`Contenido: ${toText(d.content)}`)
@@ -104,7 +104,11 @@ const CONTENT_FILTERS: Array<{ key: string; label: string; color: string }> = [
 ]
 
 export default function CalendarVisual({ projectId, weeks: initialWeeks, updatedAt, onRegenerate, onWeeksChange }: CalendarVisualProps) {
-  const [weeks, setWeeks]         = useState<CalendarWeek[]>(initialWeeks)
+  // Las semanas las genera la IA: si `weeks` o `days` no llegan como array,
+  // cualquier .map/.reduce de aquí abajo revienta («X.map is not a function»).
+  const [weeks, setWeeks] = useState<CalendarWeek[]>(
+    () => toList<CalendarWeek>(initialWeeks).map(w => ({ ...w, days: toList<CalendarDay>(w?.days) }))
+  )
   const [selected, setSelected]   = useState<SelectedDay | null>(null)
   const [contentFilter, setContentFilter] = useState<string>('all')
 
