@@ -370,22 +370,11 @@ function cardScale(sp: number): number {
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Login() {
-  const { loginWithMagicLink } = useAuth()
+  const { entrarConCorreo } = useAuth()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
-  // Supabase guarda UN solo token por usuario: pedir un link nuevo ANULA el anterior.
-  // Sin espera, el alumno pulsa varias veces y luego abre el correo más viejo, que ya
-  // no sirve. Estos 60s evitan la cadena de tokens muertos.
-  const [espera, setEspera] = useState(0)   // segundos que faltan para poder reenviar
   const [sp, setSp] = useState(0)     // scroll progress 0-1
   const glitching = useGlitch()
-
-  useEffect(() => {
-    if (espera <= 0) return
-    const t = setTimeout(() => setEspera(s => s - 1), 1000)
-    return () => clearTimeout(t)
-  }, [espera])
 
   const containerRef = useRef<HTMLDivElement>(null)
   const lastScrollTop = useRef(0)
@@ -439,16 +428,13 @@ export default function Login() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!email) { toast.error('Escribe tu email'); return }
-    if (espera > 0) { toast.error(`Espera ${espera}s antes de pedir otro link.`); return }
     setLoading(true)
     try {
-      await loginWithMagicLink(email)
-      setSent(true)
-      setEspera(60)
-      toast.success('Te enviamos un link de acceso a tu email.', { duration: 6000 })
+      await entrarConCorreo(email)
+      // Recarga completa: el contexto de la app arranca ya con la sesión puesta.
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'No se pudo enviar el link')
-    } finally {
+      toast.error(err instanceof Error ? err.message : 'No se pudo entrar')
       setLoading(false)
     }
   }
@@ -569,28 +555,14 @@ export default function Login() {
                       <motion.p className="text-[11px] leading-relaxed"
                         style={{ color: 'rgba(255,255,255,0.4)' }}
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}>
-                        Escribe tu correo y te enviaremos un link de acceso. No necesitas contraseña.
+                        Escribe tu correo y entra. No necesitas contraseña ni revisar el correo.
                       </motion.p>
 
                       <motion.div className="mt-1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.54 }}>
-                        <GradientButton loading={loading} disabled={espera > 0}>
-                          {espera > 0 ? `REENVIAR EN ${espera}s`
-                            : sent ? 'REENVIAR LINK →'
-                            : 'ENVIAR LINK DE ACCESO →'}
+                        <GradientButton loading={loading}>
+                          ENTRAR →
                         </GradientButton>
                       </motion.div>
-
-                      {sent && (
-                        <motion.div className="text-[11px] leading-relaxed flex flex-col gap-1.5"
-                          style={{ color: 'rgba(255,255,255,0.45)' }}
-                          initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                          <p style={{ color: 'rgba(196,157,255,0.95)' }}>
-                            Enviado a <strong style={{ fontWeight: 700 }}>{email}</strong>
-                          </p>
-                          <p>Si no lo ves, busca <strong style={{ fontWeight: 700 }}>«acceso»</strong> en tu correo y revisa <strong style={{ fontWeight: 700 }}>spam</strong> y la pestaña <strong style={{ fontWeight: 700 }}>Promociones</strong>.</p>
-                          <p>El link vale 24 horas. Si pides otro, <strong style={{ fontWeight: 700 }}>solo funcionará el del último correo</strong>.</p>
-                        </motion.div>
-                      )}
                     </form>
 
                     {/* Footer */}

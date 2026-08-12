@@ -161,9 +161,9 @@ export default function Admin() {
     try {
       const r = await llamar<{ estado: string }>({ accion: 'alta', email, nombre: nuevoNombre.trim() })
       if (r.estado === 'ya_existia') {
-        toast.success('Ese correo ya estaba registrado. Puede pedir su link.')
+        toast.success('Ese correo ya estaba registrado. Ya puede entrar.')
       } else {
-        toast.success('Alta creada. Ya puede pedir su link de acceso.')
+        toast.success('Alta creada. Ya puede entrar escribiendo su correo.')
       }
       setNuevoEmail(''); setNuevoNombre('')
       await buscar(email)
