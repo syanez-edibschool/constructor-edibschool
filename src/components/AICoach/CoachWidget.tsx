@@ -4,6 +4,7 @@ import { SparklesIcon, XMarkIcon, PaperAirplaneIcon, MinusIcon } from '@heroicon
 import { useLocation } from 'react-router-dom'
 import { api } from '../../services/api'
 import { useAuth } from '../../hooks/useAuth'
+import { toText } from '../../lib/aiText'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface Message {
@@ -21,7 +22,10 @@ function getProjectIdFromPath(pathname: string): string | null {
 const STORAGE_KEY = (projectId: string | null) =>
   `coach_history_${projectId || 'global'}`
 
-function cleanCoachReply(text: string): string {
+// Acepta unknown a propósito: si la IA devuelve un objeto en vez de texto,
+// toText() lo aplana en lugar de reventar en .trim() o en el JSX (React #31).
+function cleanCoachReply(raw: unknown): string {
+  const text = toText(raw)
   // If the reply looks like JSON (starts with { or [), extract any readable text from it
   const trimmed = text.trim()
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {

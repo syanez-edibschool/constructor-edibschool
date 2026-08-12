@@ -10,6 +10,7 @@ import {
 import { api } from '../../services/api'
 import { supabase } from '../../services/supabase'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
+import { toText } from '../../lib/aiText'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface ContentMixItem  { type: string; percentage: number; engagement_rate: number; is_winner?: boolean; why_it_works?: string }
@@ -80,6 +81,101 @@ export interface CloneAnalysis {
       estimated_revenue: string
     }
   }
+}
+
+// El análisis viene de la IA y tiene muchos campos de texto anidados. Si alguno
+// llega como objeto (la IA a veces "enriquece" un hook o un CTA en vez de dejarlo
+// en una frase), React revienta al pintarlo (#31). Se normaliza una sola vez, al
+// entrar en el estado, en lugar de coercer campo a campo en el JSX.
+const txt = (v: unknown) => toText(v)
+const txtList = (v: unknown): string[] => (Array.isArray(v) ? v.map(txt) : [])
+const num = (v: unknown): number => (typeof v === 'number' ? v : Number(toText(v)) || 0)
+
+function normalizeAnalysis(raw: unknown): CloneAnalysis {
+  const a = (raw ?? {}) as Record<string, any>
+  const hooks = (v: unknown): HookItem[] => (Array.isArray(v) ? v : []).map((h: any) => ({
+    hook: txt(h?.hook), count: h?.count, type: txt(h?.type) || undefined, why: txt(h?.why) || undefined,
+  }))
+  const ctas = (v: unknown): CTAItem[] => (Array.isArray(v) ? v : []).map((c: any) => ({
+    cta: txt(c?.cta), usage_pct: c?.usage_pct, context: txt(c?.context) || undefined,
+  }))
+  const week = (w: any) => ({ title: txt(w?.title), hours: num(w?.hours), tasks: txtList(w?.tasks) })
+
+  return {
+    ...a,
+    handle: txt(a.handle),
+    platform: txt(a.platform),
+    executive_summary: {
+      ...a.executive_summary,
+      estimated_followers: txt(a.executive_summary?.estimated_followers),
+      engagement_rate: txt(a.executive_summary?.engagement_rate),
+      posts_per_week: num(a.executive_summary?.posts_per_week),
+      estimated_revenue_monthly: txt(a.executive_summary?.estimated_revenue_monthly),
+      key_success_factors: txtList(a.executive_summary?.key_success_factors),
+    },
+    content_mix: (Array.isArray(a.content_mix) ? a.content_mix : []).map((it: any) => ({
+      ...it, type: txt(it?.type), why_it_works: txt(it?.why_it_works) || undefined,
+    })),
+    your_content_mix: (Array.isArray(a.your_content_mix) ? a.your_content_mix : []).map((it: any) => ({
+      ...it, type: txt(it?.type), reasoning: txt(it?.reasoning),
+    })),
+    schedule: {
+      ...a.schedule,
+      best_hours: txtList(a.schedule?.best_hours),
+      best_days: txtList(a.schedule?.best_days),
+      your_recommendation: {
+        ...a.schedule?.your_recommendation,
+        posts_per_week: num(a.schedule?.your_recommendation?.posts_per_week),
+        schedule: Object.fromEntries(
+          Object.entries(a.schedule?.your_recommendation?.schedule ?? {}).map(([k, v]) => [k, txt(v)])
+        ),
+        reasoning: txt(a.schedule?.your_recommendation?.reasoning),
+      },
+    },
+    aesthetics: {
+      ...a.aesthetics,
+      color_palette: txtList(a.aesthetics?.color_palette),
+      typography_style: txt(a.aesthetics?.typography_style),
+      photo_style: txtList(a.aesthetics?.photo_style),
+      your_recommendation: {
+        palette: txtList(a.aesthetics?.your_recommendation?.palette),
+        style: txt(a.aesthetics?.your_recommendation?.style),
+        differentiation: txt(a.aesthetics?.your_recommendation?.differentiation),
+      },
+    },
+    copy_analysis: {
+      ...a.copy_analysis,
+      top_hooks: hooks(a.copy_analysis?.top_hooks),
+      top_ctas: ctas(a.copy_analysis?.top_ctas),
+      tone_of_voice: txt(a.copy_analysis?.tone_of_voice),
+      your_hooks: hooks(a.copy_analysis?.your_hooks),
+      your_ctas: ctas(a.copy_analysis?.your_ctas),
+      key_differentiation: txt(a.copy_analysis?.key_differentiation),
+    },
+    landing_page: {
+      ...a.landing_page,
+      headline: txt(a.landing_page?.headline),
+      subheadline: txt(a.landing_page?.subheadline),
+      social_proof: txt(a.landing_page?.social_proof),
+      cta_text: txt(a.landing_page?.cta_text),
+      form_fields: num(a.landing_page?.form_fields),
+      guarantee: txt(a.landing_page?.guarantee),
+      your_improvements: txtList(a.landing_page?.your_improvements),
+    },
+    score: { ...a.score, summary: txt(a.score?.summary) },
+    implementation_plan: {
+      ...a.implementation_plan,
+      week1: week(a.implementation_plan?.week1),
+      week2: week(a.implementation_plan?.week2),
+      week3: week(a.implementation_plan?.week3),
+      month1_results: {
+        engagement_improvement: txt(a.implementation_plan?.month1_results?.engagement_improvement),
+        followers_growth: txt(a.implementation_plan?.month1_results?.followers_growth),
+        leads_per_week: txt(a.implementation_plan?.month1_results?.leads_per_week),
+        estimated_revenue: txt(a.implementation_plan?.month1_results?.estimated_revenue),
+      },
+    },
+  } as CloneAnalysis
 }
 
 type Step = 'loading' | 'select-count' | 'input-handles' | 'analyzing' | 'comparison' | 'winner-detail'
@@ -704,7 +800,7 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
     api.get(`/projects/${projectId}/tools/clone-winner`)
       .then(({ data }) => {
         if (data.exists && Array.isArray(data.result?.competitors) && data.result.competitors.length > 0) {
-          setAnalyses(data.result.competitors)
+          setAnalyses(data.result.competitors.map(normalizeAnalysis))
           const idx = typeof data.result.selectedWinner === 'number' ? data.result.selectedWinner : null
           setSelectedIdx(idx)
           setStep(idx !== null ? 'winner-detail' : 'comparison')
@@ -740,7 +836,7 @@ export default function CloneTheWinner({ projectId }: { projectId: string }) {
         const { data } = await api.post(`/projects/${projectId}/tools/clone-winner`, {
           toolAnswers: { handle: inputs[i].handle, platform: inputs[i].platform, url: inputs[i].url },
         })
-        results.push((data.result ?? data) as CloneAnalysis)
+        results.push(normalizeAnalysis(data.result ?? data))
         setProgress(p => p.map((x, j) => j === i ? { ...x, status: 'done' } : x))
       } catch {
         setProgress(p => p.map((x, j) => j === i ? { ...x, status: 'error' } : x))

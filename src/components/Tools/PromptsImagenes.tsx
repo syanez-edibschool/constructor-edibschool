@@ -5,6 +5,7 @@ import {
   CubeIcon, FilmIcon, SparklesIcon, UserIcon,
   ChartBarIcon, HeartIcon, BuildingOfficeIcon, PhotoIcon,
 } from '@heroicons/react/24/outline'
+import { toText } from '../../lib/aiText'
 
 export interface ImagenPrompt {
   titulo: string
@@ -104,24 +105,24 @@ function PromptCard({ p, index }: { p: ImagenPrompt; index: number }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <TipoIcon tipo={p.tipo} style={{ width: 18, height: 18, color }} />
+            <TipoIcon tipo={toText(p.tipo)} style={{ width: 18, height: 18, color }} />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{p.titulo}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{toText(p.titulo)}</span>
                 <span style={{
                   fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
                   padding: '1px 6px', borderRadius: 999,
                   background: `${color}18`, color,
                 }}>
-                  {p.tipo}
+                  {toText(p.tipo)}
                 </span>
               </div>
-              <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{p.descripcion}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{toText(p.descripcion)}</p>
             </div>
           </div>
           {p.formato && (
             <span style={{ fontSize: 10, color: 'var(--text-3)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              {p.formato}
+              {toText(p.formato)}
             </span>
           )}
         </div>
@@ -137,12 +138,12 @@ function PromptCard({ p, index }: { p: ImagenPrompt; index: number }) {
           <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color, marginBottom: 5 }}>
             Prompt (EN)
           </p>
-          {p.prompt}
+          {toText(p.prompt)}
         </div>
 
         {/* Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <CopyButton text={p.prompt} />
+          <CopyButton text={toText(p.prompt)} />
           {p.negative_prompt && (
             <button
               onClick={() => setShowNeg(v => !v)}
@@ -178,7 +179,7 @@ function PromptCard({ p, index }: { p: ImagenPrompt; index: number }) {
                 <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#EF4444', marginBottom: 4 }}>
                   Negative prompt
                 </p>
-                {p.negative_prompt}
+                {toText(p.negative_prompt)}
               </div>
             </motion.div>
           )}
@@ -190,7 +191,8 @@ function PromptCard({ p, index }: { p: ImagenPrompt; index: number }) {
 
 export default function PromptsImagenes({ prompts, updatedAt, onRegenerate }: PromptsImagenesProps) {
   const [showAll, setShowAll] = useState(false)
-  const visible = showAll ? prompts : prompts.slice(0, 3)
+  const list = Array.isArray(prompts) ? prompts : []
+  const visible = showAll ? list : list.slice(0, 3)
 
   return (
     <div>
@@ -201,7 +203,7 @@ export default function PromptsImagenes({ prompts, updatedAt, onRegenerate }: Pr
             Prompts de Imágenes
           </h2>
           <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
-            {prompts.length} prompts · Listos para DALL-E, Midjourney, Stable Diffusion
+            {list.length} prompts · Listos para DALL-E, Midjourney, Stable Diffusion
             {updatedAt && ` · ${new Date(updatedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`}
           </p>
         </div>
@@ -229,7 +231,7 @@ export default function PromptsImagenes({ prompts, updatedAt, onRegenerate }: Pr
       {visible.map((p, i) => <PromptCard key={i} p={p} index={i} />)}
 
       {/* Show more / less */}
-      {prompts.length > 3 && (
+      {list.length > 3 && (
         <motion.button
           onClick={() => setShowAll(v => !v)}
           whileHover={{ y: -1 }}
@@ -237,7 +239,7 @@ export default function PromptsImagenes({ prompts, updatedAt, onRegenerate }: Pr
           className="btn-secondary"
           style={{ width: '100%', padding: '10px', borderRadius: 10, fontSize: 13, marginTop: 4 }}
         >
-          {showAll ? 'Ver menos' : `Ver ${prompts.length - 3} prompts más`}
+          {showAll ? 'Ver menos' : `Ver ${list.length - 3} prompts más`}
         </motion.button>
       )}
     </div>

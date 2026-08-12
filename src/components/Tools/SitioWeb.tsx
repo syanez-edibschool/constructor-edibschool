@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
+import { toText } from '../../lib/aiText'
 import { SparklesIcon } from '@heroicons/react/24/outline'
 
 // ─── Site type definitions ────────────────────────────────────────────────────
@@ -86,8 +87,8 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
         existingAnswers: { siteType: selectedType, colors, additional },
       })
       if (data?.suggestion) {
-        if (field === 'colors') setColors(data.suggestion)
-        else setAdditional(data.suggestion)
+        if (field === 'colors') setColors(toText(data.suggestion))
+        else setAdditional(toText(data.suggestion))
         toast.success('Sugerencia generada', { duration: 1500 })
       }
     } catch {
@@ -102,7 +103,7 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
     api.get(`/projects/${projectId}/tools/website`)
       .then(({ data }) => {
         if (data.exists && data.result?.content) {
-          setResult(data.result as SiteResult)
+          setResult({ ...data.result, content: toText(data.result.content) } as SiteResult)
           setSelectedType(data.result.siteType || null)
           setSavedAt(data.updated_at)
           setStep('done')
@@ -122,7 +123,7 @@ export default function SitioWeb({ projectId }: SitioWebProps) {
       })
       // Vercel function returns { success, content }; Express returns { result: { siteType, content } }
       const siteResult: SiteResult = data.result ?? { siteType: selectedType!, content: data.content ?? '' }
-      setResult(siteResult)
+      setResult({ ...siteResult, content: toText(siteResult.content) })
       setSavedAt(new Date().toISOString())
       setStep('done')
     } catch {

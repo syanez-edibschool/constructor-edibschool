@@ -7,6 +7,7 @@ import Button3D from '../components/ui/Button3D'
 import LoadingSpinner3D from '../components/ui/LoadingSpinner3D'
 import { api } from '../services/api'
 import { updateProject } from '../services/projectsService'
+import { toText } from '../lib/aiText'
 import { UserIcon } from '@heroicons/react/24/outline'
 
 interface NichoData {
@@ -57,6 +58,40 @@ function asText(v: unknown): string {
   return String(v ?? 'Error inesperado')
 }
 
+// El análisis lo escribe la IA: si algún campo llega como objeto en vez de texto,
+// React tumba la pantalla al pintarlo (#31). Se normaliza al entrar en el estado.
+const txtList = (v: unknown): string[] => (Array.isArray(v) ? v.map(toText) : [])
+
+function normNicho(raw: unknown): NichoData {
+  const n = (raw ?? {}) as Record<string, unknown>
+  return {
+    sector: toText(n.sector), micronicho: toText(n.micronicho), tam: toText(n.tam),
+    ticket: toText(n.ticket), trend: toText(n.trend), momento: toText(n.momento),
+    razon: toText(n.razon),
+  }
+}
+
+function normAvatar(raw: unknown): AvatarData {
+  const a = (raw ?? {}) as Record<string, unknown>
+  return {
+    name: toText(a.name), age: toText(a.age), position: toText(a.position),
+    experience: toText(a.experience), income: toText(a.income), narrative: toText(a.narrative),
+    goals: txtList(a.goals), pains: txtList(a.pains),
+  }
+}
+
+function normCompetencia(raw: unknown): CompetenciaData {
+  const c = (raw ?? {}) as Record<string, unknown>
+  return {
+    competitors: (Array.isArray(c.competitors) ? c.competitors : []).map((x: Record<string, unknown>) => ({
+      name: toText(x?.name), price: toText(x?.price),
+      strengths: txtList(x?.strengths), weaknesses: txtList(x?.weaknesses),
+      gap: toText(x?.gap),
+    })),
+    positioning: toText(c.positioning), opportunity: toText(c.opportunity),
+  }
+}
+
 export default function ReviewNiche() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -90,9 +125,9 @@ export default function ReviewNiche() {
         toast.error(errorMsg)
         return
       }
-      setNicho(data.nicho)
-      setAvatar(data.avatar)
-      setCompetencia(data.competencia)
+      setNicho(normNicho(data.nicho))
+      setAvatar(normAvatar(data.avatar))
+      setCompetencia(normCompetencia(data.competencia))
       setLoadingProgress(100)
     } catch (err: any) {
       const errorMsg = asText(err.response?.data?.error ?? err.message ?? 'Error al generar análisis')
@@ -125,9 +160,9 @@ export default function ReviewNiche() {
     setUpdating((prev) => ({ ...prev, [section]: true }))
     try {
       const { data } = await api.put(`/projects/${id}/update-${section}`, { feedback: editText[section] })
-      if (section === 'nicho') setNicho(data.nicho)
-      if (section === 'avatar') setAvatar(data.avatar)
-      if (section === 'competencia') setCompetencia(data.competencia)
+      if (section === 'nicho') setNicho(normNicho(data.nicho))
+      if (section === 'avatar') setAvatar(normAvatar(data.avatar))
+      if (section === 'competencia') setCompetencia(normCompetencia(data.competencia))
       setEditMode((prev) => ({ ...prev, [section]: false }))
       setEditText((prev) => ({ ...prev, [section]: '' }))
       toast.success('Actualizado con tu feedback')

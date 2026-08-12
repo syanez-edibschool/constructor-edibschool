@@ -8,6 +8,7 @@ import {
 import toast from 'react-hot-toast'
 import DayDetail, { type CalendarDay } from './DayDetail'
 import { supabase } from '../../services/supabase'
+import { toText } from '../../lib/aiText'
 
 export interface CalendarWeek {
   week: number
@@ -68,7 +69,8 @@ function TypeIcon({ type, style }: { type: string; style?: React.CSSProperties }
 }
 
 function getDayIndex(dayName: string): number {
-  return WEEK_DAYS.findIndex(d => d.toLowerCase() === dayName.toLowerCase())
+  const name = toText(dayName)
+  return WEEK_DAYS.findIndex(d => d.toLowerCase() === name.toLowerCase())
 }
 
 function downloadCalendar(weeks: CalendarWeek[]) {
@@ -76,10 +78,10 @@ function downloadCalendar(weeks: CalendarWeek[]) {
   for (const w of weeks) {
     lines.push(`\n=== SEMANA ${w.week} ===`)
     for (const d of w.days) {
-      lines.push(`\n${d.day} ${d.timing}`)
-      lines.push(`Tipo: ${d.type}${d.platform ? ` | ${d.platform}` : ''}`)
-      lines.push(`Contenido: ${d.content}`)
-      if (d.cta) lines.push(`CTA: ${d.cta}`)
+      lines.push(`\n${toText(d.day)} ${toText(d.timing)}`)
+      lines.push(`Tipo: ${toText(d.type)}${d.platform ? ` | ${toText(d.platform)}` : ''}`)
+      lines.push(`Contenido: ${toText(d.content)}`)
+      if (d.cta) lines.push(`CTA: ${toText(d.cta)}`)
     }
   }
   const a = Object.assign(document.createElement('a'), {
@@ -323,10 +325,10 @@ export default function CalendarVisual({ projectId, weeks: initialWeeks, updated
                           overflow: 'hidden', textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap', maxWidth: '100%',
                         }}>
-                          {day.type}
+                          {toText(day.type)}
                         </span>
                         <span style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 500 }}>
-                          {day.timing}
+                          {toText(day.timing)}
                         </span>
                       </div>
                     </motion.button>

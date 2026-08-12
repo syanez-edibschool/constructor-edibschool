@@ -6,6 +6,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
+import { toText } from '../../lib/aiText'
 import toast from 'react-hot-toast'
 
 type IconComp = React.ComponentType<React.SVGProps<SVGSVGElement>>
@@ -84,7 +85,7 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
         questionType: q.type,
         existingAnswers: { serviceId, serviceName: service?.label, ...answers },
       })
-      if (data?.suggestion) setAnswers(p => ({ ...p, [q.id]: data.suggestion }))
+      if (data?.suggestion) setAnswers(p => ({ ...p, [q.id]: toText(data.suggestion) }))
     } catch {
       toast.error('No se pudo generar la sugerencia')
     } finally {
@@ -97,7 +98,7 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
       .then(({ data }) => {
         const result = data.result ?? data
         if (data.exists && result?.content) {
-          setContent(result.content)
+          setContent(toText(result.content))
           setServiceId(result.serviceId || null)
           setSavedAt(data.updated_at)
           setStep('done')
@@ -118,7 +119,7 @@ export default function PropuestaComercial({ projectId }: { projectId: string })
       const { data } = await api.post(`/projects/${projectId}/tools/propuesta`, {
         toolAnswers: { serviceId, serviceName: service?.label, ...answers },
       })
-      setContent((data.result ?? data)?.content || '')
+      setContent(toText((data.result ?? data)?.content))
       setSavedAt(new Date().toISOString())
       setStep('done')
     } catch {

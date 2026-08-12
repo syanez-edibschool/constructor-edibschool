@@ -5,6 +5,7 @@ import {
   ViewColumnsIcon, FilmIcon, DevicePhoneMobileIcon, PhotoIcon,
   VideoCameraIcon, EnvelopeIcon, SignalIcon, DocumentTextIcon,
 } from '@heroicons/react/24/outline'
+import { toText } from '../../lib/aiText'
 
 export interface CalendarDay {
   day: string
@@ -50,7 +51,21 @@ export default function DayDetail({ day, weekIndex, dayIndex, onClose, onSave, o
   const [saved,  setSaved]  = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => { if (day) setForm({ ...day }); setSaved(false) }, [day])
+  // El día viene de la IA: se normaliza a texto al entrar en el formulario, así
+  // ni los inputs controlados ni el JSX reciben nunca un objeto (React #31).
+  useEffect(() => {
+    if (day) setForm({
+      ...day,
+      day: toText(day.day),
+      type: toText(day.type),
+      content: toText(day.content),
+      timing: toText(day.timing),
+      platform: day.platform != null ? toText(day.platform) : undefined,
+      description: day.description != null ? toText(day.description) : undefined,
+      cta: day.cta != null ? toText(day.cta) : undefined,
+    })
+    setSaved(false)
+  }, [day])
 
   if (!day || !form) return null
 
@@ -69,7 +84,7 @@ export default function DayDetail({ day, weekIndex, dayIndex, onClose, onSave, o
   }
 
   const handleDelete = async () => {
-    if (!confirm(`¿Eliminar el post del ${day.day}?`)) return
+    if (!confirm(`¿Eliminar el post del ${toText(day.day)}?`)) return
     setDeleting(true)
     try {
       await onDelete(weekIndex, dayIndex)

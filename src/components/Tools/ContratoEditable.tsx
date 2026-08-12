@@ -3,11 +3,12 @@ import toast from 'react-hot-toast'
 import { ArrowDownTrayIcon, CheckIcon, PencilSquareIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../../services/supabase'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
+import { toText } from '../../lib/aiText'
 
 // Contrato editable tipo Word: el usuario coloca sus propios datos y guarda.
 // Persiste en project_tools (tool_id='contrato'), igual que el resto de herramientas.
 export default function ContratoEditable({ projectId, initialContent }: { projectId: string; initialContent: string }) {
-  const [text, setText] = useState(initialContent || '')
+  const [text, setText] = useState(toText(initialContent))
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
 

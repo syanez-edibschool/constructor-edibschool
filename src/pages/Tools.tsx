@@ -12,6 +12,7 @@ import {
   PaperAirplaneIcon, ChatBubbleLeftRightIcon, PhoneIcon,
 } from '@heroicons/react/24/outline'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { toText } from '../lib/aiText'
 import { api } from '../services/api'
 import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
@@ -279,20 +280,6 @@ function ActionBar({ onCopy, onDownload, exportText, exportTitle }: { onCopy?: (
     )}
   </div>
 }
-// Convierte cualquier item (string u objeto) a texto legible. La IA a veces
-// devuelve objetos en vez de strings; sin esto React crashea al pintarlos (#31).
-function toText(v: unknown): string {
-  if (v == null) return ''
-  if (typeof v === 'string') return v
-  if (Array.isArray(v)) return v.map(toText).join('\n')
-  if (typeof v === 'object') {
-    return Object.entries(v as Record<string, unknown>)
-      .map(([k, val]) => `${k.replace(/_/g, ' ').toUpperCase()}:\n${toText(val)}`)
-      .join('\n\n')
-  }
-  return String(v)
-}
-
 function TextBlocks({ items, label }: { items: unknown[]; label: string }) {
   const texts = items.map(toText)
   const joined = texts.map((it, i) => `## ${label} ${i + 1}\n${it}`).join('\n\n')
@@ -581,7 +568,7 @@ function QuestionForm({ tool, onSubmit, loading, projectId, initialTopic, initia
         existingAnswers: answers,
       })
       if (data?.suggestion) {
-        set(q.id, data.suggestion)
+        set(q.id, toText(data.suggestion))
         toast.success('Sugerencia generada', { duration: 1500 })
       } else {
         toast.error('No se pudo generar')

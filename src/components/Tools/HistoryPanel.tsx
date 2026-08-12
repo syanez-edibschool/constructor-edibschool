@@ -3,26 +3,29 @@ import toast from 'react-hot-toast'
 import { ClockIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import { getHistory, type HistoryEntry } from '../../services/toolHistory'
 import { exportToPDF, exportToWord } from '../../services/exportContent'
+import { toText } from '../../lib/aiText'
 
 // Convierte el resultado guardado de cualquier herramienta de contenido en texto legible.
+// Los campos van por toText() porque la IA a veces devuelve objetos donde se
+// pidió texto; sin eso saldría «[object Object]».
 function summarize(content: unknown): string {
   if (content == null) return ''
   if (typeof content === 'string') return content
   const c = content as Record<string, unknown>
   if (Array.isArray(c.sequences)) {
     return (c.sequences as Array<Record<string, unknown>>).map(seq =>
-      `=== ${seq.name || 'Secuencia'} ===\n` +
-      ((seq.emails as Array<Record<string, unknown>>) || []).map(e => `Asunto: ${e.subject}\n${e.body}`).join('\n\n')
+      `=== ${toText(seq.name) || 'Secuencia'} ===\n` +
+      ((seq.emails as Array<Record<string, unknown>>) || []).map(e => `Asunto: ${toText(e.subject)}\n${toText(e.body)}`).join('\n\n')
     ).join('\n\n')
   }
   if (Array.isArray(c.sections)) {
-    return (c.sections as Array<Record<string, unknown>>).map(s => `[${s.label}${s.timing ? ` - ${s.timing}` : ''}]\n${s.content}`).join('\n\n')
+    return (c.sections as Array<Record<string, unknown>>).map(s => `[${toText(s.label)}${s.timing ? ` - ${toText(s.timing)}` : ''}]\n${toText(s.content)}`).join('\n\n')
   }
   if (Array.isArray(c.prompts)) {
-    return (c.prompts as Array<Record<string, unknown>>).map((p, i) => `${i + 1}. ${p.title || p.concept || ''}\n${p.prompt || p.text || ''}`).join('\n\n')
+    return (c.prompts as Array<Record<string, unknown>>).map((p, i) => `${i + 1}. ${toText(p.title || p.concept)}\n${toText(p.prompt || p.text)}`).join('\n\n')
   }
   if (Array.isArray(c.slides)) {
-    return (c.slides as Array<Record<string, unknown>>).map(s => `SLIDE ${s.number}: ${s.title}\n${s.content}`).join('\n\n')
+    return (c.slides as Array<Record<string, unknown>>).map(s => `SLIDE ${toText(s.number)}: ${toText(s.title)}\n${toText(s.content)}`).join('\n\n')
   }
   for (const v of Object.values(c)) {
     if (Array.isArray(v) && v.every(x => typeof x === 'string')) return (v as string[]).join('\n\n')

@@ -6,6 +6,7 @@ import {
   CheckCircleIcon, CpuChipIcon,
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
+import { toText } from '../../lib/aiText'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Platform = 'ghl' | 'manychat' | 'whatsapp' | 'voiceflow' | 'botpress' | 'chatgpt' | 'elevenlabs' | 'otro'
@@ -96,7 +97,7 @@ function FieldRow({
           interactionType: interaction ?? '',
         },
       })
-      if (data?.suggestion) onChange(data.suggestion)
+      if (data?.suggestion) onChange(toText(data.suggestion))
     } catch { /* silently ignore */ }
     finally { setBusy(false) }
   }
@@ -191,7 +192,7 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
         agentData,
       })
       if (!data.success) throw new Error(data.error || 'Error generando prompt')
-      setResult(data.content)
+      setResult(toText(data.content))
     } catch (err: any) {
       setError(err.message || 'Error al generar. Intenta de nuevo.')
     } finally {
