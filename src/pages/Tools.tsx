@@ -15,6 +15,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { toText, toList } from '../lib/aiText'
 import { api } from '../services/api'
 import { supabase } from '../services/supabase'
+import { SET_HERRAMIENTAS } from '../lib/herramientas'
 import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
 import { saveToHistory } from '../services/toolHistory'
@@ -741,7 +742,7 @@ export default function Tools() {
         if (cancelado || error || !data) return
         const hechas = (data as { tool_id: string }[])
           .map(fila => fila.tool_id)
-          .filter(t => !t.endsWith('__history') && TOOLS.some(x => x.id === t))
+          .filter(t => !t.endsWith('__history') && SET_HERRAMIENTAS.has(t))
         setGuardadas(new Set(hechas))
       })
     return () => { cancelado = true }

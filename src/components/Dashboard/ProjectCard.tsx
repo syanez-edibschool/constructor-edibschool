@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '../../services/supabase'
+import { contarCompletadas, TOTAL_HERRAMIENTAS } from '../../lib/herramientas'
 import { ArrowRightIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline'
 
 interface ProjectCardData {
@@ -44,17 +45,23 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
   const [sparks, setSparks] = useState<Spark[]>([])
   const [nicho, setNicho] = useState<NichoData | null>(null)
   const [avatar, setAvatar] = useState<AvatarData | null>(null)
+  // null = aun cargando. El progreso real sale de las herramientas guardadas.
+  const [hechas, setHechas] = useState<number | null>(null)
 
   useEffect(() => {
     let cancelled = false
     async function load() {
-      const [nichoRes, avatarRes] = await Promise.all([
+      const [nichoRes, avatarRes, toolsRes] = await Promise.all([
         supabase.from('project_nicho').select('sector,micronicho,tam').eq('project_id', project.id).maybeSingle(),
         supabase.from('project_avatar').select('name,age,narrative').eq('project_id', project.id).maybeSingle(),
+        supabase.from('project_tools').select('tool_id').eq('project_id', project.id),
       ])
       if (!cancelled) {
         if (nichoRes.data) setNicho(nichoRes.data as NichoData)
         if (avatarRes.data) setAvatar(avatarRes.data as AvatarData)
+        if (toolsRes.data) {
+          setHechas(contarCompletadas((toolsRes.data as { tool_id: string }[]).map(f => f.tool_id)))
+        }
       }
     }
     load()
@@ -90,7 +97,9 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
     setTimeout(() => setSparks(s => s.filter(sp => !ns.find(n => n.id === sp.id))), 900)
   }, [])
 
-  const pct = project.progress || 0
+  // `project.progress` se queda clavado en 60%: nadie sube el puntero mas alla del
+  // paso 3 (solo lo escriben crear, preguntas y ReviewNiche). Se calcula el real.
+  const pct = hechas === null ? 0 : Math.round((hechas / TOTAL_HERRAMIENTAS) * 100)
   const isComplete = project.status === 'completed'
   const cardBg = isDark ? (hovered ? 'rgba(131,87,246,.07)' : 'rgba(255,255,255,.04)') : (hovered ? 'rgba(131,87,246,.05)' : 'var(--surface)')
   const cardBorder = isDark ? (hovered ? 'rgba(131,87,246,.3)' : 'rgba(255,255,255,.07)') : (hovered ? 'rgba(131,87,246,.4)' : 'var(--border)')
@@ -188,7 +197,9 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
         {/* Progress */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-            <span style={{ fontSize: 10, color: 'var(--text-3)' }}>Progreso · Paso {project.current_step || 1}/8</span>
+            <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
+              {hechas === null ? 'Progreso' : `Progreso · ${hechas}/${TOTAL_HERRAMIENTAS} herramientas`}
+            </span>
             <span style={{ fontSize: 10, fontWeight: 700, color: col }}>{pct}%</span>
           </div>
           <div style={{ height: 5, borderRadius: 999, overflow: 'hidden', background: 'var(--card-bg)' }}>
