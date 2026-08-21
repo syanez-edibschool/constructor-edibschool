@@ -14,6 +14,7 @@ import {
 import { useIsMobile } from '../hooks/useIsMobile'
 import { toText, toList } from '../lib/aiText'
 import { api } from '../services/api'
+import { supabase } from '../services/supabase'
 import { getProject } from '../services/projectsService'
 import { exportToPDF, exportToWord } from '../services/exportContent'
 import { saveToHistory } from '../services/toolHistory'
@@ -707,6 +708,11 @@ export default function Tools() {
   const isMobile = useIsMobile()
   const [projectName, setProjectName] = useState<string | undefined>()
   const [showRegenModal, setShowRegenModal] = useState(false)
+  // Herramientas YA guardadas en la base, de sesiones anteriores. Se usa SOLO para
+  // las marcas del menú, el contador y el %. El contenido se sigue cargando al
+  // pulsar cada herramienta: sembrar `states` aquí cortocircuitaría checkAndLoad
+  // (que se salta la carga si ya hay estado) y las abriría VACÍAS.
+  const [guardadas, setGuardadas] = useState<Set<string>>(new Set())
 
   const tool  = TOOLS.find(t => t.id === activeTool)
   const state = activeTool ? states[activeTool] : undefined
@@ -720,6 +726,25 @@ export default function Tools() {
         setProjectName(p.name)
       })
       .catch(() => {})
+  }, [id])
+
+  // Una sola consulta al entrar: qué herramientas tenía ya hechas este proyecto.
+  // Las filas `*__history` son el historial de versiones, no herramientas hechas.
+  useEffect(() => {
+    if (!id) return
+    let cancelado = false
+    supabase
+      .from('project_tools')
+      .select('tool_id')
+      .eq('project_id', id)
+      .then(({ data, error }) => {
+        if (cancelado || error || !data) return
+        const hechas = (data as { tool_id: string }[])
+          .map(fila => fila.tool_id)
+          .filter(t => !t.endsWith('__history') && TOOLS.some(x => x.id === t))
+        setGuardadas(new Set(hechas))
+      })
+    return () => { cancelado = true }
   }, [id])
 
   const checkAndLoad = async (toolId: string, forceQuestions = false) => {
@@ -790,17 +815,25 @@ export default function Tools() {
     setStates(p => ({ ...p, [activeTool]: { phase: 'questions', answers: p[activeTool]?.answers || {}, result: null } }))
   }
 
+  // Completadas = lo GUARDADO en la base (sesiones anteriores) MÁS lo hecho ahora.
+  // Antes solo se contaba la sesión actual: al volver, el alumno veía 0% y el menú
+  // sin marcas aunque tuviera todo su trabajo guardado.
+  const completadas = new Set(guardadas)
+  for (const [toolId, s] of Object.entries(states)) {
+    if (s.phase === 'done' && TOOLS.some(t => t.id === toolId)) completadas.add(toolId)
+  }
+
   // Build tool states for sidebar
   const sidebarToolStates: Record<string, 'done' | 'active' | 'locked' | 'idle'> = {}
-  for (const [toolId, s] of Object.entries(states)) {
-    sidebarToolStates[toolId] = s.phase === 'done' ? 'done' : s.phase === 'generating' ? 'active' : 'idle'
+  for (const t of TOOLS) {
+    sidebarToolStates[t.id] = states[t.id]?.phase === 'generating'
+      ? 'active'
+      : completadas.has(t.id) ? 'done' : 'idle'
   }
-  if (activeTool) sidebarToolStates[activeTool] = state?.phase === 'done' ? 'done' : state?.phase === 'generating' ? 'active' : 'active'
+  if (activeTool) sidebarToolStates[activeTool] = completadas.has(activeTool) ? 'done' : 'active'
 
-  const doneCount = Object.values(states).filter(s => s.phase === 'done').length
-  // Progreso = herramientas completadas en esta sesión / total. El header y el sidebar
-  // usan el MISMO número, así siempre coinciden y reflejan lo realmente hecho (empieza
-  // en 0 en un proyecto nuevo, no hereda el % del onboarding).
+  const doneCount = completadas.size
+  // El header y el sidebar usan el MISMO número, así siempre coinciden.
   const realProgress = TOOLS.length ? Math.round((doneCount / TOOLS.length) * 100) : 0
 
   const breadcrumb = [
