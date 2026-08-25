@@ -1106,6 +1106,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const s = (v: unknown, limit = 800) => JSON.stringify(v ?? {}).slice(0, limit)
 
       const ctxLines: string[] = []
+      // Primero y fuera del recorte: el nicho en palabras del alumno MANDA sobre
+      // las opciones de lista cerrada del onboarding.
+      const nichoLibre = String((answers as Record<string, unknown>)?.nicho_libre ?? '').trim()
+      if (nichoLibre) {
+        ctxLines.push(`NICHO EXACTO (en palabras del alumno, MANDA sobre lo demás): "${nichoLibre}"`)
+      }
       if (!isEmpty(answers)) ctxLines.push(`Negocio: ${s(answers, 600)}`)
       if (!isEmpty(nicho)) ctxLines.push(`Nicho: ${s(nicho, 500)}`)
       if (!isEmpty(avatar)) ctxLines.push(`Avatar: ${s(avatar, 500)}`)

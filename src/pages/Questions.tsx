@@ -9,13 +9,19 @@ import { saveAnswers } from '../services/projectsService'
 interface Question {
   id: string
   text: string
-  type: 'select' | 'radio'
+  type: 'select' | 'radio' | 'textarea'
   options: string[]
   section: string
+  placeholder?: string
 }
 
 const QUESTIONS: Question[] = [
   // Sección 1: Nicho Base
+  // Campo ABIERTO y primero a propósito: las listas cerradas no pueden expresar un
+  // nicho concreto ("clínicas dentales de 1 a 10 trabajadores"), y quien marca
+  // "Otro" le manda a la IA literalmente la palabra "Otro". Lo que se escriba aquí
+  // MANDA sobre las opciones marcadas en todas las generaciones.
+  { id: 'nicho_libre', section: 'Nicho Base', text: '¿A quién ayudas exactamente? Escríbelo con tus palabras', type: 'textarea', options: [], placeholder: 'Ej: clínicas dentales de 1 a 10 trabajadores en España que pierden pacientes porque no responden a tiempo' },
   { id: 'industry', section: 'Nicho Base', text: '¿A qué industria sirve tu agencia?', type: 'select', options: ['Fitness & Wellness', 'Estética & Belleza', 'Inmobiliaria', 'SaaS / Tecnología', 'E-commerce', 'Educación', 'Legal', 'Salud & Clínicas', 'Consultoría', 'Otro'] },
   { id: 'model', section: 'Nicho Base', text: '¿Modelo de negocio?', type: 'radio', options: ['B2B (empresas)', 'B2C (consumidores)', 'Ambos'] },
   { id: 'size', section: 'Nicho Base', text: '¿Tamaño de tu cliente ideal?', type: 'select', options: ['Solopreneur (1 persona)', '2-10 empleados', '11-50 empleados', '51-200 empleados', '200+ empleados'] },
@@ -164,7 +170,15 @@ export default function Questions() {
                     {q.text}
                   </p>
 
-                  {q.type === 'radio' ? (
+                  {q.type === 'textarea' ? (
+                    <textarea
+                      value={answers[q.id] || ''}
+                      onChange={(e) => handleAnswer(q.id, e.target.value)}
+                      placeholder={q.placeholder}
+                      rows={3}
+                      className="input-3d w-full rounded-xl px-4 py-3 text-sm resize-y"
+                    />
+                  ) : q.type === 'radio' ? (
                     <div className="flex flex-col gap-3">
                       {q.options.map((opt) => (
                         <label key={opt} className="flex items-center gap-3 cursor-pointer group">

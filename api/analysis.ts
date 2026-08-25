@@ -64,7 +64,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single()
 
     const answers = questionsRow?.answers_json || {}
-    const ctx = JSON.stringify(answers)
+    // El nicho escrito por el alumno MANDA sobre las opciones de lista cerrada.
+    // Va delante y fuera del JSON para que no lo tape el resto del contexto.
+    const nichoLibre = String(
+      (answers as Record<string, unknown>)?.nicho_libre ?? '',
+    ).trim()
+    const reglaNicho = nichoLibre
+      ? `NICHO EXACTO, EN PALABRAS DEL ALUMNO: "${nichoLibre}"
+` +
+        `ESTA FRASE MANDA: si contradice cualquier opción marcada abajo, gana la frase. ` +
+        `Todo lo que generes debe ser específico de ESE nicho, nunca de la industria genérica.
+
+`
+      : ''
+    const ctx = reglaNicho + JSON.stringify(answers)
 
     // ── GENERATE nicho + avatar + competencia ─────────────────────────────────
     if (operation === 'generate') {

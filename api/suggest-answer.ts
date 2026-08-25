@@ -45,8 +45,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const answers = questionsRow.data?.answers_json || {}
     const cloneWinner = (otherToolsRes.data || []).find(t => t.tool_id === 'clone-winner')?.result_json
 
+    // Fuera del recorte de 1500 caracteres a propósito: es el dato que MANDA.
+    const nichoLibre = String((answers as Record<string, unknown>)?.nicho_libre ?? '').trim()
+
     const ctx = `
 CONTEXTO DEL PROYECTO:
+${nichoLibre ? `- NICHO EXACTO (en palabras del alumno, MANDA sobre lo demás): "${nichoLibre}"` : ''}
 - Perfil del negocio: ${JSON.stringify(answers).slice(0, 1500)}
 - Nicho: ${JSON.stringify(nichoRow.data?.data_json || {}).slice(0, 800)}
 - Avatar ideal: ${JSON.stringify(avatarRow.data?.data_json || {}).slice(0, 800)}
