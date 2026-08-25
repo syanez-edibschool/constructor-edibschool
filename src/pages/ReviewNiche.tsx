@@ -6,6 +6,7 @@ import Tab3D from '../components/ui/Tab3D'
 import Button3D from '../components/ui/Button3D'
 import LoadingSpinner3D from '../components/ui/LoadingSpinner3D'
 import { api } from '../services/api'
+import { supabase } from '../services/supabase'
 import { updateProject } from '../services/projectsService'
 import { toText } from '../lib/aiText'
 import { UserIcon } from '@heroicons/react/24/outline'
@@ -106,9 +107,49 @@ export default function ReviewNiche() {
   const [editText, setEditText] = useState({ nicho: '', avatar: '', competencia: '' })
   const [updating, setUpdating] = useState({ nicho: false, avatar: false, competencia: false })
 
+  // Carga lo YA generado antes de decidir. Antes esto llamaba a generate() sin
+  // mirar nada, así que CADA visita regeneraba con IA: pisaba el análisis ya
+  // revisado (y las correcciones hechas a mano) y costaba una llamada por visita.
+  // Ahora solo genera si el proyecto no tiene nada guardado.
   useEffect(() => {
-    generate()
-  }, [])
+    let cancelado = false
+    const leerJson = (v: unknown): unknown => {
+      if (!v) return null
+      if (typeof v !== 'string') return v
+      try {
+        return JSON.parse(v)
+      } catch {
+        return null
+      }
+    }
+
+    const cargarOGenerar = async () => {
+      if (!id) return
+      const [n, a, c] = await Promise.all([
+        supabase.from('project_nicho').select('data_json').eq('project_id', id).maybeSingle(),
+        supabase.from('project_avatar').select('data_json').eq('project_id', id).maybeSingle(),
+        supabase.from('project_competencia').select('data_json').eq('project_id', id).maybeSingle(),
+      ])
+      if (cancelado) return
+      const nichoGuardado = leerJson(n.data?.data_json)
+      if (!nichoGuardado) {
+        generate()
+        return
+      }
+      setNicho(normNicho(nichoGuardado))
+      setAvatar(normAvatar(leerJson(a.data?.data_json)))
+      setCompetencia(normCompetencia(leerJson(c.data?.data_json)))
+      setLoading(false)
+    }
+
+    cargarOGenerar().catch(() => {
+      if (!cancelado) generate()
+    })
+    return () => {
+      cancelado = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   const generate = async () => {
     setLoading(true)
@@ -219,6 +260,15 @@ export default function ReviewNiche() {
             <span className="text-xs text-white/40 ml-2">
               {Object.values(approvals).filter(Boolean).length}/3 aprobados
             </span>
+            <button
+              onClick={() => {
+                if (confirm('Se generará un análisis nuevo y se reemplazará el actual. ¿Seguimos?')) generate()
+              }}
+              className="text-xs text-white/40 hover:text-white ml-3 transition-colors"
+              title="Vuelve a generar nicho, avatar y competencia desde tus respuestas"
+            >
+              ↻ Volver a generar
+            </button>
           </div>
         </div>
       </header>
