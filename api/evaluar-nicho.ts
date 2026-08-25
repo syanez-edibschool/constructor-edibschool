@@ -58,15 +58,26 @@ function parseJSON(texto: string): Record<string, unknown> {
 
 const texto = (v: unknown): string => (typeof v === 'string' ? v : v == null ? '' : String(v))
 
+/** Recorta sin partir palabras: cortar a pelo dejaba frases a medias. */
+function recortar(s: string, max: number): string {
+  if (s.length <= max) return s
+  const cortado = s.slice(0, max)
+  const espacio = cortado.lastIndexOf(' ')
+  return `${(espacio > max * 0.6 ? cortado.slice(0, espacio) : cortado).trimEnd()}…`
+}
+
 function normalizar(raw: Record<string, unknown>): Veredicto {
   const s = texto(raw.semaforo).toLowerCase()
   const semaforo: Semaforo = s === 'verde' ? 'verde' : s === 'rojo' ? 'rojo' : 'ambar'
-  const motivos = (Array.isArray(raw.motivos) ? raw.motivos : []).map(texto).filter(Boolean).slice(0, 4)
+  const motivos = (Array.isArray(raw.motivos) ? raw.motivos : [])
+    .map((m) => recortar(texto(m), 220))
+    .filter(Boolean)
+    .slice(0, 4)
   return {
     semaforo,
-    titular: texto(raw.titular).slice(0, 160),
+    titular: recortar(texto(raw.titular), 160),
     motivos,
-    recomendacion: texto(raw.recomendacion).slice(0, 300),
+    recomendacion: recortar(texto(raw.recomendacion), 460),
   }
 }
 
@@ -128,8 +139,8 @@ Devuelve exactamente este JSON:
 {
   "semaforo": "verde | ambar | rojo",
   "titular": "veredicto en una frase de menos de 15 palabras",
-  "motivos": ["2 a 4 frases cortas, una por criterio que destaque, mencionando cifras cuando puedas"],
-  "recomendacion": "1 o 2 frases: cómo afinar el nicho para que funcione mejor"
+  "motivos": ["2 a 4 motivos, MÁXIMO 25 PALABRAS CADA UNO, uno por criterio, con cifras cuando puedas"],
+  "recomendacion": "1 o 2 frases, máximo 40 palabras: cómo afinar el nicho para que funcione mejor"
 }
 
 Criterio del semáforo: verde = cumple los cuatro. ambar = cumple pero con un pero
