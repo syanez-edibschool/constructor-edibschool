@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import Button3D from '../components/ui/Button3D'
 import ProgressBar3D from '../components/ui/ProgressBar3D'
-import { saveAnswers } from '../services/projectsService'
+import { saveAnswers, getAnswers } from '../services/projectsService'
 
 interface Question {
   id: string
@@ -66,6 +66,26 @@ export default function Questions() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [currentSection, setCurrentSection] = useState(0)
   const [saving, setSaving] = useState(false)
+
+  // Carga lo YA contestado. Sin esto la pantalla salía vacía al 0% aunque hubiera
+  // respuestas guardadas, el alumno la rellenaba otra vez y saveAnswers REEMPLAZA
+  // el bloque entero: ahí se perdía lo anterior. `getAnswers` ya existía sin usar.
+  useEffect(() => {
+    if (!id) return
+    let cancelado = false
+    getAnswers(id)
+      .then((guardadas) => {
+        if (!cancelado && guardadas && Object.keys(guardadas).length > 0) {
+          setAnswers(guardadas)
+        }
+      })
+      .catch(() => {
+        // Proyecto nuevo sin respuestas: se empieza en blanco, que es lo correcto.
+      })
+    return () => {
+      cancelado = true
+    }
+  }, [id])
 
   const sectionQuestions = QUESTIONS.filter((q) => q.section === SECTIONS[currentSection])
   const isLastSection = currentSection === SECTIONS.length - 1
