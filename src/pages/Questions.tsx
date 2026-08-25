@@ -5,6 +5,8 @@ import toast from 'react-hot-toast'
 import Button3D from '../components/ui/Button3D'
 import ProgressBar3D from '../components/ui/ProgressBar3D'
 import { saveAnswers, getAnswers } from '../services/projectsService'
+import { api } from '../services/api'
+import SemaforoNicho, { type Veredicto } from '../components/ui/SemaforoNicho'
 
 interface Question {
   id: string
@@ -66,6 +68,9 @@ export default function Questions() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [currentSection, setCurrentSection] = useState(0)
   const [saving, setSaving] = useState(false)
+  // Semáforo del nicho: se evalúa al SALIR del campo, no en cada tecla.
+  const [veredicto, setVeredicto] = useState<Veredicto | null>(null)
+  const [evaluando, setEvaluando] = useState(false)
 
   // Carga lo YA contestado. Sin esto la pantalla salía vacía al 0% aunque hubiera
   // respuestas guardadas, el alumno la rellenaba otra vez y saveAnswers REEMPLAZA
@@ -86,6 +91,21 @@ export default function Questions() {
       cancelado = true
     }
   }, [id])
+
+  // Nunca bloquea: si la evaluación falla, se sigue como si no existiera.
+  const evaluarNicho = async (frase: string) => {
+    const limpia = frase.trim()
+    if (limpia.length < 12) { setVeredicto(null); return }
+    setEvaluando(true)
+    try {
+      const { data } = await api.post('/evaluar-nicho', { nicho: limpia })
+      setVeredicto(data?.veredicto ?? null)
+    } catch {
+      setVeredicto(null)
+    } finally {
+      setEvaluando(false)
+    }
+  }
 
   const sectionQuestions = QUESTIONS.filter((q) => q.section === SECTIONS[currentSection])
   const isLastSection = currentSection === SECTIONS.length - 1
@@ -128,7 +148,12 @@ export default function Questions() {
     }
     setSaving(true)
     try {
-      await saveAnswers(id!, answers)
+      // El veredicto viaja con las respuestas para poder recordárselo en la
+      // pantalla de revisión sin volver a gastar una llamada de IA.
+      const conVeredicto = veredicto
+        ? { ...answers, nicho_veredicto: JSON.stringify(veredicto) }
+        : answers
+      await saveAnswers(id!, conVeredicto)
       navigate(`/proyecto/${id}/review-niche`)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
@@ -191,13 +216,19 @@ export default function Questions() {
                   </p>
 
                   {q.type === 'textarea' ? (
-                    <textarea
-                      value={answers[q.id] || ''}
-                      onChange={(e) => handleAnswer(q.id, e.target.value)}
-                      placeholder={q.placeholder}
-                      rows={3}
-                      className="input-3d w-full rounded-xl px-4 py-3 text-sm resize-y"
-                    />
+                    <>
+                      <textarea
+                        value={answers[q.id] || ''}
+                        onChange={(e) => handleAnswer(q.id, e.target.value)}
+                        onBlur={(e) => { if (q.id === 'nicho_libre') evaluarNicho(e.target.value) }}
+                        placeholder={q.placeholder}
+                        rows={3}
+                        className="input-3d w-full rounded-xl px-4 py-3 text-sm resize-y"
+                      />
+                      {q.id === 'nicho_libre' && (
+                        <SemaforoNicho veredicto={veredicto} evaluando={evaluando} />
+                      )}
+                    </>
                   ) : q.type === 'radio' ? (
                     <div className="flex flex-col gap-3">
                       {q.options.map((opt) => (

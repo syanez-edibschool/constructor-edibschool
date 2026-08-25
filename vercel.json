@@ -8,6 +8,7 @@
     "api/coach/message.ts":    { "maxDuration": 120 },
     "api/coach/voice.ts":      { "maxDuration": 120 },
     "api/suggest-answer.ts":   { "maxDuration": 120 },
+    "api/evaluar-nicho.ts":    { "maxDuration": 60 },
     "api/estrategia90d.ts":    { "maxDuration": 300 },
     "api/prompt-generator.ts": { "maxDuration": 300 }
   },

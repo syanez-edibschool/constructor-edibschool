@@ -7,6 +7,7 @@ import Button3D from '../components/ui/Button3D'
 import LoadingSpinner3D from '../components/ui/LoadingSpinner3D'
 import { api } from '../services/api'
 import { supabase } from '../services/supabase'
+import SemaforoNicho, { type Veredicto } from '../components/ui/SemaforoNicho'
 import { updateProject } from '../services/projectsService'
 import { toText } from '../lib/aiText'
 import { UserIcon } from '@heroicons/react/24/outline'
@@ -102,6 +103,8 @@ export default function ReviewNiche() {
   const [nicho, setNicho] = useState<NichoData | null>(null)
   const [avatar, setAvatar] = useState<AvatarData | null>(null)
   const [competencia, setCompetencia] = useState<CompetenciaData | null>(null)
+  // Veredicto que ya se calculó en el cuestionario: se recuerda aquí, no se recalcula.
+  const [veredicto, setVeredicto] = useState<Veredicto | null>(null)
   const [approvals, setApprovals] = useState({ nicho: false, avatar: false, competencia: false })
   const [editMode, setEditMode] = useState({ nicho: false, avatar: false, competencia: false })
   const [editText, setEditText] = useState({ nicho: '', avatar: '', competencia: '' })
@@ -125,12 +128,17 @@ export default function ReviewNiche() {
 
     const cargarOGenerar = async () => {
       if (!id) return
-      const [n, a, c] = await Promise.all([
+      const [n, a, c, q] = await Promise.all([
         supabase.from('project_nicho').select('data_json').eq('project_id', id).maybeSingle(),
         supabase.from('project_avatar').select('data_json').eq('project_id', id).maybeSingle(),
         supabase.from('project_competencia').select('data_json').eq('project_id', id).maybeSingle(),
+        supabase.from('project_questions').select('answers_json').eq('project_id', id).maybeSingle(),
       ])
       if (cancelado) return
+
+      const respuestas = q.data?.answers_json as Record<string, unknown> | null
+      const guardadoVeredicto = leerJson(respuestas?.nicho_veredicto)
+      if (guardadoVeredicto) setVeredicto(guardadoVeredicto as Veredicto)
       const nichoGuardado = leerJson(n.data?.data_json)
       if (!nichoGuardado) {
         generate()
@@ -279,6 +287,8 @@ export default function ReviewNiche() {
           <p className="text-white/50 mb-8">Revisa y aprueba cada sección antes de continuar.</p>
 
           <Tab3D tabs={TABS} active={activeTab} onChange={(id) => setActiveTab(id as TabId)} />
+
+          {activeTab === 'nicho' && <SemaforoNicho veredicto={veredicto} compacto />}
 
           <div className="mt-8">
             {/* NICHO TAB */}

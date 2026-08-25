@@ -77,7 +77,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 `
       : ''
-    const ctx = reglaNicho + JSON.stringify(answers)
+    // El veredicto del semáforo se guarda junto a las respuestas, pero NO se le
+    // manda al modelo: pedirle que analice un nicho mientras lee "está saturado"
+    // le haría contradecirse en el mismo análisis que se le pide justificar.
+    const { nicho_veredicto: _veredictoFuera, ...respuestasIA } =
+      (answers ?? {}) as Record<string, unknown>
+    const ctx = reglaNicho + JSON.stringify(respuestasIA)
 
     // ── GENERATE nicho + avatar + competencia ─────────────────────────────────
     if (operation === 'generate') {
