@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 
 function getDb(token: string) {
@@ -31,6 +31,110 @@ async function generate(anthropic: Anthropic, prompt: string, opts?: { model?: s
     messages: [{ role: 'user', content: prompt }],
   })
   return res.content[0].type === 'text' ? res.content[0].text : ''
+}
+
+/**
+ * El avatar y la competencia se generaban SOLO desde las respuestas, sin ver el
+ * nicho. Por eso, al corregir el nicho, quedaban apuntando al anterior. Estos
+ * prompts aceptan el nicho para poder alinearlos. Sin nicho el texto es el mismo
+ * de siempre, así que la generación inicial no cambia.
+ */
+const bloqueNicho = (nicho?: Record<string, unknown>): string =>
+  nicho
+    ? `
+NICHO YA DEFINIDO (manda: todo lo que generes debe ser de ESTE nicho):
+${JSON.stringify(nicho)}
+`
+    : ''
+
+const promptAvatar = (ctx: string, nicho?: Record<string, unknown>) => `
+Basado en estas respuestas del emprendedor:
+${ctx}
+${bloqueNicho(nicho)}
+Crea un avatar de cliente ideal VÍVIDO y detallado en JSON:
+{
+  "name": "nombre ficticio realista",
+  "age": "rango de edad (ej: 38-45 años)",
+  "position": "cargo/posición exacta",
+  "experience": "años de experiencia en el sector",
+  "income": "rango de ingresos mensuales",
+  "goals": ["objetivo 1", "objetivo 2", "objetivo 3"],
+  "pains": ["dolor 1", "dolor 2", "dolor 3"],
+  "narrative": "Historia de 3-4 oraciones en primera persona que describe UN DÍA en su vida, sus frustraciones, y por qué necesita ayuda de IA"
+}`
+
+const promptCompetencia = (ctx: string, nicho?: Record<string, unknown>) => `
+Basado en estas respuestas del emprendedor:
+${ctx}
+${bloqueNicho(nicho)}
+Genera un análisis de competencia en JSON:
+{
+  "competitors": [
+    {
+      "name": "nombre realista de competidor tipo",
+      "price": "rango de precio que cobran",
+      "strengths": ["fortaleza 1", "fortaleza 2"],
+      "weaknesses": ["debilidad 1", "debilidad 2"],
+      "gap": "oportunidad específica contra este competidor (1 oración)"
+    }
+  ],
+  "positioning": "Posicionamiento único recomendado de 1-2 oraciones para diferenciarse",
+  "opportunity": "La mayor oportunidad de mercado que existe ahora mismo (2 oraciones)"
+}
+Incluye exactamente 3 competidores.`
+
+/** Filas de las 3 tablas, con la misma forma que ya se guardaba. */
+const filasDeLosTres = (
+  db: SupabaseClient,
+  projectId: string,
+  nicho: Record<string, unknown>,
+  avatar: Record<string, unknown>,
+  competencia: Record<string, unknown>,
+) => [
+  db.from('project_nicho').upsert({
+    project_id: projectId,
+    sector: nicho.sector,
+    micronicho: nicho.micronicho,
+    tam: nicho.tam,
+    ticket: nicho.ticket,
+    trend: nicho.trend,
+    momento: nicho.momento,
+    data_json: JSON.stringify(nicho),
+  }, { onConflict: 'project_id' }),
+  db.from('project_avatar').upsert({
+    project_id: projectId,
+    name: avatar.name,
+    age: avatar.age,
+    data_json: JSON.stringify(avatar),
+  }, { onConflict: 'project_id' }),
+  db.from('project_competencia').upsert({
+    project_id: projectId,
+    data_json: JSON.stringify(competencia),
+  }, { onConflict: 'project_id' }),
+]
+
+/** Nicho ya guardado, para que las correcciones de avatar/competencia lo respeten. */
+async function nichoGuardado(db: SupabaseClient, projectId: string): Promise<Record<string, unknown> | undefined> {
+  const { data } = await db.from('project_nicho').select('data_json').eq('project_id', projectId).maybeSingle()
+  const bruto = data?.data_json
+  if (!bruto) return undefined
+  try {
+    return (typeof bruto === 'string' ? JSON.parse(bruto) : bruto) as Record<string, unknown>
+  } catch {
+    return undefined
+  }
+}
+
+const TABLAS = ['project_nicho', 'project_avatar', 'project_competencia']
+
+function erroresDeGuardado(results: PromiseSettledResult<{ error: unknown }>[]): string[] {
+  return results
+    .map((r, i) => {
+      if (r.status === 'rejected') return `Error al guardar ${TABLAS[i]}: ${(r.reason as Error)?.message ?? r.reason}`
+      if (r.value?.error) return `Error Supabase en ${TABLAS[i]}: ${JSON.stringify(r.value.error)}`
+      return null
+    })
+    .filter((x): x is string => Boolean(x))
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -102,82 +206,16 @@ Genera un análisis de nicho detallado en formato JSON:
   "razon": "Explicación de 2-3 oraciones de por qué este nicho es ideal ahora mismo para una agencia de IA"
 }`),
 
-        generate(anthropic, `
-Basado en estas respuestas del emprendedor:
-${ctx}
-
-Crea un avatar de cliente ideal VÍVIDO y detallado en JSON:
-{
-  "name": "nombre ficticio realista",
-  "age": "rango de edad (ej: 38-45 años)",
-  "position": "cargo/posición exacta",
-  "experience": "años de experiencia en el sector",
-  "income": "rango de ingresos mensuales",
-  "goals": ["objetivo 1", "objetivo 2", "objetivo 3"],
-  "pains": ["dolor 1", "dolor 2", "dolor 3"],
-  "narrative": "Historia de 3-4 oraciones en primera persona que describe UN DÍA en su vida, sus frustraciones, y por qué necesita ayuda de IA"
-}`),
-
-        generate(anthropic, `
-Basado en estas respuestas del emprendedor:
-${ctx}
-
-Genera un análisis de competencia en JSON:
-{
-  "competitors": [
-    {
-      "name": "nombre realista de competidor tipo",
-      "price": "rango de precio que cobran",
-      "strengths": ["fortaleza 1", "fortaleza 2"],
-      "weaknesses": ["debilidad 1", "debilidad 2"],
-      "gap": "oportunidad específica contra este competidor (1 oración)"
-    }
-  ],
-  "positioning": "Posicionamiento único recomendado de 1-2 oraciones para diferenciarse",
-  "opportunity": "La mayor oportunidad de mercado que existe ahora mismo (2 oraciones)"
-}
-Incluye exactamente 3 competidores.`),
+        generate(anthropic, promptAvatar(ctx)),
+        generate(anthropic, promptCompetencia(ctx)),
       ])
 
       const nicho = parseJSON(nichoRaw)
       const avatar = parseJSON(avatarRaw)
       const competencia = parseJSON(compRaw)
 
-      const results = await Promise.allSettled([
-        db.from('project_nicho').upsert({
-          project_id: projectId,
-          sector: nicho.sector,
-          micronicho: nicho.micronicho,
-          tam: nicho.tam,
-          ticket: nicho.ticket,
-          trend: nicho.trend,
-          momento: nicho.momento,
-          data_json: JSON.stringify(nicho),
-        }, { onConflict: 'project_id' }),
-        db.from('project_avatar').upsert({
-          project_id: projectId,
-          name: avatar.name,
-          age: avatar.age,
-          data_json: JSON.stringify(avatar),
-        }, { onConflict: 'project_id' }),
-        db.from('project_competencia').upsert({
-          project_id: projectId,
-          data_json: JSON.stringify(competencia),
-        }, { onConflict: 'project_id' }),
-      ])
-
-      // Verificar si hubo errores en las inserciones
-      const errors = results.map((r, i) => {
-        if (r.status === 'rejected') {
-          const tables = ['project_nicho', 'project_avatar', 'project_competencia']
-          return `Error al guardar ${tables[i]}: ${r.reason?.message || r.reason}`
-        }
-        if (r.status === 'fulfilled' && r.value.error) {
-          const tables = ['project_nicho', 'project_avatar', 'project_competencia']
-          return `Error Supabase en ${tables[i]}: ${JSON.stringify(r.value.error)}`
-        }
-        return null
-      }).filter(Boolean)
+      const results = await Promise.allSettled(filasDeLosTres(db, projectId, nicho, avatar, competencia))
+      const errors = erroresDeGuardado(results)
 
       if (errors.length > 0) {
         console.error('[analysis/generate] Save errors:', errors)
@@ -193,29 +231,34 @@ Incluye exactamente 3 competidores.`),
       return res.status(200).json({ nicho, avatar, competencia })
     }
 
-    // ── UPDATE nicho ──────────────────────────────────────────────────────────
+    // ── UPDATE nicho: rehace TAMBIÉN avatar y competencia ─────────────────────
+    // Antes solo se regeneraba el nicho, así que tras corregirlo el avatar y los
+    // competidores seguían apuntando al nicho ANTERIOR. Y como estrategia,
+    // captación y calendario leen los tres bloques, el alumno seguía trabajando
+    // con un contexto incoherente: es el "queda reducido y no me sirve".
     if (operation === 'update-nicho') {
       const { feedback } = req.body
-      const raw = await generate(anthropic, `
+      const nicho = parseJSON(await generate(anthropic, `
 El usuario quiere modificar el análisis de nicho. Feedback: "${feedback}"
+ESE FEEDBACK MANDA: si contradice las respuestas de abajo, gana el feedback.
 Respuestas originales: ${ctx}
-Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticket, trend, momento, razon.`)
-      const nicho = parseJSON(raw)
-      const result = await db.from('project_nicho').upsert({
-        project_id: projectId,
-        sector: nicho.sector,
-        micronicho: nicho.micronicho,
-        tam: nicho.tam,
-        ticket: nicho.ticket,
-        trend: nicho.trend,
-        momento: nicho.momento,
-        data_json: JSON.stringify(nicho),
-      }, { onConflict: 'project_id' })
-      if (result.error) {
-        console.error('[analysis/update-nicho] Save error:', result.error)
-        return res.status(500).json({ error: 'Error al guardar nicho', details: result.error })
+Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticket, trend, momento, razon.`))
+
+      // Con el nicho nuevo en mano se rehacen los otros dos ALINEADOS a él.
+      const [avatarRaw, compRaw] = await Promise.all([
+        generate(anthropic, promptAvatar(ctx, nicho)),
+        generate(anthropic, promptCompetencia(ctx, nicho)),
+      ])
+      const avatar = parseJSON(avatarRaw)
+      const competencia = parseJSON(compRaw)
+
+      const results = await Promise.allSettled(filasDeLosTres(db, projectId, nicho, avatar, competencia))
+      const errores = erroresDeGuardado(results)
+      if (errores.length > 0) {
+        console.error('[analysis/update-nicho] Save errors:', errores)
+        return res.status(500).json({ error: 'Error al guardar el nicho corregido', details: errores })
       }
-      return res.status(200).json({ nicho })
+      return res.status(200).json({ nicho, avatar, competencia })
     }
 
     // ── UPDATE avatar ─────────────────────────────────────────────────────────
@@ -223,7 +266,9 @@ Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticke
       const { feedback } = req.body
       const raw = await generate(anthropic, `
 El usuario quiere modificar el avatar. Feedback: "${feedback}"
+ESE FEEDBACK MANDA sobre las respuestas de abajo.
 Respuestas originales: ${ctx}
+${bloqueNicho(await nichoGuardado(db, projectId))}
 Genera un nuevo avatar JSON con los mismos campos: name, age, position, experience, income, goals, pains, narrative.`)
       const avatar = parseJSON(raw)
       const result = await db.from('project_avatar').upsert({
@@ -244,7 +289,9 @@ Genera un nuevo avatar JSON con los mismos campos: name, age, position, experien
       const { feedback } = req.body
       const raw = await generate(anthropic, `
 El usuario quiere modificar el análisis de competencia. Feedback: "${feedback}"
+ESE FEEDBACK MANDA sobre las respuestas de abajo.
 Respuestas originales: ${ctx}
+${bloqueNicho(await nichoGuardado(db, projectId))}
 Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
       const competencia = parseJSON(raw)
       const result = await db.from('project_competencia').upsert({

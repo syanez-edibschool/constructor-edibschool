@@ -209,12 +209,24 @@ export default function ReviewNiche() {
     setUpdating((prev) => ({ ...prev, [section]: true }))
     try {
       const { data } = await api.put(`/projects/${id}/update-${section}`, { feedback: editText[section] })
-      if (section === 'nicho') setNicho(normNicho(data.nicho))
+      if (section === 'nicho') {
+        // Corregir el nicho rehace también avatar y competencia, para que los tres
+        // queden alineados. Se pintan los tres y se desaprueban los que cambiaron.
+        setNicho(normNicho(data.nicho))
+        if (data.avatar) setAvatar(normAvatar(data.avatar))
+        if (data.competencia) setCompetencia(normCompetencia(data.competencia))
+        setApprovals((prev) => ({ ...prev, avatar: false, competencia: false }))
+      }
       if (section === 'avatar') setAvatar(normAvatar(data.avatar))
       if (section === 'competencia') setCompetencia(normCompetencia(data.competencia))
       setEditMode((prev) => ({ ...prev, [section]: false }))
       setEditText((prev) => ({ ...prev, [section]: '' }))
-      toast.success('Actualizado con tu feedback')
+      toast.success(
+        section === 'nicho'
+          ? 'Nicho actualizado. También rehicimos el avatar y la competencia para que encajen.'
+          : 'Actualizado con tu feedback',
+        section === 'nicho' ? { duration: 6000 } : undefined,
+      )
     } catch {
       toast.error('Error al actualizar')
     } finally {
