@@ -10,6 +10,7 @@ import ReviewNiche from './pages/ReviewNiche'
 import Tools from './pages/Tools'
 import Download from './pages/Download'
 import Admin from './pages/Admin'
+import SSO from './pages/SSO'
 import CoachWidget from './components/AICoach/CoachWidget'
 import UpdateBanner from './components/ui/UpdateBanner'
 
@@ -59,6 +60,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        {/* Entrada por SSO desde el campus: establece la sesion con el token que
+            llega en el fragment y entra sin login. */}
+        <Route path="/sso" element={<SSO />} />
         {/* Registro libre deshabilitado: el acceso es solo por invitación (WordPress + entrada con el correo) */}
         <Route path="/signup" element={<Navigate to="/login" replace />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
