@@ -118,8 +118,41 @@ Escribe ÚNICAMENTE el prompt final, listo para copiar y usar. Sin explicaciones
     const content = response.content[0].type === 'text' ? response.content[0].text : ''
 
     return res.status(200).json({ success: true, content })
-  } catch (error: any) {
-    console.error('Prompt generator error:', error)
-    return res.status(500).json({ error: error.message || 'Error generando prompt' })
+  } catch (error: unknown) {
+    // Se distingue el tipo de fallo: antes cualquier cosa era un 500 con el
+    // mensaje crudo del SDK, y el alumno solo veía "status code 500". Sin logs
+    // largos ni Sentry conectado, eso dejaba la causa imposible de saber.
+    const e = error as {
+      status?: number
+      message?: string
+      error?: { error?: { type?: string; message?: string } }
+    }
+    const tipo = e?.error?.error?.type
+    console.error('[prompt-generator] Falló:', {
+      status: e?.status,
+      tipo,
+      message: e?.message,
+      detalle: e?.error?.error?.message,
+    })
+
+    if (e?.status === 429) {
+      return res.status(429).json({
+        error: 'Hay mucha demanda de IA ahora mismo. Espera un minuto y vuelve a darle a generar.',
+      })
+    }
+    if (e?.status === 529 || e?.status === 503) {
+      return res.status(503).json({
+        error: 'La IA está sobrecargada en este momento. Vuelve a intentarlo en un minuto.',
+      })
+    }
+    if (e?.status === 400 || e?.status === 401 || e?.status === 403) {
+      // Cuenta/credenciales: el alumno no puede hacer nada, y soporte sí.
+      return res.status(502).json({
+        error: 'La IA no está disponible ahora mismo por un problema de configuración. Avisa a soporte.',
+      })
+    }
+    return res.status(500).json({
+      error: e?.message || 'No se pudo generar el prompt. Vuelve a intentarlo.',
+    })
   }
 }

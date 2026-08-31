@@ -194,7 +194,11 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
       if (!data.success) throw new Error(data.error || 'Error generando prompt')
       setResult(toText(data.content))
     } catch (err: any) {
-      setError(err.message || 'Error al generar. Intenta de nuevo.')
+      // El mensaje del backend PRIMERO: `err.message` de axios es siempre
+      // "Request failed with status code 500", que no dice nada ni al alumno ni a
+      // soporte. El resto de herramientas ya lee response.data.error.
+      const delBackend = typeof err?.response?.data?.error === 'string' ? err.response.data.error : null
+      setError(toText(delBackend || err?.message || 'Error al generar. Intenta de nuevo.'))
     } finally {
       setLoading(false)
     }
