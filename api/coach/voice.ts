@@ -61,6 +61,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
+    // Sesión OBLIGATORIA, y ANTES de cualquier gasto: la comprobación estaba
+    // después de transcribeAudio(), que es la llamada de pago a OpenAI, así que
+    // un anónimo podía disparar una transcripción antes de validarse.
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
+    if (!token) return res.status(401).json({ error: 'No autorizado' })
+    const { data: sesion, error: errSesion } = await createClient(
+      process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
+      process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',
+    ).auth.getUser(token)
+    if (errSesion || !sesion?.user) {
+      return res.status(401).json({ error: 'Sesión no válida. Vuelve a entrar.' })
+    }
+
     const { audio, projectId } = req.body
 
     if (!audio) return res.status(400).json({ error: 'Audio requerido' })
@@ -72,20 +86,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'No se pudo transcribir el audio' })
     }
 
-    // Sesión OBLIGATORIA. Antes el token era OPCIONAL: `if (token)` solo servía
-    // para cargar contexto, y sin token se llamaba a la IA igual. O sea, el
-    // endpoint estaba abierto a internet y cualquiera podía gastar la cuenta de
-    // Anthropic. Comprobado con curl sin cabecera: respondía 200 con contenido.
-    const authHeader = req.headers.authorization
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null
-    if (!token) return res.status(401).json({ error: 'No autorizado' })
-    const { data: sesion, error: errSesion } = await createClient(
-      process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
-      process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',
-    ).auth.getUser(token)
-    if (errSesion || !sesion?.user) {
-      return res.status(401).json({ error: 'Sesión no válida. Vuelve a entrar.' })
-    }
 
     let projectContext = ''
 
