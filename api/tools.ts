@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@supabase/supabase-js"
+import { reportarError } from "../src/lib/reportarError.js"
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 
 // ─── Supabase client with user JWT (respects RLS) ──────────────────────────────
@@ -1189,6 +1190,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed', step })
   } catch (error: any) {
     console.error(`[tools/${toolId}] [step=${step}]`, error)
+    // A Sentry TAMBIÉN: los logs de Vercel solo guardan una ventana de minutos,
+    // así que sin esto un fallo de un alumno se pierde para siempre.
+    await reportarError(error, {
+      endpoint: 'tools',
+      toolId,
+      projectId,
+      step,
+      status: error?.status,
+      tipo: error?.error?.error?.type,
+    })
     return res.status(500).json({
       error: error.message || 'Error al generar herramienta',
       step,

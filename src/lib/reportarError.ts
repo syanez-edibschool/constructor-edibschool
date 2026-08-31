@@ -1,5 +1,10 @@
 // Reporte de errores a Sentry para las funciones serverless de /api.
-// El prefijo "_" hace que Vercel NO trate este archivo como un endpoint.
+//
+// Vivía en `api/_sentry.ts` y NADIE lo importaba, porque Vercel no bundlea los
+// archivos `_`-prefijados importados desde `api/` (→ FUNCTION_INVOCATION_FAILED).
+// Por eso está aquí: importar desde `src/lib/` sí funciona, y es lo que manda el
+// CLAUDE.md del ecosistema. Sin esto, los errores del SERVIDOR no llegaban a
+// Sentry: solo veíamos los del navegador.
 //
 // IMPORTANTE: NO usamos el SDK @sentry/node — su empaquetado rompía las funciones
 // serverless de Vercel (FUNCTION_INVOCATION_FAILED al arrancar). En su lugar
@@ -30,7 +35,7 @@ function eventId(): string {
   return (Date.now().toString(16) + '0000000000000000').slice(0, 32)
 }
 
-export async function reportError(error: unknown, context?: Record<string, unknown>): Promise<void> {
+export async function reportarError(error: unknown, context?: Record<string, unknown>): Promise<void> {
   try {
     const url = storeUrl(DSN)
     if (!url) return

@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { reportarError } from '../src/lib/reportarError.js'
 
 function getClient() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 4 })
@@ -128,6 +129,12 @@ Escribe ÚNICAMENTE el prompt final, listo para copiar y usar. Sin explicaciones
       error?: { error?: { type?: string; message?: string } }
     }
     const tipo = e?.error?.error?.type
+    await reportarError(error, {
+      endpoint: 'prompt-generator',
+      status: e?.status,
+      tipo,
+      detalle: e?.error?.error?.message,
+    })
     console.error('[prompt-generator] Falló:', {
       status: e?.status,
       tipo,
