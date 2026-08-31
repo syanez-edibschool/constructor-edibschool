@@ -6,6 +6,7 @@ import FormData from 'form-data'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
+import { reportarError } from '../../src/lib/reportarError.js'
 
 function getDb(token: string) {
   const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ''
@@ -175,6 +176,7 @@ ${projectContext ? `CONTEXTO DEL USUARIO:\n${projectContext}` : ''}`
     })
   } catch (error: any) {
     console.error('Coach voice error:', error)
+    await reportarError(error, { endpoint: 'coach/voice', status: error?.status, tipo: error?.error?.error?.type })
     return res.status(500).json({ error: error.message || 'Error en coach de voz' })
   }
 }

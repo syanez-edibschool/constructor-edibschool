@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { reportarError } from '../src/lib/reportarError.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Semáforo del nicho. El alumno escribe su nicho con sus palabras y aquí se
@@ -154,6 +155,8 @@ importante. rojo = falla el dolor, el presupuesto o está claramente saturado.`,
     // Que falle la evaluación NO puede impedir que el alumno siga: el front lo
     // trata como "sin veredicto" y no muestra nada.
     console.error('[evaluar-nicho] Falló:', e instanceof Error ? e.message : e)
+    const err = e as { status?: number; error?: { error?: { type?: string } } }
+    await reportarError(e, { endpoint: 'evaluar-nicho', status: err?.status, tipo: err?.error?.error?.type })
     return res.status(502).json({ error: 'No se pudo evaluar el nicho ahora mismo.' })
   }
 }
