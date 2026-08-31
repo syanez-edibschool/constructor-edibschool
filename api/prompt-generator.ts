@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { reportarError } from '../src/lib/reportarError.js'
 
@@ -13,6 +14,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+  // Sesión OBLIGATORIA. Este endpoint estaba abierto a internet: sin cabecera de
+  // autorización devolvía un prompt completo, y es la llamada más cara de la app
+  // (Sonnet 4.6 con 4.000 tokens de salida, ~6 céntimos). Cualquiera con la URL
+  // podía gastar la cuenta de Anthropic. Mismo patrón que evaluar-nicho.
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ error: 'No autorizado' })
+
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || ''
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || ''
+  if (!supabaseUrl || !anonKey) {
+    console.error('[prompt-generator] Falta la configuración de Supabase para validar la sesión')
+    return res.status(500).json({ error: 'Acceso no configurado.' })
+  }
+  const { data: userData, error: userErr } = await createClient(supabaseUrl, anonKey)
+    .auth.getUser(authHeader.split(' ')[1])
+  if (userErr || !userData?.user) return res.status(401).json({ error: 'Sesión no válida. Vuelve a entrar.' })
 
   try {
     const { platform, interactionType, agentData } = req.body as {
