@@ -24,6 +24,36 @@ import ContratoEditable from '../components/Tools/ContratoEditable'
 
 // Herramientas de contenido con pestaña de historial
 const HISTORY_TOOLS = new Set(['story', 'carruseles', 'imagenes', 'vsl', 'reels', 'emails'])
+
+/**
+ * El backend GUARDA el resultado antes de responder. Si el cliente se cansó a los
+ * 3 minutos, el trabajo puede estar ya hecho y guardado: en vez de pedirle al
+ * alumno que recargue («puede haberse guardado»), se recupera solo.
+ *
+ * Se exige que `updated_at` sea POSTERIOR al inicio de ESTA generación: si no, se
+ * estaría mostrando el resultado ANTERIOR como si fuera el nuevo.
+ */
+async function recuperarTrasTimeout(
+  projectId: string,
+  toolId: string,
+  inicio: number,
+  intentos = 3,
+): Promise<{ result: unknown; savedAt?: string } | null> {
+  for (let i = 0; i < intentos; i++) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 8000))
+    try {
+      const { data } = await api.get(`/projects/${projectId}/tools/${toolId}`)
+      if (!data?.exists) continue
+      const guardado = data.updated_at ? new Date(data.updated_at).getTime() : 0
+      // 5 s de margen por el desfase de reloj entre navegador y servidor.
+      if (guardado && guardado < inicio - 5000) continue
+      return { result: data.result ?? data, savedAt: data.updated_at }
+    } catch {
+      /* seguimos intentando */
+    }
+  }
+  return null
+}
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar          from '../components/Dashboard/Sidebar'
@@ -790,6 +820,7 @@ export default function Tools() {
   const handleSubmit = async (answers: Record<string, string>) => {
     if (!activeTool) return
     setStates(p => ({ ...p, [activeTool]: { phase: 'generating', answers, result: null } }))
+    const inicio = Date.now()
     try {
       const { data } = await api.post(`/projects/${id}/tools/${activeTool}`, { toolAnswers: answers })
       const result = data.result ?? data
@@ -799,6 +830,22 @@ export default function Tools() {
     } catch (e) {
       const err = e as { code?: string; response?: { status?: number; data?: { error?: string } } }
       const isTimeout = err?.code === 'ECONNABORTED'
+
+      // Antes de decir que falló: si fue timeout, el backend pudo terminar y
+      // guardar. Se intenta recuperar y el alumno no ve ningún error.
+      if (isTimeout && id) {
+        const recuperado = await recuperarTrasTimeout(id, activeTool, inicio)
+        if (recuperado) {
+          setStates(p => ({
+            ...p,
+            [activeTool]: { phase: 'done', answers, result: recuperado.result, savedAt: recuperado.savedAt },
+          }))
+          toast.success('Tardó más de lo normal, pero ya lo tienes: recuperamos tu resultado.', { duration: 6000 })
+          if (HISTORY_TOOLS.has(activeTool)) saveToHistory(id, activeTool, recuperado.result)
+          return
+        }
+      }
+
       const limitMsg = err?.response?.status === 429 ? err?.response?.data?.error : undefined
       toast.error(limitMsg
         || (isTimeout
