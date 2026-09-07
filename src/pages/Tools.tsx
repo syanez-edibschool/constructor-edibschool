@@ -846,7 +846,10 @@ export default function Tools() {
         }
       }
 
-      const limitMsg = err?.response?.status === 429 ? err?.response?.data?.error : undefined
+      // 429 (límite de uso) y 503 (IA saturada) traen un mensaje del backend que
+      // le dice al alumno QUÉ pasa y qué hacer. El resto sigue con el genérico.
+      const status = err?.response?.status
+      const limitMsg = (status === 429 || status === 503) ? err?.response?.data?.error : undefined
       toast.error(limitMsg
         || (isTimeout
           ? 'Está tardando más de lo normal. Recarga en un momento (puede haberse guardado) o reinténtalo.'

@@ -10,9 +10,10 @@ function getDb(token: string) {
   return createClient(url, key, { global: { headers: { Authorization: `Bearer ${token}` } } })
 }
 
-// Repara JSON truncado: cierra strings, arrays y objetos abiertos.
-// Recorre el texto rastreando el estado para cerrar lo que quedó abierto.
-function repairTruncatedJSON(input: string): string {
+// Cierre "en seco": cierra strings, arrays y objetos justo donde cortó el
+// modelo. Conserva todo lo generado, pero falla cuando el corte cae dentro de
+// una clave, de un número o de un escape. Por eso hay un segundo reparador.
+function cerrarEnSeco(input: string): string {
   let str = input.trim()
   const stack: string[] = []
   let inStr = false
@@ -39,6 +40,49 @@ function repairTruncatedJSON(input: string): string {
   // Cierra todos los brackets pendientes (en orden inverso)
   while (stack.length) str += stack.pop()
   return str
+}
+
+// Repara JSON truncado RETROCEDIENDO al último elemento completo.
+// Cerrar donde cortó el modelo no basta: si el corte cayó dentro de una clave
+// ({"a":1,"b), de un número (12.) o de un escape (barra invertida), el resultado sigue siendo
+// inválido. Retroceder al último punto seguro — una coma o el cierre de un
+// objeto/array, siempre fuera de cadena — deja algo parseable SIEMPRE, a costa
+// de perder el último elemento a medias.
+function repairTruncatedJSON(input: string): string {
+  const str = input.trim()
+  const stack: string[] = []
+  let inStr = false
+  let escaped = false
+  let corte = -1
+  let corteStack: string[] = []
+
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i]
+    if (inStr) {
+      if (escaped) escaped = false
+      else if (c === '\\') escaped = true
+      else if (c === '"') inStr = false
+      continue
+    }
+    if (c === '"') inStr = true
+    else if (c === '{') stack.push('}')
+    else if (c === '[') stack.push(']')
+    else if (c === '}' || c === ']') {
+      stack.pop()
+      corte = i + 1              // justo después de cerrar: elemento completo
+      corteStack = [...stack]
+    } else if (c === ',') {
+      corte = i                  // justo ANTES de la coma: elemento completo
+      corteStack = [...stack]
+    }
+  }
+
+  // Ya estaba completo, o no hay ningún punto seguro al que volver.
+  if ((!inStr && stack.length === 0) || corte < 0) return str
+
+  let out = str.slice(0, corte).replace(/,\s*$/, '')
+  for (let i = corteStack.length - 1; i >= 0; i--) out += corteStack[i]
+  return out
 }
 
 // Escapa comillas dobles que aparecen DENTRO de un valor string (las que el
@@ -74,6 +118,34 @@ function repairInnerQuotes(s: string): string {
   return out
 }
 
+// Dos roturas frecuentes que no son truncado:
+//   1) saltos de linea/tabuladores CRUDOS dentro de una cadena (JSON exige que
+//      vayan escapados; el modelo a veces los escribe tal cual),
+//   2) comas colgantes antes de cerrar un objeto o un array.
+// Son las que producian el 'JSON malformado' que ni el truncado explicaba.
+function limpiarCadenas(s: string): string {
+  let out = ''
+  let inStr = false
+  let escaped = false
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]
+    if (inStr) {
+      if (escaped) { out += c; escaped = false; continue }
+      if (c === '\\') { out += c; escaped = true; continue }
+      if (c === '"') { out += c; inStr = false; continue }
+      if (c === '\n') { out += '\\n'; continue }
+      if (c === '\r') { out += '\\r'; continue }
+      if (c === '\t') { out += '\\t'; continue }
+      out += c
+      continue
+    }
+    if (c === '"') inStr = true
+    out += c
+  }
+  // Coma colgante antes de } o ] (ya fuera de cadenas: seguro tocarlo).
+  return out.replace(/,(\s*[}\]])/g, '$1')
+}
+
 function parseJSON<T>(raw: string): T {
   // Strip code fences
   let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
@@ -86,23 +158,35 @@ function parseJSON<T>(raw: string): T {
     else if (arrMatch) cleaned = arrMatch[0]
   }
 
-  // Cadena de intentos de reparación, del menos al más agresivo
-  const attempts: Array<(x: string) => string> = [
+  // Se prueban todas las combinaciones de "limpieza" x "cierre", de la menos a
+  // la más agresiva. La primera que parsee, gana.
+  const limpiezas: Array<(x: string) => string> = [
     (x) => x,
-    (x) => repairTruncatedJSON(x),
-    (x) => repairInnerQuotes(x),
-    (x) => repairTruncatedJSON(repairInnerQuotes(x)),
+    (x) => limpiarCadenas(x),
+    (x) => limpiarCadenas(repairInnerQuotes(x)),
   ]
-  for (const fix of attempts) {
-    try {
-      return JSON.parse(fix(cleaned))
-    } catch { /* siguiente intento */ }
+  const cierres: Array<(x: string) => string> = [
+    (x) => x,
+    (x) => cerrarEnSeco(x),
+    (x) => repairTruncatedJSON(x),
+  ]
+  for (const limpiar of limpiezas) {
+    for (const cerrar of cierres) {
+      try {
+        return JSON.parse(cerrar(limpiar(cleaned)))
+      } catch { /* siguiente combinación */ }
+    }
   }
 
+  // El mensaje va SIN el fragmento variable: si no, Sentry abre un issue nuevo
+  // por cada alumno que falla. El fragmento viaja aparte, al contexto del error.
   const lastChar = cleaned.trim().slice(-1)
   const looksTruncated = lastChar !== '}' && lastChar !== ']'
-  const hint = looksTruncated ? 'Respuesta TRUNCADA' : 'JSON malformado'
-  throw new Error(`${hint}. Últimos 200 chars: ${cleaned.slice(-200)}`)
+  const err = new Error(looksTruncated
+    ? 'La IA devolvió una respuesta incompleta. Vuelve a generarla.'
+    : 'La IA devolvió un formato inesperado. Vuelve a generarla.')
+  ;(err as Error & { cola?: string }).cola = cleaned.slice(-200)
+  throw err
 }
 
 const SONNET = 'claude-sonnet-4-6'
@@ -121,31 +205,96 @@ const TOOL_MODEL: Record<string, string> = {
 }
 
 // Tokens ajustados a lo que cada resultado realmente necesita (menos = más rápido).
+// Un tope BAJO no ahorra nada: solo se factura lo que el modelo escribe de
+// verdad. Lo que sí cuesta es quedarse corto — el JSON llega cortado y el alumno
+// se come un error. Por eso van holgados.
 const TOOL_MAX_TOKENS: Record<string, number> = {
   'clone-winner': 8000,
-  'calendario':   4000,
-  'imagenes':     4000,
-  'carruseles':   5000,
-  'emails':       4000,
-  'website':      6000,
+  'calendario':   6000,
+  'imagenes':     8000,
+  'carruseles':   7000,
+  'emails':       6000,
+  'website':     10000,
   'contrato':     8000,
-  'puv':          2000,
-  'oferta':       2000,
-  'leadmagnet':   2500,
-  'casos':        4000,
-  'tracker':      3000,
-  'vsl':          3500,
-  'reels':        4000,
-  'story':        3500,
-  'copy':         3000,
-  'precios':      4000,
-  'propuesta':    4000,
-  'chat-agent':   4500,
-  'email-frio':     4500,
-  'dm-instagram':   4000,
-  'guion-llamadas': 5500,
+  'puv':          3000,
+  'oferta':       3000,
+  'leadmagnet':   4000,
+  'casos':        6000,
+  'tracker':      5000,
+  'vsl':          6000,
+  'reels':        7000,
+  'story':        5000,
+  'copy':         5000,
+  'precios':      6000,
+  'propuesta':    8000,
+  'chat-agent':   6000,
+  'email-frio':     6000,
+  'dm-instagram':   6000,
+  'guion-llamadas': 9000,
 }
-const DEFAULT_MAX_TOKENS = 4000
+const DEFAULT_MAX_TOKENS = 6000
+
+// Aun con topes holgados, un modelo puede tocar techo. Cuando pasa, en vez de
+// dar el JSON por perdido se le devuelve lo ya escrito como turno del asistente:
+// CONTINÚA desde ahí en lugar de empezar de cero. Es lo que mata de raíz el
+// "Respuesta TRUNCADA" — reparar el JSON a posteriori es solo la red de abajo.
+const MAX_CONTINUACIONES = 2
+
+// Anthropic saturada: devuelve 529 con type 'overloaded_error'. El SDK ya
+// reintenta solo, así que si llega hasta aquí es que la saturación duró. No es
+// culpa nuestra, pero el alumno se comía el JSON del error en crudo.
+function esSaturacion(err: unknown): boolean {
+  const e = err as { status?: number; message?: unknown; error?: { error?: { type?: string } } }
+  return e?.status === 529
+    || e?.error?.error?.type === 'overloaded_error'
+    || /overloaded/i.test(String(e?.message ?? ''))
+}
+
+async function generarTextoCompleto(
+  anthropic: Anthropic,
+  o: { model: string; maxTokens: number; system: string; prompt: string; toolId: string }
+): Promise<string> {
+  let texto = ''
+  // Si el modelo grande está saturado, se cae al rápido antes que fallar: al
+  // alumno le sirve más un resultado bueno que un error.
+  let modelo = o.model
+
+  for (let intento = 0; intento <= MAX_CONTINUACIONES; intento++) {
+    // El prefill del asistente NO puede terminar en espacio en blanco: la API
+    // lo rechaza. Por eso `texto` se guarda siempre ya recortado por la derecha.
+    const messages = texto
+      ? [{ role: 'user' as const, content: o.prompt }, { role: 'assistant' as const, content: texto }]
+      : [{ role: 'user' as const, content: o.prompt }]
+
+    // Streaming: mantiene la conexión activa enviando tokens continuamente,
+    // evitando que un gateway corte la petición con 504 antes de los 60s.
+    const pedir = (m: string) => anthropic.messages.stream({
+      model: m,
+      max_tokens: o.maxTokens,
+      system: o.system,
+      messages,
+    }).finalMessage()
+
+    let respuesta
+    try {
+      respuesta = await pedir(modelo)
+    } catch (err) {
+      if (!esSaturacion(err) || modelo === DEFAULT_MODEL) throw err
+      console.warn(`[tools/${o.toolId}] ${modelo} saturado; reintento con ${DEFAULT_MODEL}`)
+      modelo = DEFAULT_MODEL
+      respuesta = await pedir(modelo)
+    }
+    const parte = respuesta.content[0]?.type === 'text' ? respuesta.content[0].text : ''
+    if (!parte) break
+
+    texto = (texto + parte).replace(/\s+$/, '')
+    if (respuesta.stop_reason !== 'max_tokens') return texto
+
+    console.warn(`[tools/${o.toolId}] tocó el techo de ${o.maxTokens} tokens; continuando (${intento + 1}/${MAX_CONTINUACIONES})`)
+  }
+
+  return texto
+}
 
 // ─── Exact prompts from server/routes/generation.ts ───────────────────────────
 function buildPrompt(
@@ -1143,24 +1292,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const model     = TOOL_MODEL[toolId] ?? DEFAULT_MODEL
       const SYSTEM = 'Eres un generador de contenido experto. SIEMPRE generas el contenido solicitado con la información disponible. Si falta contexto del proyecto, usa supuestos razonables y profesionales del sector — NUNCA te rehúses, NUNCA pidas más datos, NUNCA devuelvas errores ni objetos tipo "CONTEXTO_INCOMPLETO" o "campos_faltantes". Devuelves SOLO el JSON válido con la estructura exacta que se te pide, completo y bien cerrado. NO incluyes texto antes ni después. NO uses bloques de código markdown. REGLA CRÍTICA DE FORMATO: dentro de los valores de texto del JSON NUNCA uses comillas dobles ("). Para citar diálogos o frases usa SIEMPRE comillas tipográficas (« » o " ") o comillas simples (\'). Las comillas dobles se reservan EXCLUSIVAMENTE para delimitar las claves y valores del JSON. Esto es obligatorio para que el JSON sea válido. REGLA CRÍTICA DE ESTRUCTURA: respetas EXACTAMENTE la forma pedida. Donde se pide un texto, devuelves una cadena plana — NUNCA un objeto ni un array. No "enriquezcas" un campo de texto convirtiéndolo en un objeto con subcampos (nada de {"claim": ..., "tone": ...} donde se pedía una frase): si quieres añadir matices, van dentro de la misma cadena. REGLA CRÍTICA DE ORTOGRAFÍA: escribes en español con ortografía impecable. Las tildes son OBLIGATORIAS y también se escriben en MAYÚSCULAS (DIAGNÓSTICO, REVISIÓN, ANÁLISIS, ÉXITO, ÚNICO, MÁS, QUÉ, CÓMO, CUÁL). Respeta las tildes diacríticas (qué/que, cómo/como, cuál/cual, más/mas, está/esta, sí/si, sé/se, té/te, él/el) y la apertura de interrogación y exclamación (¿ ¡).'
 
-      // Streaming: mantiene la conexión activa enviando tokens continuamente,
-      // evitando que un gateway corte la petición con 504 antes de los 60s.
-      const stream = anthropic.messages.stream({
-        model,
-        max_tokens: maxTokens,
-        system: SYSTEM,
-        messages: [{ role: 'user', content: prompt }],
+      const raw = await generarTextoCompleto(anthropic, {
+        model, maxTokens, system: SYSTEM, prompt, toolId,
       })
-      const response = await stream.finalMessage()
-
-      const raw = response.content[0]?.type === 'text' ? response.content[0].text : ''
       if (!raw) {
         throw new Error('Anthropic devolvió respuesta vacía')
-      }
-
-      // Si se truncó, parseJSON repara el JSON incompleto automáticamente.
-      if (response.stop_reason === 'max_tokens') {
-        console.warn(`[tools/${toolId}] respuesta tocó el límite de ${maxTokens} tokens; se reparará el JSON.`)
       }
 
       // ── Step 7: parse JSON ───────────────────────────────────────────────────
@@ -1199,9 +1335,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       step,
       status: error?.status,
       tipo: error?.error?.error?.type,
+      cola: error?.cola,
     })
-    return res.status(500).json({
-      error: error.message || 'Error al generar herramienta',
+    const saturado = esSaturacion(error)
+    return res.status(saturado ? 503 : 500).json({
+      error: saturado
+        ? 'La IA está saturada en este momento. Espera unos segundos y vuelve a generar.'
+        : (error.message || 'Error al generar herramienta'),
       step,
       toolId,
       projectId,
