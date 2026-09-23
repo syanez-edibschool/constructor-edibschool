@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import Button3D from '../components/ui/Button3D'
 import ProgressBar3D from '../components/ui/ProgressBar3D'
-import { saveAnswers, getAnswers } from '../services/projectsService'
+import { saveAnswers, getAnswers, getProject } from '../services/projectsService'
 import { api } from '../services/api'
 import SemaforoNicho, { type Veredicto } from '../components/ui/SemaforoNicho'
 
@@ -75,6 +75,24 @@ export default function Questions() {
   // Carga lo YA contestado. Sin esto la pantalla salía vacía al 0% aunque hubiera
   // respuestas guardadas, el alumno la rellenaba otra vez y saveAnswers REEMPLAZA
   // el bloque entero: ahí se perdía lo anterior. `getAnswers` ya existía sin usar.
+  // El proyecto tiene que existir y ser suyo ANTES de dejarle contestar. Sin esto
+  // un alumno rellenaba las 31 preguntas y solo al final, al guardar, reventaba con
+  // "new row violates row-level security policy": la fila de respuestas apunta a un
+  // proyecto que ya no existe, así que RLS la rechaza. Media hora de trabajo tirada.
+  useEffect(() => {
+    if (!id) return
+    let cancelado = false
+    getProject(id).then((proyecto) => {
+      if (cancelado || proyecto) return
+      toast.error('Este proyecto ya no existe. Crea uno nuevo desde el panel.', { duration: 6000 })
+      navigate('/dashboard', { replace: true })
+    })
+    return () => {
+      cancelado = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
+
   useEffect(() => {
     if (!id) return
     let cancelado = false
@@ -158,7 +176,15 @@ export default function Questions() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
       console.error('[Questions] Error al guardar:', msg)
-      toast.error(`Error al guardar: ${msg}`)
+      // "new row violates row-level security policy" no le dice NADA a un alumno.
+      // Pasa cuando el proyecto ya no existe o no es suyo: RLS rechaza la fila.
+      const esRLS = /row-level security|42501/i.test(msg)
+      toast.error(
+        esRLS
+          ? 'No se pudo guardar: este proyecto ya no existe o no es tuyo. Vuelve al panel y crea uno nuevo. Tus respuestas siguen en pantalla.'
+          : `Error al guardar: ${msg}`,
+        { duration: 8000 },
+      )
     } finally {
       setSaving(false)
     }
