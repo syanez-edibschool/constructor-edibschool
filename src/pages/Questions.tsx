@@ -96,14 +96,29 @@ export default function Questions() {
   useEffect(() => {
     if (!id) return
     let cancelado = false
+    const borrador = (): Record<string, string> => {
+      try {
+        return JSON.parse(localStorage.getItem(`acelerador:respuestas:${id}`) || '{}')
+      } catch {
+        return {}
+      }
+    }
     getAnswers(id)
       .then((guardadas) => {
-        if (!cancelado && guardadas && Object.keys(guardadas).length > 0) {
-          setAnswers(guardadas)
-        }
+        if (cancelado) return
+        // Lo de la base manda; el borrador solo rellena lo que allí no está.
+        const local = borrador()
+        const combinadas = { ...local, ...(guardadas ?? {}) }
+        if (Object.keys(combinadas).length > 0) setAnswers(combinadas)
       })
       .catch(() => {
-        // Proyecto nuevo sin respuestas: se empieza en blanco, que es lo correcto.
+        // Proyecto nuevo sin fila en la base: si hay borrador, se recupera.
+        if (cancelado) return
+        const local = borrador()
+        if (Object.keys(local).length > 0) {
+          setAnswers(local)
+          toast.success('Recuperamos las respuestas que habías dejado a medias.', { duration: 5000 })
+        }
       })
     return () => {
       cancelado = true
@@ -124,6 +139,22 @@ export default function Questions() {
       setEvaluando(false)
     }
   }
+
+  // Borrador local. Las 31 respuestas solo se guardaban en la base AL FINAL, al
+  // pulsar "Generar análisis": cualquier fallo antes (cerrar la pestaña, quedarse
+  // sin conexión, un proyecto borrado) obligaba a reescribirlo todo. Esto no
+  // sustituye al guardado real, solo evita que el trabajo se pierda por el camino.
+  const claveBorrador = `acelerador:respuestas:${id ?? ''}`
+
+  useEffect(() => {
+    if (!id || Object.keys(answers).length === 0) return
+    try {
+      localStorage.setItem(claveBorrador, JSON.stringify(answers))
+    } catch {
+      // Modo incógnito o almacenamiento lleno: se sigue igual, sin borrador.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers, id])
 
   const sectionQuestions = QUESTIONS.filter((q) => q.section === SECTIONS[currentSection])
   const isLastSection = currentSection === SECTIONS.length - 1
@@ -172,6 +203,9 @@ export default function Questions() {
         ? { ...answers, nicho_veredicto: JSON.stringify(veredicto) }
         : answers
       await saveAnswers(id!, conVeredicto)
+      try {
+        localStorage.removeItem(claveBorrador)   // ya está en la base
+      } catch { /* da igual */ }
       navigate(`/proyecto/${id}/review-niche`)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
