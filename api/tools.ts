@@ -240,6 +240,23 @@ const DEFAULT_MAX_TOKENS = 6000
 // "Respuesta TRUNCADA" — reparar el JSON a posteriori es solo la red de abajo.
 const MAX_CONTINUACIONES = 2
 
+/*
+ * La orden de continuar, cuando una respuesta se corta por falta de espacio.
+ *
+ * Es explícita hasta ser pesada a propósito: casi todas estas herramientas
+ * devuelven JSON, y basta con que el modelo escriba «Claro, continúo:» o repita
+ * la última llave para que el resultado deje de ser analizable y el alumno se
+ * coma un error. Con el prefill de antes eso no podía pasar —el modelo seguía la
+ * cadena literalmente—, así que al cambiar de método hay que pedirlo a mano.
+ */
+const SEGUIR = [
+  'Tu respuesta anterior se cortó por falta de espacio, a mitad.',
+  'Continúala EXACTAMENTE desde el último carácter que escribiste.',
+  'No repitas nada de lo ya escrito, no saludes, no expliques que continúas',
+  'y no vuelvas a abrir el JSON: escribe solo lo que falta, empezando por el',
+  'carácter siguiente al último.',
+].join(' ')
+
 // Anthropic saturada: devuelve 529 con type 'overloaded_error'. El SDK ya
 // reintenta solo, así que si llega hasta aquí es que la saturación duró. No es
 // culpa nuestra, pero el alumno se comía el JSON del error en crudo.
@@ -260,10 +277,31 @@ async function generarTextoCompleto(
   let modelo = o.model
 
   for (let intento = 0; intento <= MAX_CONTINUACIONES; intento++) {
-    // El prefill del asistente NO puede terminar en espacio en blanco: la API
-    // lo rechaza. Por eso `texto` se guarda siempre ya recortado por la derecha.
+    /*
+     * CÓMO SE CONTINÚA UNA RESPUESTA CORTADA, Y POR QUÉ ASÍ.
+     *
+     * Antes se hacía con «prefill»: se mandaba lo escrito hasta ahora como
+     * turno del asistente y el modelo seguía la cadena. Sonnet 4.6 dejó de
+     * aceptarlo y devuelve un 400 —«This model does not support assistant
+     * message prefill. The conversation must end with a user message»—, así que
+     * las cinco herramientas que usan Sonnet reventaban, pero SOLO cuando la
+     * respuesta llegaba al tope de tokens. De ahí que fallara a ratos y sin
+     * patrón aparente.
+     *
+     * Ahora se cierra con un turno de usuario. Lo ya escrito sigue yendo como
+     * turno del asistente —eso es legal; lo que no se puede es TERMINAR ahí— y
+     * detrás va la orden de seguir. Funciona en todos los modelos, con prefill o
+     * sin él, así que no hay que acordarse de esto al cambiar de modelo.
+     *
+     * `texto` se sigue guardando recortado por la derecha para que el empalme no
+     * meta espacios de más.
+     */
     const messages = texto
-      ? [{ role: 'user' as const, content: o.prompt }, { role: 'assistant' as const, content: texto }]
+      ? [
+          { role: 'user' as const, content: o.prompt },
+          { role: 'assistant' as const, content: texto },
+          { role: 'user' as const, content: SEGUIR },
+        ]
       : [{ role: 'user' as const, content: o.prompt }]
 
     // Streaming: mantiene la conexión activa enviando tokens continuamente,
