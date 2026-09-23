@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChatBubbleLeftRightIcon, MicrophoneIcon, SparklesIcon,
@@ -7,6 +7,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { api } from '../../services/api'
 import { toText } from '../../lib/aiText'
+import { supabase } from '../../services/supabase'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Platform = 'ghl' | 'manychat' | 'whatsapp' | 'voiceflow' | 'botpress' | 'chatgpt' | 'elevenlabs' | 'otro'
@@ -164,6 +165,56 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
   const [error, setError]     = useState<string | null>(null)
   const [copied, setCopied]   = useState(false)
 
+  // Esta herramienta NO guardaba NADA: 0 filas en project_tools de 6.916 en toda
+  // la base, la única del menú sin una sola. El alumno rellenaba el formulario,
+  // esperaba ~40 s a la generación más cara de la app y, al recargar o cambiar de
+  // herramienta, lo perdía todo — y encima seguía figurando como "no completada".
+  // Se guarda igual que el resto: una fila en project_tools con su contenido.
+  useEffect(() => {
+    if (!projectId) return
+    let cancelado = false
+    supabase
+      .from('project_tools')
+      .select('result_json')
+      .eq('project_id', projectId)
+      .eq('tool_id', 'prompt-generator')
+      .maybeSingle()
+      .then(({ data }) => {
+        const g = data?.result_json as {
+          content?: string
+          platform?: Platform
+          interaction?: Interaction
+          agentData?: AgentData
+        } | null
+        if (cancelado || !g) return
+        if (g.content) setResult(toText(g.content))
+        if (g.platform) setPlatform(g.platform)
+        if (g.interaction) setInteraction(g.interaction)
+        if (g.agentData) setAgentData((p) => ({ ...p, ...g.agentData }))
+      })
+    return () => {
+      cancelado = true
+    }
+  }, [projectId])
+
+  // Se guardan también las respuestas del formulario, no solo el resultado: así
+  // puede regenerar o retocar sin volver a escribirlo todo.
+  const guardar = async (contenido: string) => {
+    try {
+      await supabase.from('project_tools').upsert(
+        {
+          project_id: projectId,
+          tool_id: 'prompt-generator',
+          result_json: { content: contenido, platform, interaction, agentData },
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'project_id,tool_id' },
+      )
+    } catch {
+      // Que falle el guardado no puede tumbar el resultado que ya tiene en pantalla.
+    }
+  }
+
   const set = (key: keyof AgentData) => (v: string) => setAgentData(p => ({ ...p, [key]: v }))
 
   const isGhlText   = platform === 'ghl' && interaction === 'texto'
@@ -192,7 +243,9 @@ export default function PromptGenerator({ projectId }: { projectId: string }) {
         agentData,
       })
       if (!data.success) throw new Error(data.error || 'Error generando prompt')
-      setResult(toText(data.content))
+      const contenido = toText(data.content)
+      setResult(contenido)
+      await guardar(contenido)
     } catch (err: any) {
       // El mensaje del backend PRIMERO: `err.message` de axios es siempre
       // "Request failed with status code 500", que no dice nada ni al alumno ni a
