@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
-import { getProjects, createProject, deleteProject, type Project } from '../services/projectsService'
+import { getProjects, createProject, deleteProject, updateProject, type Project } from '../services/projectsService'
 import { PlusIcon, Bars3Icon, PlayCircleIcon } from '@heroicons/react/24/outline'
 import { useTheme } from '../context/ThemeContext'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -239,7 +239,56 @@ function NewProjectModal({ open, onClose, onCreate }: { open: boolean; onClose: 
   )
 }
 
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
+/** Renombrar un proyecto. Antes el menú solo dejaba eliminar: quien se
+ *  equivocaba con el nombre tenía que borrarlo y empezar de cero, perdiendo el
+ *  cuestionario, el análisis y las herramientas ya generadas. */
+function RenameModal({ proyecto, onClose, onSave }: { proyecto: Project | null; onClose: () => void; onSave: (n: string) => Promise<void> }) {
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
+  useEffect(() => { setName(proyecto?.name ?? '') }, [proyecto])
+  const handle = async () => {
+    const limpio = name.trim()
+    if (!limpio) { toast.error('Escribe un nombre'); return }
+    if (limpio === proyecto?.name) { onClose(); return }
+    setLoading(true)
+    try { await onSave(limpio) } finally { setLoading(false) }
+  }
+  return (
+    <AnimatePresence>
+      {proyecto && (
+        <>
+          <motion.div key="bg" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,.75)', backdropFilter: 'blur(8px)' }} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div key="modal" initial={{ opacity: 0, scale: .88, filter: 'blur(15px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: .88 }} transition={{ duration: .35, ease: [.34, 1.56, .64, 1] }} onClick={e => e.stopPropagation()} className="w-full max-w-md rounded-3xl overflow-hidden" style={{ background: 'var(--surface-s)', border: '1px solid rgba(131,87,246,.25)', boxShadow: '0 40px 100px rgba(0,0,0,.7)' }}>
+              <div className="h-px" style={{ background: 'linear-gradient(90deg,transparent,#8357F6,rgba(196,157,255,.8),transparent)' }} />
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-black gradient-text">Renombrar proyecto</h2>
+                  <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-colors" style={{ background: 'var(--card-bg)', color: 'var(--text-2)' }}>✕</button>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold tracking-[.2em] uppercase mb-1.5 block" style={{ color: 'rgba(131,87,246,.5)' }}>Nombre del proyecto</label>
+                    <input value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handle()} autoFocus className="input-form rounded-xl w-full" style={{ padding: '13px 16px', fontSize: 14, borderRadius: 12 }} />
+                    <p className="text-[11px] mt-2" style={{ color: 'var(--text-3)' }}>Solo cambia el nombre. Tus respuestas, tu análisis y tus herramientas siguen igual.</p>
+                  </div>
+                  <div className="flex gap-3 mt-1">
+                    <button onClick={onClose} className="btn-secondary flex-1 py-3 rounded-xl text-sm font-medium">Cancelar</button>
+                    <motion.button onClick={handle} disabled={loading} whileHover={{ y: -2, boxShadow: '0 10px 30px rgba(131,87,246,.4)' }} whileTap={{ scale: .97 }} className="btn-primary flex-1 py-3 rounded-xl text-sm disabled:opacity-50">
+                      {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto block" /> : 'GUARDAR'}
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// --- Main Dashboard ---------------------------------------------------------
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -291,6 +340,19 @@ export default function Dashboard() {
       const p = await createProject(name, desc)
       setShowModal(false); toast.success('¡Proyecto creado!')
       navigate(`/proyecto/${p.id}/questions`)
+    } catch (e: unknown) { toast.error(`Error: ${e instanceof Error ? e.message : 'desconocido'}`) }
+  }
+
+  const [renombrando, setRenombrando] = useState<Project | null>(null)
+
+  const handleRename = async (nombre: string) => {
+    if (!renombrando) return
+    const id = renombrando.id
+    try {
+      await updateProject(id, { name: nombre })
+      setProjects(p => p.map(pr => (pr.id === id ? { ...pr, name: nombre } : pr)))
+      setRenombrando(null)
+      toast.success('Nombre actualizado')
     } catch (e: unknown) { toast.error(`Error: ${e instanceof Error ? e.message : 'desconocido'}`) }
   }
 
@@ -458,6 +520,7 @@ export default function Dashboard() {
                       else if (step === 2) navigate(`/proyecto/${project.id}/review-niche`)
                       else navigate(`/proyecto/${project.id}/tools`)
                     }}
+                    onRename={() => setRenombrando(project)}
                     onDelete={() => handleDelete(project.id, project.name)}
                   />
                 )}
@@ -469,6 +532,7 @@ export default function Dashboard() {
 
       {/* Modal */}
       <NewProjectModal open={showModal} onClose={() => setShowModal(false)} onCreate={handleCreate} />
+      <RenameModal proyecto={renombrando} onClose={() => setRenombrando(null)} onSave={handleRename} />
     </div>
   )
 }

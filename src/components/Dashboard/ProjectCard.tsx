@@ -21,6 +21,7 @@ interface ProjectCardProps {
   col: string
   isDark: boolean
   onContinue: () => void
+  onRename: () => void
   onDelete: () => void
 }
 
@@ -36,7 +37,7 @@ function timeAgo(d: string) {
   return `Hace ${Math.floor(h / 24)}d`
 }
 
-export default function ProjectCard({ project, index, col, isDark, onContinue, onDelete }: ProjectCardProps) {
+export default function ProjectCard({ project, index, col, isDark, onContinue, onRename, onDelete }: ProjectCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, gx: 50, gy: 50 })
@@ -141,6 +142,13 @@ export default function ProjectCard({ project, index, col, isDark, onContinue, o
               className="absolute right-0 top-9 w-32 rounded-xl overflow-hidden z-10 animate-in fade-in duration-150"
               style={{ background: 'var(--surface-s)', border: '1px solid var(--border)', backdropFilter: 'blur(20px)' }}
             >
+              <button
+                onClick={e => { e.stopPropagation(); onRename(); setMenuOpen(false) }}
+                className="w-full text-left px-3 py-2.5 text-xs transition-colors hover:bg-white/5"
+                style={{ color: 'var(--text-2)' }}
+              >
+                Renombrar
+              </button>
               <button
                 onClick={e => { e.stopPropagation(); onDelete(); setMenuOpen(false) }}
                 className="w-full text-left px-3 py-2.5 text-xs text-red-400 hover:bg-red-500/10 transition-colors"
