@@ -227,8 +227,12 @@ export default function ReviewNiche() {
           : 'Actualizado con tu feedback',
         section === 'nicho' ? { duration: 6000 } : undefined,
       )
-    } catch {
-      toast.error('Error al actualizar')
+    } catch (err) {
+      // Si la IA no devuelve la forma completa, el servidor NO guarda nada y
+      // explica por qué (422). Se enseña ese motivo: con el genérico de antes el
+      // alumno no sabía que su análisis seguía intacto y volvía a intentarlo a ciegas.
+      const motivo = (err as { response?: { data?: { error?: unknown } } })?.response?.data?.error
+      toast.error(motivo ? asText(motivo) : 'Error al actualizar', { duration: 8000 })
     } finally {
       setUpdating((prev) => ({ ...prev, [section]: false }))
     }

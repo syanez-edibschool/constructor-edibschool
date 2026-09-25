@@ -48,12 +48,25 @@ ${JSON.stringify(nicho)}
 `
     : ''
 
-const promptAvatar = (ctx: string, nicho?: Record<string, unknown>) => `
-Basado en estas respuestas del emprendedor:
-${ctx}
-${bloqueNicho(nicho)}
-Crea un avatar de cliente ideal VÍVIDO y detallado en JSON:
-{
+/**
+ * Esquemas JSON de cada bloque, UNA sola vez. El fallo de «Actualizar con
+ * feedback» (sep 2026) vino justo de tenerlos duplicados: generar pasaba el
+ * esquema completo y actualizar solo nombraba los campos en prosa. El modelo se
+ * inventaba la forma interna —`nombre` en vez de `name` dentro de cada
+ * competidor— y la pantalla, que lee `name`, pintaba las tarjetas vacías.
+ * Generar y actualizar deben usar SIEMPRE estas constantes.
+ */
+const ESQUEMA_NICHO = `{
+  "sector": "nombre del sector específico",
+  "micronicho": "descripción del micronicho exacto",
+  "tam": "rango de potenciales clientes (ej: 15,000-20,000)",
+  "ticket": "rango de precio mensual recomendado (ej: €2,500-4,500/mes)",
+  "trend": "crecimiento anual estimado (ej: ↑ 22% anual)",
+  "momento": "¿Es buen momento para entrar? (1 oración)",
+  "razon": "Explicación de 2-3 oraciones de por qué este nicho es ideal ahora mismo para una agencia de IA"
+}`
+
+const ESQUEMA_AVATAR = `{
   "name": "nombre ficticio realista",
   "age": "rango de edad (ej: 38-45 años)",
   "position": "cargo/posición exacta",
@@ -64,12 +77,7 @@ Crea un avatar de cliente ideal VÍVIDO y detallado en JSON:
   "narrative": "Historia de 3-4 oraciones en primera persona que describe UN DÍA en su vida, sus frustraciones, y por qué necesita ayuda de IA"
 }`
 
-const promptCompetencia = (ctx: string, nicho?: Record<string, unknown>) => `
-Basado en estas respuestas del emprendedor:
-${ctx}
-${bloqueNicho(nicho)}
-Genera un análisis de competencia en JSON:
-{
+const ESQUEMA_COMPETENCIA = `{
   "competitors": [
     {
       "name": "nombre realista de competidor tipo",
@@ -81,7 +89,21 @@ Genera un análisis de competencia en JSON:
   ],
   "positioning": "Posicionamiento único recomendado de 1-2 oraciones para diferenciarse",
   "opportunity": "La mayor oportunidad de mercado que existe ahora mismo (2 oraciones)"
-}
+}`
+
+const promptAvatar = (ctx: string, nicho?: Record<string, unknown>) => `
+Basado en estas respuestas del emprendedor:
+${ctx}
+${bloqueNicho(nicho)}
+Crea un avatar de cliente ideal VÍVIDO y detallado en JSON:
+${ESQUEMA_AVATAR}`
+
+const promptCompetencia = (ctx: string, nicho?: Record<string, unknown>) => `
+Basado en estas respuestas del emprendedor:
+${ctx}
+${bloqueNicho(nicho)}
+Genera un análisis de competencia en JSON:
+${ESQUEMA_COMPETENCIA}
 Incluye exactamente 3 competidores.`
 
 /** Filas de las 3 tablas, con la misma forma que ya se guardaba. */
@@ -114,9 +136,18 @@ const filasDeLosTres = (
   }, { onConflict: 'project_id' }),
 ]
 
-/** Nicho ya guardado, para que las correcciones de avatar/competencia lo respeten. */
-async function nichoGuardado(db: SupabaseClient, projectId: string): Promise<Record<string, unknown> | undefined> {
-  const { data } = await db.from('project_nicho').select('data_json').eq('project_id', projectId).maybeSingle()
+/**
+ * Contenido ya guardado de un bloque. Las correcciones con feedback lo
+ * necesitan: sin ver la versión actual el modelo no puede «mantener» nada y
+ * rehace el bloque de cero. Así cambiaba el nombre del avatar sin pedirlo, o
+ * volvían palabras que el alumno había prohibido expresamente.
+ */
+async function guardado(
+  db: SupabaseClient,
+  tabla: 'project_nicho' | 'project_avatar' | 'project_competencia',
+  projectId: string,
+): Promise<Record<string, unknown> | undefined> {
+  const { data } = await db.from(tabla).select('data_json').eq('project_id', projectId).maybeSingle()
   const bruto = data?.data_json
   if (!bruto) return undefined
   try {
@@ -124,6 +155,109 @@ async function nichoGuardado(db: SupabaseClient, projectId: string): Promise<Rec
   } catch {
     return undefined
   }
+}
+
+/** Nicho ya guardado, para que las correcciones de avatar/competencia lo respeten. */
+const nichoGuardado = (db: SupabaseClient, projectId: string) => guardado(db, 'project_nicho', projectId)
+
+/**
+ * Prompt de «Actualizar con feedback». Parte de la versión ACTUAL y pide el
+ * MISMO esquema que la generación: faltaban las dos cosas, y por eso el
+ * feedback vaciaba listas y tarjetas y no respetaba los «mantén».
+ */
+const promptFeedback = (o: {
+  que: string
+  feedback: string
+  actual?: Record<string, unknown>
+  ctx: string
+  nicho?: Record<string, unknown>
+  esquema: string
+  extra?: string
+}) => `
+El usuario quiere corregir ${o.que}. Su feedback:
+"${o.feedback}"
+${o.actual ? `
+VERSIÓN ACTUAL, la que el usuario está viendo y quiere corregir:
+${JSON.stringify(o.actual)}
+
+REGLAS PARA APLICAR EL FEEDBACK:
+- Parte de la VERSIÓN ACTUAL. Cambia SOLO lo que pide el feedback; todo lo demás se queda IGUAL, palabra por palabra.
+- Si el feedback pide «mantener» algo, ese algo no se toca.
+- Si el feedback prohíbe algo (una palabra, un canal, una promesa, una cifra), no puede aparecer en NINGÚN campo.
+` : ''}
+ESE FEEDBACK MANDA sobre las respuestas originales de abajo.
+Respuestas originales: ${o.ctx}
+${bloqueNicho(o.nicho)}
+Devuelve el JSON con EXACTAMENTE esta forma. Las claves van en inglés, tal cual están aquí, aunque el feedback esté en español:
+${o.esquema}${o.extra ? `\n${o.extra}` : ''}`
+
+const textoLleno = (v: unknown) => (typeof v === 'string' && v.trim() !== '') || typeof v === 'number'
+const listaLlena = (v: unknown) =>
+  Array.isArray(v) && v.length > 0 && v.every((x) => (typeof x === 'string' && x.trim() !== '') || typeof x === 'number')
+
+/**
+ * Qué le falta a una respuesta para tener la forma que pinta la pantalla de
+ * revisión. Solo se exige lo que la pantalla enseña: `experience` y
+ * `opportunity` se guardan pero no se muestran, así que no se exigen.
+ */
+const faltasNicho = (n: any): string[] =>
+  ['sector', 'micronicho', 'tam', 'ticket', 'trend', 'momento', 'razon'].filter((k) => !textoLleno(n?.[k]))
+
+const faltasAvatar = (a: any): string[] => [
+  ...['name', 'age', 'position', 'income', 'narrative'].filter((k) => !textoLleno(a?.[k])),
+  ...['goals', 'pains'].filter((k) => !listaLlena(a?.[k])),
+]
+
+const faltasCompetencia = (c: any): string[] => {
+  if (!Array.isArray(c?.competitors) || c.competitors.length === 0) return ['competitors']
+  const f: string[] = []
+  c.competitors.forEach((x: any, i: number) => {
+    for (const k of ['name', 'price', 'gap']) if (!textoLleno(x?.[k])) f.push(`competitors[${i}].${k}`)
+    for (const k of ['strengths', 'weaknesses']) if (!listaLlena(x?.[k])) f.push(`competitors[${i}].${k}`)
+  })
+  if (!textoLleno(c?.positioning)) f.push('positioning')
+  return f
+}
+
+/** La IA devolvió algo sin la forma que pinta la pantalla, incluso tras reintentar. */
+class ErrorDeForma extends Error {
+  constructor(readonly faltas: string[]) {
+    super(`Respuesta de la IA sin la forma esperada: ${faltas.join(', ')}`)
+  }
+}
+
+/**
+ * Genera, parsea y COMPRUEBA la forma antes de dar nada por bueno. Si falta algo
+ * que la pantalla pinta, reintenta una vez diciéndole al modelo qué le faltó.
+ * Si vuelve a fallar lanza ErrorDeForma y NO se guarda nada: es preferible
+ * avisar al alumno que pisarle el análisis con tarjetas vacías.
+ *
+ * Solo se capturan los fallos de PARSEO. Los de la API de Anthropic (límite,
+ * credenciales, caída) se propagan tal cual al catch del handler, como antes.
+ */
+async function generarConForma(
+  anthropic: Anthropic,
+  prompt: string,
+  faltasDe: (x: any) => string[],
+): Promise<Record<string, unknown>> {
+  const intentar = async (p: string): Promise<{ dato?: Record<string, unknown>; faltas: string[] }> => {
+    const raw = await generate(anthropic, p)
+    let dato: Record<string, unknown>
+    try {
+      dato = parseJSON<Record<string, unknown>>(raw)
+    } catch {
+      return { faltas: ['JSON válido'] }
+    }
+    return { dato, faltas: faltasDe(dato) }
+  }
+  const primero = await intentar(prompt)
+  if (primero.dato && primero.faltas.length === 0) return primero.dato
+  const segundo = await intentar(`${prompt}
+
+TU RESPUESTA ANTERIOR NO TENÍA LA FORMA PEDIDA. Faltaban o venían vacíos: ${primero.faltas.join(', ')}.
+Devuelve el JSON COMPLETO, con EXACTAMENTE las claves del esquema (en inglés, tal cual) y todos esos campos rellenos.`)
+  if (segundo.dato && segundo.faltas.length === 0) return segundo.dato
+  throw new ErrorDeForma(segundo.faltas)
 }
 
 const TABLAS = ['project_nicho', 'project_avatar', 'project_competencia']
@@ -197,15 +331,7 @@ Basado en estas respuestas de un emprendedor que quiere crear una agencia de IA:
 ${ctx}
 
 Genera un análisis de nicho detallado en formato JSON:
-{
-  "sector": "nombre del sector específico",
-  "micronicho": "descripción del micronicho exacto",
-  "tam": "rango de potenciales clientes (ej: 15,000-20,000)",
-  "ticket": "rango de precio mensual recomendado (ej: €2,500-4,500/mes)",
-  "trend": "crecimiento anual estimado (ej: ↑ 22% anual)",
-  "momento": "¿Es buen momento para entrar? (1 oración)",
-  "razon": "Explicación de 2-3 oraciones de por qué este nicho es ideal ahora mismo para una agencia de IA"
-}`),
+${ESQUEMA_NICHO}`),
 
         generate(anthropic, promptAvatar(ctx)),
         generate(anthropic, promptCompetencia(ctx)),
@@ -239,19 +365,19 @@ Genera un análisis de nicho detallado en formato JSON:
     // con un contexto incoherente: es el "queda reducido y no me sirve".
     if (operation === 'update-nicho') {
       const { feedback } = req.body
-      const nicho = parseJSON(await generate(anthropic, `
-El usuario quiere modificar el análisis de nicho. Feedback: "${feedback}"
-ESE FEEDBACK MANDA: si contradice las respuestas de abajo, gana el feedback.
-Respuestas originales: ${ctx}
-Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticket, trend, momento, razon.`))
+      const nicho = await generarConForma(anthropic, promptFeedback({
+        que: 'el análisis de nicho',
+        feedback,
+        actual: await nichoGuardado(db, projectId),
+        ctx,
+        esquema: ESQUEMA_NICHO,
+      }), faltasNicho)
 
       // Con el nicho nuevo en mano se rehacen los otros dos ALINEADOS a él.
-      const [avatarRaw, compRaw] = await Promise.all([
-        generate(anthropic, promptAvatar(ctx, nicho)),
-        generate(anthropic, promptCompetencia(ctx, nicho)),
+      const [avatar, competencia] = await Promise.all([
+        generarConForma(anthropic, promptAvatar(ctx, nicho), faltasAvatar),
+        generarConForma(anthropic, promptCompetencia(ctx, nicho), faltasCompetencia),
       ])
-      const avatar = parseJSON(avatarRaw)
-      const competencia = parseJSON(compRaw)
 
       const results = await Promise.allSettled(filasDeLosTres(db, projectId, nicho, avatar, competencia))
       const errores = erroresDeGuardado(results)
@@ -265,13 +391,18 @@ Genera un nuevo nicho JSON con los mismos campos: sector, micronicho, tam, ticke
     // ── UPDATE avatar ─────────────────────────────────────────────────────────
     if (operation === 'update-avatar') {
       const { feedback } = req.body
-      const raw = await generate(anthropic, `
-El usuario quiere modificar el avatar. Feedback: "${feedback}"
-ESE FEEDBACK MANDA sobre las respuestas de abajo.
-Respuestas originales: ${ctx}
-${bloqueNicho(await nichoGuardado(db, projectId))}
-Genera un nuevo avatar JSON con los mismos campos: name, age, position, experience, income, goals, pains, narrative.`)
-      const avatar = parseJSON(raw)
+      const [actual, nicho] = await Promise.all([
+        guardado(db, 'project_avatar', projectId),
+        nichoGuardado(db, projectId),
+      ])
+      const avatar = await generarConForma(anthropic, promptFeedback({
+        que: 'el avatar',
+        feedback,
+        actual,
+        ctx,
+        nicho,
+        esquema: ESQUEMA_AVATAR,
+      }), faltasAvatar)
       const result = await db.from('project_avatar').upsert({
         project_id: projectId,
         name: avatar.name,
@@ -288,13 +419,19 @@ Genera un nuevo avatar JSON con los mismos campos: name, age, position, experien
     // ── UPDATE competencia ────────────────────────────────────────────────────
     if (operation === 'update-competencia') {
       const { feedback } = req.body
-      const raw = await generate(anthropic, `
-El usuario quiere modificar el análisis de competencia. Feedback: "${feedback}"
-ESE FEEDBACK MANDA sobre las respuestas de abajo.
-Respuestas originales: ${ctx}
-${bloqueNicho(await nichoGuardado(db, projectId))}
-Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
-      const competencia = parseJSON(raw)
+      const [actual, nicho] = await Promise.all([
+        guardado(db, 'project_competencia', projectId),
+        nichoGuardado(db, projectId),
+      ])
+      const competencia = await generarConForma(anthropic, promptFeedback({
+        que: 'el análisis de competencia',
+        feedback,
+        actual,
+        ctx,
+        nicho,
+        esquema: ESQUEMA_COMPETENCIA,
+        extra: 'Incluye exactamente 3 competidores, salvo que el feedback pida expresamente otro número.',
+      }), faltasCompetencia)
       const result = await db.from('project_competencia').upsert({
         project_id: projectId,
         data_json: JSON.stringify(competencia),
@@ -308,6 +445,15 @@ Genera un nuevo análisis JSON con: competitors (3), positioning, opportunity.`)
 
     return res.status(400).json({ error: `Operación desconocida: ${operation}` })
   } catch (error: any) {
+    // No se guardó nada: se avisa en claro en vez de devolver un 500 genérico.
+    if (error instanceof ErrorDeForma) {
+      console.warn(`[analysis/${operation}] forma inválida tras reintentar:`, error.faltas)
+      await reportarError(error, { endpoint: 'analysis', operation, projectId, tipo: 'forma-ia', faltas: error.faltas })
+      return res.status(422).json({
+        error: 'La IA no devolvió el análisis completo, así que no hemos cambiado nada. Vuelve a intentarlo; si se repite, prueba a escribir el cambio con otras palabras.',
+        faltas: error.faltas,
+      })
+    }
     console.error(`[analysis/${operation}]`, error)
     await reportarError(error, {
       endpoint: 'analysis',
