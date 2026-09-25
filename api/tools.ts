@@ -146,6 +146,35 @@ function limpiarCadenas(s: string): string {
   return out.replace(/,(\s*[}\]])/g, '$1')
 }
 
+/**
+ * El primer valor JSON completo (objeto o array) del texto, pero SOLO si lo que
+ * va detrás son cierres sobrantes y espacios. Si detrás hay algo más devuelve
+ * null: es mejor un error que devolver medio resultado sin avisar.
+ */
+function primerValorCompleto(s: string): string | null {
+  const ini = s.search(/[[{]/)
+  if (ini < 0) return null
+  let prof = 0
+  let enCadena = false
+  let escape = false
+  for (let i = ini; i < s.length; i++) {
+    const c = s[i]
+    if (enCadena) {
+      if (escape) escape = false
+      else if (c === '\\') escape = true
+      else if (c === '"') enCadena = false
+      continue
+    }
+    if (c === '"') enCadena = true
+    else if (c === '{' || c === '[') prof++
+    else if (c === '}' || c === ']') {
+      prof--
+      if (prof === 0) return /^[\s}\]]*$/.test(s.slice(i + 1)) ? s.slice(ini, i + 1) : null
+    }
+  }
+  return null
+}
+
 function parseJSON<T>(raw: string): T {
   // Strip code fences
   let cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
@@ -176,6 +205,19 @@ function parseJSON<T>(raw: string): T {
         return JSON.parse(cerrar(limpiar(cleaned)))
       } catch { /* siguiente combinación */ }
     }
+  }
+
+  // Último recurso, y SOLO para un defecto concreto visto en producción: el
+  // JSON está completo pero la IA cierra de más al continuar una respuesta que
+  // se cortó por el techo de tokens (`…RGPD"}` + un `}` de más). Al alumno le
+  // salía «formato inesperado» con la landing entera ya escrita. Solo se acepta si lo
+  // que sobra son cierres y espacios; si hay texto detrás, se sigue dando error.
+  for (const limpiar of limpiezas) {
+    const valor = primerValorCompleto(limpiar(cleaned))
+    if (!valor) continue
+    try {
+      return JSON.parse(valor)
+    } catch { /* siguiente limpieza */ }
   }
 
   // El mensaje va SIN el fragmento variable: si no, Sentry abre un issue nuevo
@@ -324,6 +366,9 @@ async function generarTextoCompleto(
     }
     const parte = respuesta.content[0]?.type === 'text' ? respuesta.content[0].text : ''
     if (!parte) break
+    // Cómo empieza cada continuación: si la costura se rompe (el modelo repite,
+    // reabre el JSON o cierra de más), aquí queda la prueba para arreglarlo.
+    if (texto) console.warn(`[tools/${o.toolId}] costura ${intento}: termina ${JSON.stringify(texto.slice(-60))} · sigue ${JSON.stringify(parte.slice(0, 60))}`)
 
     texto = (texto + parte).replace(/\s+$/, '')
     if (respuesta.stop_reason !== 'max_tokens') return texto
